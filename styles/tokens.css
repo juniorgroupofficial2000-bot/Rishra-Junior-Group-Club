@@ -1,0 +1,270 @@
+/*
+  RJGC Design System — "Ink & Alta"
+  Knowledge (ink indigo) + Bengali alta (vermillion) + restrained marigold.
+  Cool jasmine paper — not warm cream/terracotta SaaS clichés.
+*/
+
+:root {
+  /* ——— Brand / semantic color ——— */
+  --color-ink-950: #071018;
+  --color-ink-900: #0b1c2c;
+  --color-ink-800: #132a3f;
+  --color-ink-700: #1e3d57;
+  --color-ink-600: #2a5270;
+  --color-ink-500: #3d6b8c;
+  --color-ink-400: #6a90ab;
+  --color-ink-300: #9bb4c6;
+  --color-ink-200: #c5d5e0;
+  --color-ink-100: #e4ecf2;
+  --color-ink-50: #f2f6f9;
+
+  --color-alta-700: #9a2a18;
+  --color-alta-600: #b8331c;
+  --color-alta-500: #c9432a;
+  --color-alta-400: #e06a52;
+  --color-alta-100: #fce8e3;
+  --color-alta-50: #fff5f2;
+
+  --color-marigold-700: #8a6a10;
+  --color-marigold-600: #a88414;
+  --color-marigold-500: #c49a1a;
+  --color-marigold-400: #d9b44a;
+  --color-marigold-100: #f7efd2;
+  --color-marigold-50: #fbf7ea;
+
+  --color-lotus-700: #3d5c52;
+  --color-lotus-500: #5a7d72;
+  --color-lotus-100: #e4eeea;
+  --color-lotus-50: #f3f8f6;
+
+  --color-jasmine-50: #f8f7f4;
+  --color-jasmine-100: #f1efe9;
+  --color-jasmine-200: #e5e2d8;
+
+  --color-success-600: #2f6f4e;
+  --color-success-100: #e4f2ea;
+  --color-warning-600: #9a6b12;
+  --color-warning-100: #f7efd2;
+  --color-danger-600: #9a2a18;
+  --color-danger-100: #fce8e3;
+  --color-info-600: #1e3d57;
+  --color-info-100: #e4ecf2;
+
+  /* ——— Semantic aliases ——— */
+  --color-background: var(--color-jasmine-50);
+  --color-foreground: var(--color-ink-900);
+  --color-muted: var(--color-ink-500);
+  --color-muted-foreground: var(--color-ink-500);
+  --color-primary: var(--color-ink-900);
+  --color-primary-foreground: #ffffff;
+  --color-accent: var(--color-alta-500);
+  --color-accent-foreground: #ffffff;
+  --color-secondary: var(--color-ink-100);
+  --color-secondary-foreground: var(--color-ink-800);
+  --color-ring: var(--color-ink-600);
+  --color-focus: var(--color-marigold-500);
+
+  /* ——— Surfaces ——— */
+  --surface-canvas: var(--color-jasmine-50);
+  --surface-raised: #ffffff;
+  --surface-sunken: var(--color-jasmine-100);
+  --surface-muted: var(--color-ink-50);
+  --surface-inverse: var(--color-ink-900);
+  --surface-accent-soft: var(--color-alta-50);
+  --surface-heritage-soft: var(--color-marigold-50);
+  --surface-overlay: rgb(7 16 24 / 0.48);
+
+  /* ——— Borders ——— */
+  --border-subtle: var(--color-jasmine-200);
+  --border-default: var(--color-ink-200);
+  --border-strong: var(--color-ink-300);
+  --border-accent: var(--color-alta-400);
+  --border-focus: var(--color-ink-600);
+
+  /* ——— Shadows (single-layer, restrained) ——— */
+  --shadow-xs: 0 1px 2px rgb(7 16 24 / 0.04);
+  --shadow-sm: 0 1px 3px rgb(7 16 24 / 0.06), 0 1px 2px rgb(7 16 24 / 0.04);
+  --shadow-md: 0 4px 12px rgb(7 16 24 / 0.08);
+  --shadow-lg: 0 12px 28px rgb(7 16 24 / 0.1);
+  --shadow-focus: 0 0 0 3px rgb(196 154 26 / 0.35);
+
+  /* ——— Radius ——— */
+  --radius-none: 0;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-full: 9999px;
+
+  /* ——— Spacing scale (4px base) ——— */
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+
+  /* ——— Containers ——— */
+  --container-sm: 40rem;
+  --container-md: 48rem;
+  --container-lg: 64rem;
+  --container-xl: 72rem;
+  --container-2xl: 80rem;
+  --container-prose: 42rem;
+
+  /* ——— Breakpoints (reference; also in @theme) ——— */
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+  --breakpoint-2xl: 96rem;
+
+  /* ——— Typography ——— */
+  --font-display: var(--font-fraunces), "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+  --font-sans: var(--font-source-sans), "Source Sans 3", "Segoe UI", sans-serif;
+  --font-bengali: var(--font-noto-bengali), "Noto Sans Bengali", "Hind Siliguri", sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), "IBM Plex Mono", ui-monospace, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+  --text-6xl: 3.75rem;
+
+  --leading-tight: 1.2;
+  --leading-snug: 1.35;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.65;
+
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.04em;
+
+  /* ——— Motion ——— */
+  --ease-out-premium: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-premium: cubic-bezier(0.45, 0, 0.55, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+
+  /* ——— Z-index ——— */
+  --z-dropdown: 20;
+  --z-sticky: 30;
+  --z-overlay: 40;
+  --z-modal: 50;
+  --z-toast: 60;
+}
+
+@theme inline {
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-foreground);
+  --color-muted: var(--color-muted);
+  --color-primary: var(--color-primary);
+  --color-primary-foreground: var(--color-primary-foreground);
+  --color-accent: var(--color-accent);
+  --color-accent-foreground: var(--color-accent-foreground);
+  --color-secondary: var(--color-secondary);
+  --color-secondary-foreground: var(--color-secondary-foreground);
+  --color-ring: var(--color-ring);
+
+  --color-ink-950: var(--color-ink-950);
+  --color-ink-900: var(--color-ink-900);
+  --color-ink-800: var(--color-ink-800);
+  --color-ink-700: var(--color-ink-700);
+  --color-ink-600: var(--color-ink-600);
+  --color-ink-500: var(--color-ink-500);
+  --color-ink-400: var(--color-ink-400);
+  --color-ink-300: var(--color-ink-300);
+  --color-ink-200: var(--color-ink-200);
+  --color-ink-100: var(--color-ink-100);
+  --color-ink-50: var(--color-ink-50);
+
+  --color-alta-700: var(--color-alta-700);
+  --color-alta-600: var(--color-alta-600);
+  --color-alta-500: var(--color-alta-500);
+  --color-alta-400: var(--color-alta-400);
+  --color-alta-100: var(--color-alta-100);
+  --color-alta-50: var(--color-alta-50);
+
+  --color-marigold-700: var(--color-marigold-700);
+  --color-marigold-600: var(--color-marigold-600);
+  --color-marigold-500: var(--color-marigold-500);
+  --color-marigold-400: var(--color-marigold-400);
+  --color-marigold-100: var(--color-marigold-100);
+  --color-marigold-50: var(--color-marigold-50);
+
+  --color-lotus-700: var(--color-lotus-700);
+  --color-lotus-500: var(--color-lotus-500);
+  --color-lotus-100: var(--color-lotus-100);
+  --color-lotus-50: var(--color-lotus-50);
+
+  --color-jasmine-50: var(--color-jasmine-50);
+  --color-jasmine-100: var(--color-jasmine-100);
+  --color-jasmine-200: var(--color-jasmine-200);
+
+  --color-success-600: var(--color-success-600);
+  --color-success-100: var(--color-success-100);
+  --color-warning-600: var(--color-warning-600);
+  --color-warning-100: var(--color-warning-100);
+  --color-danger-600: var(--color-danger-600);
+  --color-danger-100: var(--color-danger-100);
+  --color-info-600: var(--color-info-600);
+  --color-info-100: var(--color-info-100);
+
+  --color-surface-canvas: var(--surface-canvas);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-inverse: var(--surface-inverse);
+  --color-surface-accent-soft: var(--surface-accent-soft);
+  --color-surface-heritage-soft: var(--surface-heritage-soft);
+
+  --color-border-subtle: var(--border-subtle);
+  --color-border-default: var(--border-default);
+  --color-border-strong: var(--border-strong);
+  --color-border-accent: var(--border-accent);
+  --color-border-focus: var(--border-focus);
+
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+  --font-bengali: var(--font-bengali);
+  --font-mono: var(--font-mono);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-focus: var(--shadow-focus);
+
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+  --breakpoint-2xl: 96rem;
+
+  --container-sm: var(--container-sm);
+  --container-md: var(--container-md);
+  --container-lg: var(--container-lg);
+  --container-xl: var(--container-xl);
+  --container-2xl: var(--container-2xl);
+  --container-prose: var(--container-prose);
+}
