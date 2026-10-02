@@ -88,6 +88,16 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-2">
           <Link
+            href="/login"
+            className={cn(
+              "hidden min-h-11 items-center rounded-md px-3 text-sm font-medium text-ink-700 sm:inline-flex",
+              "hover:bg-ink-50",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            )}
+          >
+            Sign in
+          </Link>
+          <Link
             href="/membership"
             className={cn(
               "hidden min-h-11 items-center rounded-md bg-ink-900 px-3.5 text-sm font-medium text-white shadow-xs sm:inline-flex",
@@ -165,6 +175,12 @@ export function SiteHeader() {
               className="mb-2 flex min-h-12 items-center rounded-md px-3 text-base font-medium text-ink-700 hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Announcements
+            </Link>
+            <Link
+              href="/login"
+              className="mb-2 flex min-h-12 items-center rounded-md px-3 text-base font-medium text-ink-700 hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Sign in
             </Link>
             <Link
               href="/membership"
