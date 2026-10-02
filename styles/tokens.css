@@ -1,7 +1,8 @@
 /*
   RJGC Design System — "Ink & Alta"
-  Knowledge (ink indigo) + Bengali alta (vermillion) + restrained marigold.
+  Knowledge (ink indigo) + alta accent (vermillion) + restrained marigold.
   Cool jasmine paper — not warm cream/terracotta SaaS clichés.
+  English-only UI copy.
 */
 
 :root {
@@ -130,7 +131,6 @@
   /* ——— Typography ——— */
   --font-display: var(--font-fraunces), "Iowan Old Style", "Palatino Linotype", Palatino, serif;
   --font-sans: var(--font-source-sans), "Source Sans 3", "Segoe UI", sans-serif;
-  --font-bengali: var(--font-noto-bengali), "Noto Sans Bengali", "Hind Siliguri", sans-serif;
   --font-mono: var(--font-ibm-plex-mono), "IBM Plex Mono", ui-monospace, monospace;
 
   --text-xs: 0.75rem;
@@ -240,7 +240,6 @@
 
   --font-sans: var(--font-sans);
   --font-display: var(--font-display);
-  --font-bengali: var(--font-bengali);
   --font-mono: var(--font-mono);
 
   --radius-sm: var(--radius-sm);

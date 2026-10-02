@@ -11,7 +11,6 @@ import type { ReactNode } from "react";
 
 export type CommitteeCardProps = {
   name: ReactNode;
-  bilingualName?: ReactNode;
   role: ReactNode;
   tenureLabel?: string;
   description?: ReactNode;
@@ -39,7 +38,6 @@ function Initials({ label }: { label: string }) {
 
 export function CommitteeCard({
   name,
-  bilingualName,
   role,
   tenureLabel,
   description,
@@ -56,9 +54,6 @@ export function CommitteeCard({
             <CardTitle className="text-lg">{name}</CardTitle>
             {tenureLabel ? <Badge variant="outline">{tenureLabel}</Badge> : null}
           </div>
-          {bilingualName ? (
-            <p className="font-bengali text-sm text-ink-600">{bilingualName}</p>
-          ) : null}
           <p className="text-sm font-medium text-alta-600">{role}</p>
         </div>
       </CardHeader>

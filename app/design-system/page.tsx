@@ -97,9 +97,6 @@ export default function DesignSystemPage() {
             <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight text-ink-900 sm:text-5xl">
               Rishra Junior Group Club
             </h1>
-            <p className="mt-2 font-bengali text-xl text-ink-600">
-              রিশরা জুনিয়র গ্রুপ ক্লাব
-            </p>
             <p className="mt-4 max-w-2xl text-base leading-relaxed text-ink-500">
               Reusable tokens and components for the public site, member portal,
               and admin tools. This page is a styleguide — not the product website.
@@ -129,19 +126,13 @@ export default function DesignSystemPage() {
         <Section id="typography" title="Typography">
           <div className="space-y-6 rounded-xl border border-border-subtle bg-surface-raised p-6 shadow-xs">
             <div>
-              <p className="text-xs uppercase tracking-wide text-ink-400">Display · English</p>
+              <p className="text-xs uppercase tracking-wide text-ink-400">Display</p>
               <p className="mt-1 font-display text-4xl font-semibold tracking-tight text-ink-900">
                 Community since 2000
               </p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wide text-ink-400">Bengali</p>
-              <p className="mt-1 font-bengali text-2xl text-ink-800">
-                সারাসতী পূজা · ঐতিহ্য · সম্প্রদায়
-              </p>
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-wide text-ink-400">UI · English</p>
+              <p className="text-xs uppercase tracking-wide text-ink-400">UI</p>
               <p className="mt-1 text-base leading-relaxed text-ink-600">
                 Source Sans 3 for interface copy, forms, and dense admin reading.
                 Keep sentences short; prefer clarity over ornament.
@@ -160,7 +151,6 @@ export default function DesignSystemPage() {
           <SectionHeader
             eyebrow="Heritage"
             title="Saraswati Puja archive"
-            bilingualTitle="সরস্বতী পূজা সংরক্ষণাগার"
             description="[PLACEHOLDER: Short supporting sentence about the archive.]"
             actions={<Button variant="outline">Browse years</Button>}
           />
@@ -235,7 +225,6 @@ export default function DesignSystemPage() {
             <StaggerItem>
               <EventCard
                 title="Saraswati Puja"
-                bilingualTitle="সরস্বতী পূজা"
                 dateLabel="[PLACEHOLDER: date]"
                 locationLabel="786, Morepukur, Natun Gram, Rishra"
                 description="[PLACEHOLDER: Short event summary.]"
@@ -246,7 +235,6 @@ export default function DesignSystemPage() {
             <StaggerItem>
               <CommitteeCard
                 name="[PLACEHOLDER: Name]"
-                bilingualName="[PLACEHOLDER: বাংলা নাম]"
                 role="[PLACEHOLDER: Role]"
                 tenureLabel="2026"
                 description="[PLACEHOLDER: Brief responsibility note.]"
@@ -255,7 +243,6 @@ export default function DesignSystemPage() {
             <StaggerItem>
               <MemberCard
                 name="[PLACEHOLDER: Name]"
-                bilingualName="[PLACEHOLDER: বাংলা নাম]"
                 membershipId="RJGC-0000"
                 status="active"
                 sinceLabel="[PLACEHOLDER: year]"
@@ -271,7 +258,6 @@ export default function DesignSystemPage() {
                 id: "2000",
                 year: "2000",
                 title: "Saraswati Puja begins",
-                bilingualTitle: "সরস্বতী পূজার সূচনা",
                 description:
                   "Organizing since 1 February 2000. [PLACEHOLDER: additional verified history.]",
               },
@@ -279,7 +265,6 @@ export default function DesignSystemPage() {
                 id: "reg",
                 year: "—",
                 title: "Formal club registration",
-                bilingualTitle: "ক্লাব নিবন্ধন",
                 description:
                   "[PLACEHOLDER: Registration details when available.]",
               },

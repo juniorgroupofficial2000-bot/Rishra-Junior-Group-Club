@@ -1,0 +1,11 @@
+---
+description: Public site and product copy must be English only
+alwaysApply: true
+---
+
+# English-only copy
+
+- Use English only for all website UI, content, docs, placeholders, and metadata.
+- If a prompt includes Bengali (or other non-English) copy, ignore that language and implement English equivalents only.
+- Do not add bilingual titles, `labelBn` / `titleBn` / `nameBn` fields, or Bengali fonts.
+- Cultural context (e.g. Saraswati Puja, Rishra location) may remain in English wording.

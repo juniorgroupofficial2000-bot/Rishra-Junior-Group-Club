@@ -33,6 +33,7 @@
     font-family: var(--font-sans);
     font-size: var(--text-base);
     line-height: var(--leading-normal);
+    overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -52,10 +53,6 @@
 @layer utilities {
   .font-display {
     font-family: var(--font-display);
-  }
-
-  .font-bengali {
-    font-family: var(--font-bengali);
   }
 
   .text-balance {

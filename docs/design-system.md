@@ -1,17 +1,19 @@
 # RJGC Design System — Ink & Alta
 
-Visual system for **Rishra Junior Group Club** / **রিশরা জুনিয়র গ্রুপ ক্লাব**.
+Visual system for **Rishra Junior Group Club**.
 
 ## Intent
 
-Communicate community, heritage, Bengali cultural identity, Saraswati Puja, trust, longevity, and a modern organization — without looking like a generic SaaS dashboard or festival template.
+Communicate community, heritage, cultural identity around Saraswati Puja, trust, longevity, and a modern organization — without looking like a generic SaaS dashboard or festival template.
+
+Site language: **English only**.
 
 ## Direction: Ink & Alta
 
 | Signal | Token family | Role |
 |--------|--------------|------|
 | Knowledge / trust | `ink-*` | Primary surfaces, type, structure |
-| Bengali pulse | `alta-*` | Accent, CTAs, active indicators |
+| Accent pulse | `alta-*` | Accent, CTAs, active indicators |
 | Longevity / ritual | `marigold-*` | Heritage highlights (sparingly) |
 | Continuity | `lotus-*` | Success / calm secondary |
 | Paper | `jasmine-*` | Cool canvas (not warm cream cliché) |
@@ -22,10 +24,7 @@ Communicate community, heritage, Bengali cultural identity, Saraswati Puja, trus
 |------|--------|-----|
 | English display | Fraunces | `.font-display` / `--font-display` |
 | English UI | Source Sans 3 | `--font-sans` |
-| Bengali | Noto Sans Bengali | `.font-bengali` / `--font-bengali` |
 | Mono (IDs, receipts) | IBM Plex Mono | `--font-mono` |
-
-Pair English display with Bengali UI lines for bilingual section headers (`SectionHeader.bilingualTitle`).
 
 ## Tokens
 
@@ -39,6 +38,7 @@ Covers color, surfaces, borders, shadows, radius, spacing, containers, breakpoin
 |-------|------|
 | Primitives | `components/ui/*` |
 | Club patterns | `components/club/*` |
+| Public shell | `components/public/*` |
 | Motion | `components/motion/*`, `lib/motion.ts` |
 
 ## Animation principles

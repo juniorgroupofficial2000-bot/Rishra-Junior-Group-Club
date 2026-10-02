@@ -6,7 +6,6 @@ export type TimelineItem = {
   year: string;
   title: ReactNode;
   description?: ReactNode;
-  bilingualTitle?: ReactNode;
 };
 
 export type TimelineProps = {
@@ -40,11 +39,6 @@ export function Timeline({ items, className }: TimelineProps) {
               <h3 className="font-display text-xl font-semibold tracking-tight text-ink-900">
                 {item.title}
               </h3>
-              {item.bilingualTitle ? (
-                <p className="mt-1 font-bengali text-base text-ink-600">
-                  {item.bilingualTitle}
-                </p>
-              ) : null}
               {item.description ? (
                 <p className="mt-2 text-sm leading-relaxed text-ink-500">
                   {item.description}

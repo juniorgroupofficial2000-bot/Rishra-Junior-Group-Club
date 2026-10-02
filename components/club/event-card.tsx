@@ -14,7 +14,6 @@ import type { ReactNode } from "react";
 
 export type EventCardProps = {
   title: ReactNode;
-  bilingualTitle?: ReactNode;
   dateLabel: string;
   locationLabel?: string;
   description?: ReactNode;
@@ -37,7 +36,6 @@ const statusLabel = {
 
 export function EventCard({
   title,
-  bilingualTitle,
   dateLabel,
   locationLabel,
   description,
@@ -52,9 +50,6 @@ export function EventCard({
           <Badge variant={statusVariant[status]}>{statusLabel[status]}</Badge>
         </div>
         <CardTitle>{title}</CardTitle>
-        {bilingualTitle ? (
-          <p className="font-bengali text-base text-ink-600">{bilingualTitle}</p>
-        ) : null}
         {description ? <CardDescription>{description}</CardDescription> : null}
       </CardHeader>
       <CardContent className="mt-auto space-y-2">

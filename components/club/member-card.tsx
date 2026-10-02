@@ -10,7 +10,6 @@ import type { ReactNode } from "react";
 
 export type MemberCardProps = {
   name: ReactNode;
-  bilingualName?: ReactNode;
   membershipId?: string;
   status?: "active" | "pending" | "inactive";
   sinceLabel?: string;
@@ -31,7 +30,6 @@ const statusLabel = {
 
 export function MemberCard({
   name,
-  bilingualName,
   membershipId,
   status = "active",
   sinceLabel,
@@ -42,9 +40,6 @@ export function MemberCard({
       <CardHeader className="flex-row items-start justify-between gap-3 space-y-0">
         <div className="min-w-0 space-y-1">
           <CardTitle className="text-lg">{name}</CardTitle>
-          {bilingualName ? (
-            <p className="font-bengali text-sm text-ink-600">{bilingualName}</p>
-          ) : null}
         </div>
         <Badge variant={statusVariant[status]}>{statusLabel[status]}</Badge>
       </CardHeader>

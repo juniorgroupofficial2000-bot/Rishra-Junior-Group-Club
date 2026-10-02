@@ -6,7 +6,6 @@ export type SectionHeaderProps = HTMLAttributes<HTMLElement> & {
   title: ReactNode;
   description?: ReactNode;
   titleAs?: "h1" | "h2" | "h3";
-  bilingualTitle?: ReactNode;
   actions?: ReactNode;
   align?: "start" | "center";
 };
@@ -15,7 +14,6 @@ export function SectionHeader({
   eyebrow,
   title,
   description,
-  bilingualTitle,
   actions,
   align = "start",
   titleAs: TitleTag = "h2",
@@ -41,11 +39,6 @@ export function SectionHeader({
         <TitleTag className="font-display text-3xl font-semibold tracking-tight text-ink-900 text-balance sm:text-4xl">
           {title}
         </TitleTag>
-        {bilingualTitle ? (
-          <p className="font-bengali text-lg text-ink-600 leading-snug">
-            {bilingualTitle}
-          </p>
-        ) : null}
         {description ? (
           <p className="text-base text-ink-500 leading-relaxed">{description}</p>
         ) : null}
