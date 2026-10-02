@@ -1,6 +1,7 @@
-import { EventCard } from "@/components/club/event-card";
-import { FadeIn, Stagger, StaggerItem } from "@/components/motion/fade-in";
+import { EventList } from "@/components/events";
+import { FadeIn } from "@/components/motion/fade-in";
 import { SiteContainer } from "@/components/public/site-container";
+import { getUpcomingEvents } from "@/content/events";
 import { homeContent } from "@/content/home";
 import { HomeLink } from "./home-link";
 import { HomeSectionHeading } from "./home-section-heading";
@@ -8,6 +9,8 @@ import { HomeSectionHeading } from "./home-section-heading";
 const content = homeContent.events;
 
 export function HomeEvents() {
+  const events = getUpcomingEvents().slice(0, content.previewLimit);
+
   return (
     <section
       aria-labelledby="home-events-heading"
@@ -23,19 +26,12 @@ export function HomeEvents() {
             actions={<HomeLink {...content.cta} appearance="outline" />}
           />
         </FadeIn>
-        <Stagger className="mt-10 grid gap-4 md:grid-cols-2">
-          {content.items.map((event) => (
-            <StaggerItem key={event.id}>
-              <EventCard
-                title={event.title}
-                dateLabel={event.dateLabel}
-                locationLabel={event.locationLabel}
-                status={event.status}
-                href={event.href}
-              />
-            </StaggerItem>
-          ))}
-        </Stagger>
+        <div className="mt-10">
+          <EventList
+            events={events}
+            emptyLabel="No upcoming events published yet."
+          />
+        </div>
       </SiteContainer>
     </section>
   );

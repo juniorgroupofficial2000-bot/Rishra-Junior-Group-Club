@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import type { ContentProvenance } from "@/content/heritage";
+import type { ContentProvenance } from "@/content/shared/media";
 
 const labels: Record<ContentProvenance, string> = {
   verified: "Verified",

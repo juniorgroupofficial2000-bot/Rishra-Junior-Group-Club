@@ -44,44 +44,6 @@ export const homeImages = {
     height: 1200,
     note: "Replace with a Saraswati Puja photograph from the archive.",
   },
-  gallery: [
-    {
-      src: "/images/home/gallery-01.svg",
-      alt: "Placeholder gallery image 1",
-      width: 1200,
-      height: 1200,
-    },
-    {
-      src: "/images/home/gallery-02.svg",
-      alt: "Placeholder gallery image 2",
-      width: 1200,
-      height: 1500,
-    },
-    {
-      src: "/images/home/gallery-03.svg",
-      alt: "Placeholder gallery image 3",
-      width: 1200,
-      height: 1200,
-    },
-    {
-      src: "/images/home/gallery-04.svg",
-      alt: "Placeholder gallery image 4",
-      width: 1200,
-      height: 900,
-    },
-    {
-      src: "/images/home/gallery-05.svg",
-      alt: "Placeholder gallery image 5",
-      width: 1200,
-      height: 1200,
-    },
-    {
-      src: "/images/home/gallery-06.svg",
-      alt: "Placeholder gallery image 6",
-      width: 1200,
-      height: 1400,
-    },
-  ],
   location: {
     src: "/images/home/location.svg",
     alt: "Placeholder image for the club neighbourhood in Rishra",
@@ -168,55 +130,23 @@ export const homeContent = {
     eyebrow: "Calendar",
     title: "Upcoming events",
     description:
-      "Public events will be listed here as dates are confirmed. No upcoming schedule has been published yet.",
-    items: [
-      {
-        id: "e1",
-        title: "[PLACEHOLDER: Event title]",
-        dateLabel: "[PLACEHOLDER: Date]",
-        locationLabel: siteConfig.address.line1,
-        status: "upcoming" as const,
-        href: "/events",
-      },
-      {
-        id: "e2",
-        title: "[PLACEHOLDER: Event title]",
-        dateLabel: "[PLACEHOLDER: Date]",
-        locationLabel: "Rishra",
-        status: "upcoming" as const,
-        href: "/events",
-      },
-    ],
+      "Public events from the club calendar. SAMPLE listings are labelled on the Events page.",
+    previewLimit: 2,
     cta: { label: "All events", href: "/events" } satisfies HomeCta,
   },
   gallery: {
     eyebrow: "Memories",
     title: "Gallery",
     description:
-      "A preview of club photographs. Replace the placeholder frames with curated archive images.",
-    images: homeImages.gallery,
+      "Album preview from the gallery. SAMPLE albums are labelled.",
+    previewLimit: 6,
     cta: { label: "Browse the gallery", href: "/gallery" } satisfies HomeCta,
   },
   announcements: {
     eyebrow: "Updates",
     title: "Announcements",
     description: "Official notices for members and the wider community.",
-    items: [
-      {
-        id: "a1",
-        title: "[PLACEHOLDER: Announcement title]",
-        dateLabel: "[PLACEHOLDER: Date]",
-        summary: "[PLACEHOLDER: One-sentence summary.]",
-        href: "/announcements",
-      },
-      {
-        id: "a2",
-        title: "[PLACEHOLDER: Announcement title]",
-        dateLabel: "[PLACEHOLDER: Date]",
-        summary: "[PLACEHOLDER: One-sentence summary.]",
-        href: "/announcements",
-      },
-    ],
+    previewLimit: 2,
     cta: { label: "All announcements", href: "/announcements" } satisfies HomeCta,
   },
   membership: {

@@ -4,7 +4,9 @@
  * Entries with `provenance: "verified"` use confirmed club facts only.
  */
 
-export type ContentProvenance = "verified" | "sample" | "placeholder";
+import type { ContentProvenance } from "../shared/media";
+
+export type { ContentProvenance };
 
 export type HeritageMedia = {
   id: string;

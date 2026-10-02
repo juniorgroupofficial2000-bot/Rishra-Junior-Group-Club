@@ -71,21 +71,24 @@ export const publicPages: Record<PublicPageKey, PublicPageDefinition> = {
     key: "events",
     path: "/events",
     title: "Events",
-    description: "[PLACEHOLDER: Upcoming and past club events listing.]",
+    description:
+      "Upcoming and past events at Rishra Junior Group Club. SAMPLE listings are labelled.",
     eyebrow: "Calendar",
   },
   gallery: {
     key: "gallery",
     path: "/gallery",
     title: "Gallery",
-    description: "[PLACEHOLDER: Photo and video gallery introduction.]",
+    description:
+      "Photo and video albums from club celebrations and gatherings. SAMPLE albums are labelled.",
     eyebrow: "Moments",
   },
   announcements: {
     key: "announcements",
     path: "/announcements",
     title: "Announcements",
-    description: "[PLACEHOLDER: Public announcements feed introduction.]",
+    description:
+      "Official club announcements with categories and pinned notices. SAMPLE items are labelled.",
     eyebrow: "Updates",
   },
   membership: {

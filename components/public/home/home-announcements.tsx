@@ -1,13 +1,16 @@
-import { FadeIn, Stagger, StaggerItem } from "@/components/motion/fade-in";
+import { AnnouncementList } from "@/components/announcements";
+import { FadeIn } from "@/components/motion/fade-in";
 import { SiteContainer } from "@/components/public/site-container";
+import { getPublishedAnnouncements } from "@/content/announcements";
 import { homeContent } from "@/content/home";
-import Link from "next/link";
 import { HomeLink } from "./home-link";
 import { HomeSectionHeading } from "./home-section-heading";
 
 const content = homeContent.announcements;
 
 export function HomeAnnouncements() {
+  const items = getPublishedAnnouncements().slice(0, content.previewLimit);
+
   return (
     <section
       aria-labelledby="home-announcements-heading"
@@ -23,30 +26,9 @@ export function HomeAnnouncements() {
             actions={<HomeLink {...content.cta} appearance="outline" />}
           />
         </FadeIn>
-        <Stagger className="mt-10 divide-y divide-border-subtle border-y border-border-subtle">
-          {content.items.map((item) => (
-            <StaggerItem key={item.id}>
-              <article>
-                <Link
-                  href={item.href}
-                  className="group flex flex-col gap-2 py-6 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:flex-row sm:items-baseline sm:justify-between sm:gap-8"
-                >
-                  <div className="min-w-0">
-                    <h3 className="font-display text-xl font-semibold tracking-tight text-ink-900 group-hover:text-alta-600">
-                      {item.title}
-                    </h3>
-                    <p className="mt-1 text-sm leading-relaxed text-ink-500">
-                      {item.summary}
-                    </p>
-                  </div>
-                  <time className="shrink-0 font-mono text-xs text-ink-400 sm:text-sm">
-                    {item.dateLabel}
-                  </time>
-                </Link>
-              </article>
-            </StaggerItem>
-          ))}
-        </Stagger>
+        <div className="mt-10">
+          <AnnouncementList items={items} />
+        </div>
       </SiteContainer>
     </section>
   );

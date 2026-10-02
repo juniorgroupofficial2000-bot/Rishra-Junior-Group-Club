@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0b1c2c"/><stop offset="100%" stop-color="#a88414"/></linearGradient></defs>
+  <rect width="1200" height="800" fill="url(#g)"/>
+  <rect x="0" y="576" width="1200" height="224.00000000000003" fill="rgba(7,16,24,0.45)"/>
+  <text x="36" y="756" fill="rgba(255,255,255,0.92)" font-family="Georgia,serif" font-size="24">Announcement</text>
+  <text x="36" y="782" fill="rgba(255,255,255,0.55)" font-family="sans-serif" font-size="13">SAMPLE / PLACEHOLDER</text>
+</svg>
