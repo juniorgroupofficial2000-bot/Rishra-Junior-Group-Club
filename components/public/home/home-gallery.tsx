@@ -1,3 +1,5 @@
+"use client";
+
 import { AlbumCard } from "@/components/gallery";
 import { Reveal, StaggerChildren, StaggerItem } from "@/components/motion";
 import { SiteContainer } from "@/components/public/site-container";
@@ -26,15 +28,10 @@ export function HomeGallery() {
             actions={<HomeLink {...content.cta} appearance="outline" />}
           />
         </Reveal>
-        <StaggerChildren className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <StaggerChildren className="mx-auto mt-10 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {albums.map((album, index) => (
             <StaggerItem key={album.id}>
-              <AlbumCard
-                album={album}
-                priority={index < 2}
-                featured={index === 0}
-                className={index === 0 ? "sm:col-span-2 lg:col-span-1" : undefined}
-              />
+              <AlbumCard album={album} priority={index < 2} index={index} />
             </StaggerItem>
           ))}
         </StaggerChildren>

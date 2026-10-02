@@ -31,11 +31,13 @@ export function HomeLink({
         ? "secondary"
         : "ghost");
 
+  const showArrow = resolved === "primary" || resolved === "solid";
+
   return (
     <Link
       href={href}
       className={cn(
-        "inline-flex min-h-12 items-center justify-center rounded-md px-5 type-button transition-[transform,background-color,border-color,box-shadow] duration-300",
+        "inline-flex min-h-12 items-center justify-center gap-2 rounded-md px-5 type-button transition-[transform,background-color,border-color,box-shadow] duration-300",
         "hover:-translate-y-0.5",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         styles[resolved],
@@ -43,6 +45,14 @@ export function HomeLink({
       )}
     >
       {label}
+      {showArrow ? (
+        <span
+          aria-hidden
+          className="inline-block transition-transform duration-300 group-hover:translate-x-1"
+        >
+          →
+        </span>
+      ) : null}
     </Link>
   );
 }

@@ -25,20 +25,17 @@ export function PujaGalleries() {
             {description}
           </p>
         </FadeIn>
-        <Stagger className="mt-10 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
-          {images.map((image, index) => {
+        <Stagger className="mx-auto mt-10 grid max-w-4xl grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
+          {images.map((image) => {
             const isSvg = image.src.endsWith(".svg");
             return (
-              <StaggerItem
-                key={image.id}
-                className={index % 5 === 0 ? "md:col-span-2 md:row-span-2" : undefined}
-              >
-                <figure className="relative aspect-square overflow-hidden bg-ink-900 sm:rounded-lg md:h-full">
+              <StaggerItem key={image.id}>
+                <figure className="relative aspect-square overflow-hidden rounded-lg bg-ink-900">
                   <Image
                     src={image.src}
                     alt={image.alt}
                     fill
-                    sizes="(max-width: 768px) 50vw, 25vw"
+                    sizes="(max-width: 768px) 45vw, 180px"
                     unoptimized={isSvg}
                     className="object-cover"
                   />

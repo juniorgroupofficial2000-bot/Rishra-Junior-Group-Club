@@ -1,4 +1,6 @@
-import { FadeIn } from "@/components/motion/fade-in";
+"use client";
+
+import { ClipImageReveal, Reveal, SlideIn } from "@/components/motion";
 import { SiteContainer } from "@/components/public/site-container";
 import { homeContent } from "@/content/home";
 import { HomeImage } from "./home-image";
@@ -15,7 +17,7 @@ export function HomeLocation() {
     >
       <SiteContainer>
         <div className="grid items-stretch gap-10 lg:grid-cols-2 lg:gap-14">
-          <FadeIn className="min-w-0">
+          <Reveal className="min-w-0">
             <HomeSectionHeading
               eyebrow={content.eyebrow}
               title={content.title}
@@ -49,16 +51,21 @@ export function HomeLocation() {
               </div>
             </dl>
             <div className="mt-8">
-              <HomeLink {...content.cta} appearance="solid" />
+              <HomeLink {...content.cta} appearance="solid" className="group" />
             </div>
-          </FadeIn>
-          <FadeIn delay={0.08} slow className="min-w-0">
-            <HomeImage
-              image={content.image}
-              className="h-full min-h-72 w-full sm:rounded-xl lg:min-h-full"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-            />
-          </FadeIn>
+          </Reveal>
+          <SlideIn
+            from="right"
+            className="mx-auto min-w-0 w-full max-w-sm lg:max-w-md"
+          >
+            <ClipImageReveal className="rounded-xl">
+              <HomeImage
+                image={content.image}
+                className="aspect-[4/3] w-full rounded-xl"
+                sizes="(max-width: 1024px) 80vw, 380px"
+              />
+            </ClipImageReveal>
+          </SlideIn>
         </div>
       </SiteContainer>
     </section>

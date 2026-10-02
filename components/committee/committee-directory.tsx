@@ -1,5 +1,7 @@
+"use client";
+
 import { CommitteeMemberCard } from "@/components/committee/committee-member-card";
-import { Reveal, StaggerChildren, StaggerItem } from "@/components/motion";
+import { Reveal } from "@/components/motion";
 import {
   committeePageCopy,
   getPublishedCommitteeMembers,
@@ -18,6 +20,8 @@ export function CommitteeDirectory() {
   const vicePresidents = byRole(members, "vice_president");
   const executives = byRole(members, "executive_member");
 
+  let index = 0;
+
   return (
     <div className="space-y-16">
       {president ? (
@@ -28,14 +32,13 @@ export function CommitteeDirectory() {
               President
             </h2>
           </Reveal>
-          <div className="mx-auto mt-8 max-w-md">
-            <Reveal delay={0.05}>
-              <CommitteeMemberCard
-                member={president}
-                featured
-                description={`${president.role} of Rishra Junior Group Club.`}
-              />
-            </Reveal>
+          <div className="mx-auto mt-6 max-w-[13.5rem] sm:max-w-[15rem]">
+            <CommitteeMemberCard
+              member={president}
+              featured
+              index={index++}
+              description={`${president.role} of Rishra Junior Group Club.`}
+            />
           </div>
         </section>
       ) : null}
@@ -47,18 +50,14 @@ export function CommitteeDirectory() {
               Officers
             </h2>
           </Reveal>
-          <StaggerChildren className="mt-8 grid gap-5 sm:grid-cols-2">
+          <div className="mx-auto mt-6 grid max-w-[28rem] grid-cols-2 gap-3 sm:max-w-[32rem] sm:gap-4">
             {secretary ? (
-              <StaggerItem>
-                <CommitteeMemberCard member={secretary} />
-              </StaggerItem>
+              <CommitteeMemberCard member={secretary} index={index++} />
             ) : null}
             {treasurer ? (
-              <StaggerItem>
-                <CommitteeMemberCard member={treasurer} />
-              </StaggerItem>
+              <CommitteeMemberCard member={treasurer} index={index++} />
             ) : null}
-          </StaggerChildren>
+          </div>
         </section>
       )}
 
@@ -69,13 +68,15 @@ export function CommitteeDirectory() {
               Vice Presidents
             </h2>
           </Reveal>
-          <StaggerChildren className="mt-8 grid gap-5 sm:grid-cols-2">
+          <div className="mx-auto mt-6 grid max-w-[28rem] grid-cols-2 gap-3 sm:max-w-[32rem] sm:gap-4">
             {vicePresidents.map((member) => (
-              <StaggerItem key={member.id}>
-                <CommitteeMemberCard member={member} />
-              </StaggerItem>
+              <CommitteeMemberCard
+                key={member.id}
+                member={member}
+                index={index++}
+              />
             ))}
-          </StaggerChildren>
+          </div>
         </section>
       ) : null}
 
@@ -86,13 +87,15 @@ export function CommitteeDirectory() {
               Executive members
             </h2>
           </Reveal>
-          <StaggerChildren className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mx-auto mt-6 grid max-w-3xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {executives.map((member) => (
-              <StaggerItem key={member.id}>
-                <CommitteeMemberCard member={member} />
-              </StaggerItem>
+              <CommitteeMemberCard
+                key={member.id}
+                member={member}
+                index={index++}
+              />
             ))}
-          </StaggerChildren>
+          </div>
         </section>
       ) : null}
 

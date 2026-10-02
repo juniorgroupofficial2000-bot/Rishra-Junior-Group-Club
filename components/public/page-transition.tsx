@@ -1,13 +1,12 @@
 "use client";
 
-import { transitionNormal } from "@/lib/motion";
-import { motion, useReducedMotion } from "motion/react";
+import { premiumEase } from "@/lib/motion";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 /**
- * Subtle route enter animation. Disabled under prefers-reduced-motion.
- * Keeps layout stable — opacity + small rise only.
+ * Noticeable but refined route enter animation.
  */
 export function PageTransition({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -18,14 +17,17 @@ export function PageTransition({ children }: { children: ReactNode }) {
   }
 
   return (
-    <motion.div
-      key={pathname}
-      className="min-w-0 flex-1"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={transitionNormal}
-    >
-      {children}
-    </motion.div>
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={pathname}
+        className="min-w-0 flex-1"
+        initial={{ opacity: 0, y: 22 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -12 }}
+        transition={{ duration: 0.42, ease: premiumEase }}
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
   );
 }

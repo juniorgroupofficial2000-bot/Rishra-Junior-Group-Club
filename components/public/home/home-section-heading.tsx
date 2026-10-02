@@ -1,3 +1,6 @@
+"use client";
+
+import { OrnamentLine } from "@/components/motion";
 import { cn } from "@/lib/cn";
 import type { ReactNode } from "react";
 
@@ -53,14 +56,12 @@ export function HomeSectionHeading({
         >
           {title}
         </h2>
-        <div
+        <OrnamentLine
           className={cn(
-            "h-px w-16",
-            inverse
-              ? "bg-gradient-to-r from-marigold-400 to-transparent"
-              : "bg-gradient-to-r from-alta-500 to-marigold-400",
+            "w-20",
+            inverse && "from-marigold-400 to-transparent",
+            align === "center" && "mx-auto origin-center",
           )}
-          aria-hidden
         />
         {description ? (
           <p

@@ -1,13 +1,20 @@
 "use client";
 
-import { Reveal } from "@/components/motion";
+import { ClipImageReveal, Reveal } from "@/components/motion";
 import type { TimelineEntry } from "@/content/heritage";
 import { cn } from "@/lib/cn";
-import { transitionNormal } from "@/lib/motion";
+import { cardRevealVariants, premiumEase, transitionNormal, transitionSlow } from "@/lib/motion";
 import { ChevronDown, Images } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import {
+  AnimatePresence,
+  motion,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+} from "motion/react";
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { HeritageImage } from "./heritage-image";
 import { ProvenanceBadge } from "./provenance-badge";
 
@@ -23,6 +30,14 @@ export function InteractiveTimeline({
   const [activeId, setActiveId] = useState(entries[0]?.id ?? "");
   const [openGalleryId, setOpenGalleryId] = useState<string | null>(null);
   const reduceMotion = useReducedMotion();
+  const listRef = useRef<HTMLOListElement>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: listRef,
+    offset: ["start 70%", "end 50%"],
+  });
+  const smooth = useSpring(scrollYProgress, { stiffness: 70, damping: 22 });
+  const lineScale = useTransform(smooth, [0, 1], [0, 1]);
 
   const active = useMemo(
     () => entries.find((entry) => entry.id === activeId) ?? entries[0],
@@ -81,7 +96,17 @@ export function InteractiveTimeline({
         </ul>
       </nav>
 
-      <ol className="relative space-y-0">
+      <ol ref={listRef} className="relative space-y-0">
+        <div
+          className="pointer-events-none absolute left-[1.65rem] top-8 bottom-8 w-px overflow-hidden bg-ink-200 sm:left-[1.9rem]"
+          aria-hidden
+        >
+          <motion.div
+            className="h-full w-full origin-top bg-gradient-to-b from-alta-500 via-marigold-400 to-lotus-500"
+            style={reduceMotion ? { scaleY: 1 } : { scaleY: lineScale }}
+          />
+        </div>
+
         {entries.map((entry, index) => {
           const isLast = index === entries.length - 1;
           const isActive = entry.id === active?.id;
@@ -89,40 +114,68 @@ export function InteractiveTimeline({
           const hasGallery = Boolean(entry.gallery?.length);
 
           return (
-            <li
+            <motion.li
               key={entry.id}
               id={`timeline-entry-${entry.id}`}
               className="relative flex gap-4 pb-12 last:pb-0 sm:gap-6"
+              variants={reduceMotion ? undefined : cardRevealVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-18% 0px", amount: 0.35 }}
+              transition={{ ...transitionSlow, delay: index * 0.04 }}
+              onViewportEnter={() => setActiveId(entry.id)}
+              style={
+                reduceMotion
+                  ? undefined
+                  : undefined
+              }
             >
               <div className="flex w-14 shrink-0 flex-col items-center sm:w-16">
-                <span
+                <motion.span
                   className={cn(
                     "font-mono text-sm font-semibold tabular-nums",
                     entry.milestone ? "text-alta-600" : "text-ink-500",
                   )}
+                  initial={reduceMotion ? false : { opacity: 0.35, scale: 0.92, x: -8 }}
+                  whileInView={{ opacity: 1, scale: 1, x: 0 }}
+                  viewport={{ once: true, amount: 0.6 }}
+                  transition={{ duration: 0.45, ease: premiumEase }}
                 >
                   {entry.year}
-                </span>
-                <span
+                </motion.span>
+                <motion.span
                   className={cn(
-                    "mt-2 h-3 w-3 rounded-full ring-4 ring-jasmine-50 transition-colors",
+                    "mt-2 h-3 w-3 rounded-full ring-4 ring-jasmine-50",
                     isActive || entry.milestone ? "bg-ink-900" : "bg-ink-300",
                   )}
+                  animate={{
+                    scale: isActive ? 1.15 : 1,
+                    backgroundColor: isActive || entry.milestone ? "#171412" : "#a39e96",
+                  }}
                   aria-hidden
                 />
                 {!isLast ? (
-                  <span className="mt-1 w-px flex-1 bg-border-default" aria-hidden />
+                  <span className="mt-1 w-px flex-1 bg-transparent" aria-hidden />
                 ) : null}
               </div>
 
               <Reveal className="min-w-0 flex-1">
-                <article
+                <motion.article
                   className={cn(
-                    "rounded-xl border bg-surface-raised p-4 shadow-xs transition-[border-color,box-shadow] sm:p-6",
+                    "rounded-xl border bg-surface-raised p-4 shadow-xs sm:p-6",
                     isActive
                       ? "border-ink-300 shadow-sm"
                       : "border-border-subtle",
                   )}
+                  animate={
+                    reduceMotion
+                      ? undefined
+                      : {
+                          opacity: isActive ? 1 : 0.55,
+                          scale: isActive ? 1 : 0.98,
+                        }
+                  }
+                  transition={{ duration: 0.35, ease: premiumEase }}
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     {entry.milestone ? (
@@ -141,10 +194,13 @@ export function InteractiveTimeline({
 
                   {entry.image ? (
                     <div className="mt-5">
-                      <HeritageImage
-                        image={entry.image}
-                        sizes="(max-width: 1024px) 100vw, 60vw"
-                      />
+                      <ClipImageReveal className="rounded-xl">
+                        <HeritageImage
+                          image={entry.image}
+                          sizes="(max-width: 1024px) 100vw, 60vw"
+                          frameClassName="rounded-xl"
+                        />
+                      </ClipImageReveal>
                     </div>
                   ) : null}
 
@@ -183,6 +239,7 @@ export function InteractiveTimeline({
                                 <li
                                   key={media.id}
                                   className="relative aspect-square overflow-hidden rounded-lg bg-ink-900"
+                                  data-cursor-label="VIEW"
                                 >
                                   <Image
                                     src={media.src}
@@ -200,9 +257,9 @@ export function InteractiveTimeline({
                       </AnimatePresence>
                     </div>
                   ) : null}
-                </article>
+                </motion.article>
               </Reveal>
-            </li>
+            </motion.li>
           );
         })}
       </ol>

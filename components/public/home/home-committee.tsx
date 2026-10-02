@@ -1,5 +1,7 @@
+"use client";
+
 import { CommitteeMemberCard } from "@/components/committee/committee-member-card";
-import { Reveal, StaggerChildren, StaggerItem } from "@/components/motion";
+import { Reveal } from "@/components/motion";
 import { SiteContainer } from "@/components/public/site-container";
 import {
   getPublishedCommitteeMembers,
@@ -23,6 +25,13 @@ export function HomeCommittee() {
   const members = getPublishedCommitteeMembers();
   const { president, secretary, treasurer, vps } = pickPreview(members);
 
+  const sequence: CommitteeMember[] = [
+    ...(president ? [president] : []),
+    ...(secretary ? [secretary] : []),
+    ...(treasurer ? [treasurer] : []),
+    ...vps,
+  ];
+
   return (
     <section
       aria-labelledby="home-committee-heading"
@@ -39,31 +48,16 @@ export function HomeCommittee() {
           />
         </Reveal>
 
-        {president ? (
-          <div className="mx-auto mt-12 max-w-md lg:max-w-lg">
-            <Reveal delay={0.05}>
-              <CommitteeMemberCard member={president} featured />
-            </Reveal>
-          </div>
-        ) : null}
-
-        <StaggerChildren className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {secretary ? (
-            <StaggerItem>
-              <CommitteeMemberCard member={secretary} />
-            </StaggerItem>
-          ) : null}
-          {treasurer ? (
-            <StaggerItem>
-              <CommitteeMemberCard member={treasurer} />
-            </StaggerItem>
-          ) : null}
-          {vps.map((member) => (
-            <StaggerItem key={member.id}>
-              <CommitteeMemberCard member={member} />
-            </StaggerItem>
+        <div className="mx-auto mt-10 grid max-w-4xl grid-cols-2 gap-4 lg:grid-cols-4">
+          {sequence.map((member, index) => (
+            <CommitteeMemberCard
+              key={member.id}
+              member={member}
+              featured={member.roleKey === "president"}
+              index={index}
+            />
           ))}
-        </StaggerChildren>
+        </div>
       </SiteContainer>
     </section>
   );

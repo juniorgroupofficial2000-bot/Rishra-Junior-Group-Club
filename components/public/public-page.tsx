@@ -1,12 +1,6 @@
-import { Breadcrumbs } from "@/components/ui/breadcrumbs";
-import { SectionHeader } from "@/components/ui/section-header";
-import {
-  breadcrumbsForPage,
-  publicPages,
-  type PublicPageKey,
-} from "@/content/pages";
+import type { PublicPageKey } from "@/content/pages";
 import type { ReactNode } from "react";
-import { SiteContainer } from "./site-container";
+import { AnimatedPageShell } from "./animated-page-shell";
 
 export type PublicPageShellProps = {
   pageKey: Exclude<PublicPageKey, "home">;
@@ -29,25 +23,11 @@ export function ContentPlaceholder({
   );
 }
 
-/** Shared chrome for interior public pages: breadcrumbs + header + content. */
+/** Shared chrome for interior public pages: animated breadcrumbs + header + content. */
 export function PublicPageShell({ pageKey, children }: PublicPageShellProps) {
-  const page = publicPages[pageKey];
-  const crumbs = breadcrumbsForPage(pageKey);
-
   return (
-    <>
-      <SiteContainer as="header" className="pb-6 pt-8 sm:pb-8 sm:pt-10">
-        <Breadcrumbs items={crumbs} className="mb-5" />
-        <SectionHeader
-          eyebrow={page.eyebrow}
-          title={page.title}
-          description={page.description}
-          titleAs="h1"
-        />
-      </SiteContainer>
-      <SiteContainer className="min-w-0 pb-16 sm:pb-20">
-        {children ?? <ContentPlaceholder />}
-      </SiteContainer>
-    </>
+    <AnimatedPageShell pageKey={pageKey}>
+      {children ?? <ContentPlaceholder />}
+    </AnimatedPageShell>
   );
 }

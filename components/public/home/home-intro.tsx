@@ -1,4 +1,6 @@
-import { ImageReveal, Reveal } from "@/components/motion";
+"use client";
+
+import { ClipImageReveal, Reveal, SlideIn } from "@/components/motion";
 import { SiteContainer } from "@/components/public/site-container";
 import { homeContent } from "@/content/home";
 import { HomeImage } from "./home-image";
@@ -11,11 +13,11 @@ export function HomeIntro() {
   return (
     <section
       aria-labelledby="home-intro-heading"
-      className="border-b border-border-subtle py-20 sm:py-28"
+      className="relative z-10 -mt-8 border-b border-border-subtle bg-surface-canvas py-20 sm:-mt-12 sm:py-28"
     >
       <SiteContainer>
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-          <Reveal className="min-w-0 order-2 lg:order-1">
+          <Reveal className="order-2 min-w-0 lg:order-1">
             <HomeSectionHeading
               eyebrow={content.eyebrow}
               title={content.title}
@@ -27,16 +29,21 @@ export function HomeIntro() {
               ))}
             </div>
             <div className="mt-9">
-              <HomeLink {...content.cta} appearance="solid" />
+              <HomeLink {...content.cta} appearance="solid" className="group" />
             </div>
           </Reveal>
-          <ImageReveal className="order-1 min-w-0 rounded-2xl shadow-md lg:order-2">
-            <HomeImage
-              image={content.image}
-              className="aspect-[4/3] w-full rounded-2xl"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-            />
-          </ImageReveal>
+          <SlideIn
+            from="right"
+            className="order-1 mx-auto min-w-0 w-full max-w-sm lg:order-2 lg:max-w-md"
+          >
+            <ClipImageReveal className="rounded-xl shadow-md">
+              <HomeImage
+                image={content.image}
+                className="aspect-[4/3] w-full rounded-xl"
+                sizes="(max-width: 1024px) 80vw, 380px"
+              />
+            </ClipImageReveal>
+          </SlideIn>
         </div>
       </SiteContainer>
     </section>

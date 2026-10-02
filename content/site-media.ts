@@ -64,37 +64,48 @@ export const siteMedia = {
 
 /**
  * Committee portrait slots keyed by committee member id from content/committee.ts.
- * Swap `src` when formal portraits are ready. Defaults use elegant placeholders.
+ * Files live in /public/images/committee/.
  */
 export const committeePortraits: Record<
   string,
   Pick<SiteMediaSlot, "src" | "alt" | "objectPosition" | "note">
 > = {
   "cm-president": {
-    src: "/images/committee/portrait-placeholder.svg",
-    alt: "Portrait placeholder for the President",
-    objectPosition: "center 20%",
-    note: "Replace with a formal portrait.",
-  },
-  "cm-secretary": {
-    src: "/images/committee/portrait-placeholder.svg",
-    alt: "Portrait placeholder for the Secretary",
-    objectPosition: "center 20%",
-  },
-  "cm-treasurer": {
-    src: "/images/committee/portrait-placeholder.svg",
-    alt: "Portrait placeholder for the Treasurer",
-    objectPosition: "center 20%",
+    src: "/images/committee/monu.png",
+    alt: "Portrait of Satrudhan Burman (Monu), President",
+    objectPosition: "center 18%",
   },
   "cm-vp-1": {
+    // Portrait file not provided yet.
     src: "/images/committee/portrait-placeholder.svg",
-    alt: "Portrait placeholder for a Vice President",
+    alt: "Portrait placeholder for Suraj Kumar Burman, Vice President",
     objectPosition: "center 20%",
+    note: "Add a portrait named to match Suraj Kumar Burman when available.",
   },
   "cm-vp-2": {
-    src: "/images/committee/portrait-placeholder.svg",
-    alt: "Portrait placeholder for a Vice President",
-    objectPosition: "center 20%",
+    src: "/images/committee/Gopal.png",
+    alt: "Portrait of Gopal Burman, Vice President",
+    objectPosition: "center 18%",
+  },
+  "cm-secretary": {
+    src: "/images/committee/Bishal.png",
+    alt: "Portrait of Bishal Pandey, Secretary",
+    objectPosition: "center 18%",
+  },
+  "cm-treasurer": {
+    src: "/images/committee/Aalok.png",
+    alt: "Portrait of Aalok Barma, Treasurer",
+    objectPosition: "center 18%",
+  },
+  "cm-exec-1": {
+    src: "/images/committee/sashikant.png",
+    alt: "Portrait of Sashikant Tiwari, Executive Member",
+    objectPosition: "center 18%",
+  },
+  "cm-exec-2": {
+    src: "/images/committee/chandan.png",
+    alt: "Portrait of Chandan Sharma, Executive Member",
+    objectPosition: "center 18%",
   },
 };
 

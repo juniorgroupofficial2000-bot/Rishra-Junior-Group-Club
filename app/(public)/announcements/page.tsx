@@ -1,4 +1,5 @@
 import { AnnouncementList } from "@/components/announcements";
+import { Reveal } from "@/components/motion";
 import { PublicPageShell } from "@/components/public";
 import {
   announcementsPageCopy,
@@ -24,7 +25,9 @@ export default function AnnouncementsPage() {
 
   return (
     <PublicPageShell pageKey="announcements">
-      <AnnouncementList items={items} />
+      <Reveal>
+        <AnnouncementList items={items} />
+      </Reveal>
     </PublicPageShell>
   );
 }

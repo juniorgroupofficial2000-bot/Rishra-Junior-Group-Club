@@ -96,7 +96,7 @@ export function GalleryFeature({
 }: GalleryFeatureProps) {
   return (
     <figure className={cn("relative w-full", className)}>
-      <div className="relative aspect-[16/10] w-full overflow-hidden bg-ink-900 sm:aspect-[21/9]">
+      <div className="relative mx-auto aspect-[16/9] w-full max-w-4xl overflow-hidden bg-ink-900">
         {src ? (
           <Image
             src={src}

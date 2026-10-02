@@ -2,9 +2,10 @@
 
 import { cn } from "@/lib/cn";
 import {
+  cardRevealVariants,
   fadeUpVariants,
   fadeVariants,
-  imageRevealVariants,
+  inViewViewport,
   scaleInVariants,
   slideInLeftVariants,
   slideInRightVariants,
@@ -22,6 +23,7 @@ import {
   type Variants,
 } from "motion/react";
 import { useRef, type ReactNode } from "react";
+import { ClipImageReveal } from "./clip-image-reveal";
 
 type MotionTag = "div" | "section" | "li" | "article" | "span" | "header";
 
@@ -60,7 +62,7 @@ function MotionShell({
       variants={variants}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once, margin: "-10% 0px -8% 0px" }}
+      viewport={{ ...inViewViewport, once }}
       transition={{ ...(slow ? transitionSlow : transitionNormal), delay }}
     >
       {children}
@@ -73,7 +75,7 @@ export function FadeIn(props: BaseProps & { slow?: boolean }) {
 }
 
 export function Reveal(props: BaseProps & { slow?: boolean }) {
-  return <MotionShell {...props} variants={fadeUpVariants} />;
+  return <MotionShell {...props} variants={fadeUpVariants} slow />;
 }
 
 export function SlideUp(props: BaseProps) {
@@ -88,6 +90,7 @@ export function SlideIn({
     <MotionShell
       {...props}
       variants={from === "left" ? slideInLeftVariants : slideInRightVariants}
+      slow
     />
   );
 }
@@ -100,27 +103,50 @@ export function ImageReveal({
   className,
   children,
   delay = 0,
+  inView = true,
 }: {
   className?: string;
   children: ReactNode;
   delay?: number;
+  inView?: boolean;
 }) {
-  const reduce = useMotionSafe();
-  if (reduce) {
-    return <div className={cn("overflow-hidden", className)}>{children}</div>;
-  }
   return (
-    <motion.div
-      className={cn("overflow-hidden", className)}
-      variants={imageRevealVariants}
+    <ClipImageReveal className={className} delay={delay} inView={inView}>
+      {children}
+    </ClipImageReveal>
+  );
+}
+
+/** Alternate card entrance: left / right by index. */
+export function AlternatingReveal({
+  index,
+  children,
+  className,
+  as = "div",
+}: BaseProps & { index: number }) {
+  const reduce = useMotionSafe();
+  const Tag = as;
+  const variants = index % 2 === 0 ? slideInLeftVariants : slideInRightVariants;
+  if (reduce) {
+    return <Tag className={className}>{children}</Tag>;
+  }
+  const Component = motion[as];
+  return (
+    <Component
+      className={className}
+      variants={variants}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: "-8%" }}
-      transition={{ ...transitionSlow, delay }}
+      viewport={inViewViewport}
+      transition={{ ...transitionSlow, delay: index * 0.06 }}
     >
       {children}
-    </motion.div>
+    </Component>
   );
+}
+
+export function CardReveal(props: BaseProps & { slow?: boolean }) {
+  return <MotionShell {...props} variants={cardRevealVariants} slow />;
 }
 
 export function TextReveal({
@@ -140,7 +166,7 @@ export function TextReveal({
       className={cn("overflow-hidden", className)}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: "-8%" }}
+      viewport={inViewViewport}
     >
       <motion.span
         className="block"
@@ -174,7 +200,7 @@ export function StaggerChildren({
       variants={staggerContainerVariants}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: "-8%" }}
+      viewport={inViewViewport}
     >
       {children}
     </Component>
@@ -200,7 +226,7 @@ export function StaggerItem({
     <Component
       className={className}
       variants={fadeUpVariants}
-      transition={transitionNormal}
+      transition={transitionSlow}
     >
       {children}
     </Component>
@@ -211,7 +237,7 @@ export function StaggerItem({
 export function Parallax({
   children,
   className,
-  offset = 40,
+  offset = 56,
 }: {
   children: ReactNode;
   className?: string;
@@ -241,6 +267,32 @@ export function Parallax({
     >
       {children}
     </motion.div>
+  );
+}
+
+/** Animated underline that grows when the section enters view. */
+export function OrnamentLine({ className }: { className?: string }) {
+  const reduce = useMotionSafe();
+  if (reduce) {
+    return (
+      <div
+        className={cn("h-px w-16 bg-gradient-to-r from-alta-500 to-marigold-400", className)}
+        aria-hidden
+      />
+    );
+  }
+  return (
+    <motion.div
+      className={cn(
+        "h-px origin-left bg-gradient-to-r from-alta-500 to-marigold-400",
+        className,
+      )}
+      initial={{ scaleX: 0, opacity: 0 }}
+      whileInView={{ scaleX: 1, opacity: 1 }}
+      viewport={inViewViewport}
+      transition={transitionSlow}
+      aria-hidden
+    />
   );
 }
 

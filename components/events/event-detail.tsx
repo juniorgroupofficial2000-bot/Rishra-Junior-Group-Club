@@ -59,13 +59,13 @@ export function EventDetail({ event }: { event: ClubEvent }) {
 
       {cover ? (
         <FadeIn delay={0.05}>
-          <div className="relative aspect-[21/9] overflow-hidden rounded-xl bg-ink-900">
+          <div className="relative mx-auto aspect-[16/9] max-w-3xl overflow-hidden rounded-xl bg-ink-900">
             <Image
               src={cover.src}
               alt={cover.alt}
               fill
               priority
-              sizes="100vw"
+              sizes="(max-width: 768px) 100vw, 768px"
               unoptimized={isSvg}
               className="object-cover"
             />

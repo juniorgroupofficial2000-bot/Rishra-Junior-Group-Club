@@ -1,4 +1,4 @@
-import { Reveal, StaggerChildren, StaggerItem } from "@/components/motion";
+import { StaggerChildren, StaggerItem } from "@/components/motion";
 import type { GalleryAlbum } from "@/content/gallery";
 import { AlbumCard } from "./album-card";
 
@@ -11,34 +11,13 @@ export function AlbumGrid({ albums }: { albums: GalleryAlbum[] }) {
     );
   }
 
-  const [featured, ...rest] = albums;
-
   return (
-    <div className="space-y-5">
-      {featured ? (
-        <Reveal>
-          <div className="grid gap-5 lg:grid-cols-2 lg:grid-rows-1">
-            <AlbumCard album={featured} priority featured className="lg:min-h-[28rem]" />
-            <StaggerChildren className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1 lg:content-start">
-              {rest.slice(0, 2).map((album, index) => (
-                <StaggerItem key={album.id}>
-                  <AlbumCard album={album} priority={index === 0} />
-                </StaggerItem>
-              ))}
-            </StaggerChildren>
-          </div>
-        </Reveal>
-      ) : null}
-
-      {rest.length > 2 ? (
-        <StaggerChildren className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {rest.slice(2).map((album) => (
-            <StaggerItem key={album.id}>
-              <AlbumCard album={album} />
-            </StaggerItem>
-          ))}
-        </StaggerChildren>
-      ) : null}
-    </div>
+    <StaggerChildren className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {albums.map((album, index) => (
+        <StaggerItem key={album.id}>
+          <AlbumCard album={album} priority={index < 2} />
+        </StaggerItem>
+      ))}
+    </StaggerChildren>
   );
 }
