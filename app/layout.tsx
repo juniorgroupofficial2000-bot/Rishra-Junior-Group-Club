@@ -1,3 +1,4 @@
+import { siteConfig } from "@/content/site";
 import type { Metadata } from "next";
 import {
   Fraunces,
@@ -28,12 +29,13 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteConfig.siteUrl),
   title: {
-    default: "Rishra Junior Group Club",
-    template: "%s · Rishra Junior Group Club",
+    default: siteConfig.name,
+    template: `%s · ${siteConfig.name}`,
   },
   description:
-    "Official digital platform for Rishra Junior Group Club.",
+    "Celebrating community, tradition and togetherness since 2000. Official digital platform for Rishra Junior Group Club.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

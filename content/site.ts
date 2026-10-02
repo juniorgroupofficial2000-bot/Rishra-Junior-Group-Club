@@ -7,6 +7,10 @@
 export const siteConfig = {
   name: "Rishra Junior Group Club",
   shortName: "RJGC",
+  /** Production origin for absolute metadata URLs. Override via NEXT_PUBLIC_SITE_URL. */
+  siteUrl:
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
+    "https://www.rishrajuniorgroupclub.org",
   establishedLabel: "Since 1 February 2000",
   establishedYear: 2000,
   registrationNote:

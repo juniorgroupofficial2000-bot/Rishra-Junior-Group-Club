@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200" role="img" aria-label="Memory 01">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1e3d57"/>
+      <stop offset="100%" stop-color="#c9432a"/>
+    </linearGradient>
+    <pattern id="grain" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.6" fill="rgba(255,255,255,0.06)"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="1200" fill="url(#g)"/>
+  <rect width="1200" height="1200" fill="url(#grain)"/>
+  <rect x="0" y="744" width="1200" height="456" fill="rgba(7,16,24,0.35)"/>
+  <text x="48" y="1144" fill="rgba(255,255,255,0.85)" font-family="Georgia, serif" font-size="28">Memory 01</text>
+  <text x="48" y="1172" fill="rgba(255,255,255,0.55)" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16">PLACEHOLDER — replace with club photograph</text>
+</svg>

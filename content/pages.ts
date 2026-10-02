@@ -32,7 +32,7 @@ export const publicPages: Record<PublicPageKey, PublicPageDefinition> = {
     path: "/",
     title: siteConfig.name,
     description:
-      "Community club in Rishra organizing Saraswati Puja since 1 February 2000.",
+      "Celebrating community, tradition and togetherness since 2000.",
     showBreadcrumbs: false,
   },
   about: {
