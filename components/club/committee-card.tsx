@@ -20,6 +20,8 @@ export type CommitteeCardProps = {
 /** Initials avatar — no invented photos. */
 function Initials({ label }: { label: string }) {
   const initials = label
+    .replace(/\(.*?\)/g, "")
+    .trim()
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)

@@ -56,7 +56,7 @@ export const publicPages: Record<PublicPageKey, PublicPageDefinition> = {
     path: "/committee",
     title: "Committee",
     description:
-      "[PLACEHOLDER: Current committee structure and roles — names to be supplied.]",
+      "Meet the committee of Rishra Junior Group Club. Public listings show names and roles only.",
     eyebrow: "Leadership",
   },
   "saraswati-puja": {
@@ -93,7 +93,7 @@ export const publicPages: Record<PublicPageKey, PublicPageDefinition> = {
     path: "/membership",
     title: "Membership",
     description:
-      "[PLACEHOLDER: How membership works, eligibility, and how to apply.]",
+      "How to enquire about joining Rishra Junior Group Club, membership process, benefits, and the future member portal.",
     eyebrow: "Join",
   },
   contact: {

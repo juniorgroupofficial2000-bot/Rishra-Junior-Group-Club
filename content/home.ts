@@ -159,24 +159,9 @@ export const homeContent = {
     eyebrow: "Leadership",
     title: "Committee",
     description:
-      "Club affairs are guided by a committee of members. Names and roles will appear here once confirmed.",
-    members: [
-      {
-        id: "c1",
-        name: "[PLACEHOLDER: Name]",
-        role: "[PLACEHOLDER: Role]",
-      },
-      {
-        id: "c2",
-        name: "[PLACEHOLDER: Name]",
-        role: "[PLACEHOLDER: Role]",
-      },
-      {
-        id: "c3",
-        name: "[PLACEHOLDER: Name]",
-        role: "[PLACEHOLDER: Role]",
-      },
-    ],
+      "Club affairs are guided by the committee. Names and roles only — personal contact details are not published.",
+    /** Preview sourced at render time from `content/committee.ts`. */
+    previewLimit: 3,
     cta: { label: "Meet the committee", href: "/committee" } satisfies HomeCta,
   },
   events: {

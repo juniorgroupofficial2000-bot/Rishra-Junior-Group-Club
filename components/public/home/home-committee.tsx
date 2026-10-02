@@ -1,6 +1,7 @@
 import { CommitteeCard } from "@/components/club/committee-card";
 import { FadeIn, Stagger, StaggerItem } from "@/components/motion/fade-in";
 import { SiteContainer } from "@/components/public/site-container";
+import { getCommitteePreview } from "@/content/committee";
 import { homeContent } from "@/content/home";
 import { HomeLink } from "./home-link";
 import { HomeSectionHeading } from "./home-section-heading";
@@ -8,6 +9,8 @@ import { HomeSectionHeading } from "./home-section-heading";
 const content = homeContent.committee;
 
 export function HomeCommittee() {
+  const members = getCommitteePreview(content.previewLimit);
+
   return (
     <section
       aria-labelledby="home-committee-heading"
@@ -24,9 +27,13 @@ export function HomeCommittee() {
           />
         </FadeIn>
         <Stagger className="mt-10 grid gap-4 md:grid-cols-3">
-          {content.members.map((member) => (
+          {members.map((member) => (
             <StaggerItem key={member.id}>
-              <CommitteeCard name={member.name} role={member.role} />
+              <CommitteeCard
+                name={member.displayName}
+                role={member.role}
+                description={`${member.role} — ${member.displayName}`}
+              />
             </StaggerItem>
           ))}
         </Stagger>
