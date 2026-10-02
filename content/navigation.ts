@@ -17,14 +17,14 @@ export const publicNav: readonly NavItem[] = [
   { href: "/about", label: "About", primary: true, footerGroup: "explore" },
   { href: "/history", label: "History", primary: true, footerGroup: "explore" },
   {
-    href: "/committee",
-    label: "Committee",
+    href: "/saraswati-puja",
+    label: "Saraswati Puja",
     primary: true,
     footerGroup: "explore",
   },
   {
-    href: "/saraswati-puja",
-    label: "Saraswati Puja",
+    href: "/committee",
+    label: "Committee",
     primary: true,
     footerGroup: "explore",
   },
@@ -39,7 +39,7 @@ export const publicNav: readonly NavItem[] = [
   {
     href: "/membership",
     label: "Membership",
-    primary: true,
+    primary: false,
     footerGroup: "participate",
   },
   {

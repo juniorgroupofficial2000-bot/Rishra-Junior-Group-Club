@@ -1,104 +1,103 @@
 /*
-  RJGC Design System — "Ink & Alta"
-  Knowledge (ink indigo) + alta accent (vermillion) + restrained marigold.
-  Cool jasmine paper — not warm cream/terracotta SaaS clichés.
-  English-only UI copy.
+  RJGC Design System — "Heritage Ember"
+  Ivory paper · deep charcoal · vermillion · soft gold.
+  English-only UI. Premium cultural institution, not SaaS chrome.
 */
 
 :root {
-  /* ——— Brand / semantic color ——— */
-  --color-ink-950: #071018;
-  --color-ink-900: #0b1c2c;
-  --color-ink-800: #132a3f;
-  --color-ink-700: #1e3d57;
-  --color-ink-600: #2a5270;
-  --color-ink-500: #3d6b8c;
-  --color-ink-400: #6a90ab;
-  --color-ink-300: #9bb4c6;
-  --color-ink-200: #c5d5e0;
-  --color-ink-100: #e4ecf2;
-  --color-ink-50: #f2f6f9;
+  /* ——— Brand palette ——— */
+  --color-ink-950: #0E1318;
+  --color-ink-900: #141A22;
+  --color-ink-800: #1E2733;
+  --color-ink-700: #2A3544;
+  --color-ink-600: #3D4B5C;
+  --color-ink-500: #5A6B7D;
+  --color-ink-400: #8493A3;
+  --color-ink-300: #B0B9C4;
+  --color-ink-200: #D4D9E0;
+  --color-ink-100: #EAEDEF;
+  --color-ink-50: #F4F6F7;
 
-  --color-alta-700: #9a2a18;
-  --color-alta-600: #b8331c;
-  --color-alta-500: #c9432a;
-  --color-alta-400: #e06a52;
-  --color-alta-100: #fce8e3;
-  --color-alta-50: #fff5f2;
+  --color-alta-700: #8F2414;
+  --color-alta-600: #A82C18;
+  --color-alta-500: #C23A22;
+  --color-alta-400: #D9654C;
+  --color-alta-100: #F8E4DE;
+  --color-alta-50: #FDF3F0;
 
-  --color-marigold-700: #8a6a10;
-  --color-marigold-600: #a88414;
-  --color-marigold-500: #c49a1a;
-  --color-marigold-400: #d9b44a;
-  --color-marigold-100: #f7efd2;
-  --color-marigold-50: #fbf7ea;
+  --color-marigold-700: #8A6810;
+  --color-marigold-600: #A67D12;
+  --color-marigold-500: #C49A1A;
+  --color-marigold-400: #D9B44A;
+  --color-marigold-100: #F5EBC8;
+  --color-marigold-50: #FAF6E8;
 
-  --color-lotus-700: #3d5c52;
-  --color-lotus-500: #5a7d72;
-  --color-lotus-100: #e4eeea;
-  --color-lotus-50: #f3f8f6;
+  --color-lotus-700: #3A544C;
+  --color-lotus-500: #5A7A6E;
+  --color-lotus-100: #E3EDE8;
+  --color-lotus-50: #F2F7F4;
 
-  --color-jasmine-50: #f8f7f4;
-  --color-jasmine-100: #f1efe9;
-  --color-jasmine-200: #e5e2d8;
+  --color-ivory-50: #F7F2E8;
+  --color-ivory-100: #EFE8DA;
+  --color-ivory-200: #E2D8C4;
 
-  --color-success-600: #2f6f4e;
-  --color-success-100: #e4f2ea;
-  --color-warning-600: #9a6b12;
-  --color-warning-100: #f7efd2;
-  --color-danger-600: #9a2a18;
-  --color-danger-100: #fce8e3;
-  --color-info-600: #1e3d57;
-  --color-info-100: #e4ecf2;
+  --color-success-600: #2F6F4E;
+  --color-success-100: #E4F2EA;
+  --color-warning-600: #9A6B12;
+  --color-warning-100: #F7EFD2;
+  --color-danger-600: #9A2A18;
+  --color-danger-100: #FCE8E3;
+  --color-info-600: #2A3544;
+  --color-info-100: #EAEDEF;
 
-  /* ——— Semantic aliases ——— */
-  --color-background: var(--color-jasmine-50);
+  /* ——— Semantic tokens ——— */
+  --color-background: var(--color-ivory-50);
   --color-foreground: var(--color-ink-900);
+  --color-foreground-muted: var(--color-ink-500);
   --color-muted: var(--color-ink-500);
   --color-muted-foreground: var(--color-ink-500);
   --color-primary: var(--color-ink-900);
   --color-primary-foreground: #ffffff;
   --color-accent: var(--color-alta-500);
+  --color-accent-muted: var(--color-alta-100);
   --color-accent-foreground: #ffffff;
   --color-secondary: var(--color-ink-100);
   --color-secondary-foreground: var(--color-ink-800);
-  --color-ring: var(--color-ink-600);
+  --color-ring: var(--color-ink-700);
   --color-focus: var(--color-marigold-500);
+  --color-success: var(--color-success-600);
+  --color-warning: var(--color-warning-600);
+  --color-error: var(--color-danger-600);
 
-  /* ——— Surfaces ——— */
-  --surface-canvas: var(--color-jasmine-50);
-  --surface-raised: #ffffff;
-  --surface-sunken: var(--color-jasmine-100);
-  --surface-muted: var(--color-ink-50);
+  --surface-canvas: var(--color-ivory-50);
+  --surface-raised: #FFFCFA;
+  --surface-sunken: var(--color-ivory-100);
+  --surface-muted: var(--color-ivory-100);
   --surface-inverse: var(--color-ink-900);
   --surface-accent-soft: var(--color-alta-50);
   --surface-heritage-soft: var(--color-marigold-50);
-  --surface-overlay: rgb(7 16 24 / 0.48);
+  --surface-overlay: rgb(14 19 24 / 0.55);
 
-  /* ——— Borders ——— */
-  --border-subtle: var(--color-jasmine-200);
+  --border-subtle: var(--color-ivory-200);
   --border-default: var(--color-ink-200);
   --border-strong: var(--color-ink-300);
   --border-accent: var(--color-alta-400);
-  --border-focus: var(--color-ink-600);
+  --border-focus: var(--color-ink-700);
 
-  /* ——— Shadows (single-layer, restrained) ——— */
-  --shadow-xs: 0 1px 2px rgb(7 16 24 / 0.04);
-  --shadow-sm: 0 1px 3px rgb(7 16 24 / 0.06), 0 1px 2px rgb(7 16 24 / 0.04);
-  --shadow-md: 0 4px 12px rgb(7 16 24 / 0.08);
-  --shadow-lg: 0 12px 28px rgb(7 16 24 / 0.1);
-  --shadow-focus: 0 0 0 3px rgb(196 154 26 / 0.35);
+  --shadow-xs: 0 1px 2px rgb(14 19 24 / 0.05);
+  --shadow-sm: 0 2px 8px rgb(14 19 24 / 0.06);
+  --shadow-md: 0 8px 24px rgb(14 19 24 / 0.08);
+  --shadow-lg: 0 18px 40px rgb(14 19 24 / 0.12);
+  --shadow-focus: 0 0 0 3px rgb(196 154 26 / 0.4);
 
-  /* ——— Radius ——— */
   --radius-none: 0;
   --radius-sm: 0.25rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
-  --radius-2xl: 1.25rem;
+  --radius-2xl: 1.35rem;
   --radius-full: 9999px;
 
-  /* ——— Spacing scale (4px base) ——— */
   --space-0: 0;
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -113,25 +112,35 @@
   --space-20: 5rem;
   --space-24: 6rem;
 
-  /* ——— Containers ——— */
   --container-sm: 40rem;
   --container-md: 48rem;
   --container-lg: 64rem;
-  --container-xl: 72rem;
-  --container-2xl: 80rem;
+  --container-xl: 74rem;
+  --container-2xl: 86rem;
   --container-prose: 42rem;
 
-  /* ——— Breakpoints (reference; also in @theme) ——— */
   --breakpoint-sm: 40rem;
   --breakpoint-md: 48rem;
   --breakpoint-lg: 64rem;
   --breakpoint-xl: 80rem;
   --breakpoint-2xl: 96rem;
 
-  /* ——— Typography ——— */
-  --font-display: var(--font-fraunces), "Iowan Old Style", "Palatino Linotype", Palatino, serif;
-  --font-sans: var(--font-source-sans), "Source Sans 3", "Segoe UI", sans-serif;
-  --font-mono: var(--font-ibm-plex-mono), "IBM Plex Mono", ui-monospace, monospace;
+  /* ——— Typography (Playfair + Plus Jakarta) ——— */
+  --font-display: var(--font-playfair), "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --font-sans: var(--font-plus-jakarta), "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --text-display: clamp(2.75rem, 5vw + 1rem, 4.75rem);
+  --text-h1: clamp(2.25rem, 3.2vw + 1rem, 3.5rem);
+  --text-h2: clamp(1.75rem, 2vw + 0.85rem, 2.5rem);
+  --text-h3: clamp(1.35rem, 1.2vw + 0.85rem, 1.75rem);
+  --text-h4: 1.2rem;
+  --text-body-large: 1.175rem;
+  --text-body: 1rem;
+  --text-body-small: 0.875rem;
+  --text-caption: 0.75rem;
+  --text-button: 0.9375rem;
+  --text-navigation: 0.9rem;
 
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
@@ -144,23 +153,22 @@
   --text-5xl: 3rem;
   --text-6xl: 3.75rem;
 
-  --leading-tight: 1.2;
-  --leading-snug: 1.35;
-  --leading-normal: 1.5;
-  --leading-relaxed: 1.65;
+  --leading-tight: 1.15;
+  --leading-snug: 1.3;
+  --leading-normal: 1.55;
+  --leading-relaxed: 1.7;
 
-  --tracking-tight: -0.02em;
+  --tracking-tight: -0.025em;
   --tracking-normal: 0;
-  --tracking-wide: 0.04em;
+  --tracking-wide: 0.06em;
+  --tracking-heritage: 0.14em;
 
-  /* ——— Motion ——— */
   --ease-out-premium: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out-premium: cubic-bezier(0.45, 0, 0.55, 1);
-  --duration-fast: 150ms;
-  --duration-normal: 250ms;
-  --duration-slow: 400ms;
+  --duration-fast: 160ms;
+  --duration-normal: 280ms;
+  --duration-slow: 480ms;
 
-  /* ——— Z-index ——— */
   --z-dropdown: 20;
   --z-sticky: 30;
   --z-overlay: 40;
@@ -211,9 +219,9 @@
   --color-lotus-100: var(--color-lotus-100);
   --color-lotus-50: var(--color-lotus-50);
 
-  --color-jasmine-50: var(--color-jasmine-50);
-  --color-jasmine-100: var(--color-jasmine-100);
-  --color-jasmine-200: var(--color-jasmine-200);
+  --color-jasmine-50: var(--color-ivory-50);
+  --color-jasmine-100: var(--color-ivory-100);
+  --color-jasmine-200: var(--color-ivory-200);
 
   --color-success-600: var(--color-success-600);
   --color-success-100: var(--color-success-100);

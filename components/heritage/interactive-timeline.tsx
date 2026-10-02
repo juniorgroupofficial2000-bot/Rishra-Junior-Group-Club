@@ -1,6 +1,6 @@
 "use client";
 
-import { FadeIn } from "@/components/motion/fade-in";
+import { Reveal } from "@/components/motion";
 import type { TimelineEntry } from "@/content/heritage";
 import { cn } from "@/lib/cn";
 import { transitionNormal } from "@/lib/motion";
@@ -115,7 +115,7 @@ export function InteractiveTimeline({
                 ) : null}
               </div>
 
-              <FadeIn className="min-w-0 flex-1">
+              <Reveal className="min-w-0 flex-1">
                 <article
                   className={cn(
                     "rounded-xl border bg-surface-raised p-4 shadow-xs transition-[border-color,box-shadow] sm:p-6",
@@ -201,7 +201,7 @@ export function InteractiveTimeline({
                     </div>
                   ) : null}
                 </article>
-              </FadeIn>
+              </Reveal>
             </li>
           );
         })}

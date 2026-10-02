@@ -27,17 +27,17 @@ export function HomeSectionHeading({
   return (
     <div
       className={cn(
-        "flex flex-col gap-4",
+        "flex flex-col gap-5",
         align === "center" && "items-center text-center",
         align === "start" && "sm:flex-row sm:items-end sm:justify-between",
         className,
       )}
     >
-      <div className={cn("max-w-2xl space-y-2", align === "center" && "mx-auto")}>
+      <div className={cn("max-w-2xl space-y-3", align === "center" && "mx-auto")}>
         {eyebrow ? (
           <p
             className={cn(
-              "text-xs font-semibold uppercase tracking-[0.14em]",
+              "type-caption",
               inverse ? "text-marigold-400" : "text-alta-600",
             )}
           >
@@ -47,16 +47,25 @@ export function HomeSectionHeading({
         <h2
           id={titleId}
           className={cn(
-            "font-display text-3xl font-semibold tracking-tight text-balance sm:text-4xl",
+            "type-h2 text-balance",
             inverse ? "text-white" : "text-ink-900",
           )}
         >
           {title}
         </h2>
+        <div
+          className={cn(
+            "h-px w-16",
+            inverse
+              ? "bg-gradient-to-r from-marigold-400 to-transparent"
+              : "bg-gradient-to-r from-alta-500 to-marigold-400",
+          )}
+          aria-hidden
+        />
         {description ? (
           <p
             className={cn(
-              "text-base leading-relaxed",
+              "type-body-large",
               inverse ? "text-ink-200" : "text-ink-500",
             )}
           >

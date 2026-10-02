@@ -17,7 +17,10 @@ export type CommitteeCardProps = {
   className?: string;
 };
 
-/** Initials avatar — no invented photos. */
+/**
+ * Compact committee summary card (design-system / admin previews).
+ * Public pages should prefer `CommitteeMemberCard` with portrait slots.
+ */
 function Initials({ label }: { label: string }) {
   const initials = label
     .replace(/\(.*?\)/g, "")
@@ -30,7 +33,7 @@ function Initials({ label }: { label: string }) {
 
   return (
     <div
-      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-ink-100 font-display text-sm font-semibold text-ink-800"
+      className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-ink-900 font-display text-sm font-semibold text-marigold-400"
       aria-hidden
     >
       {initials || "—"}
@@ -48,15 +51,20 @@ export function CommitteeCard({
   const nameText = typeof name === "string" ? name : "Member";
 
   return (
-    <Card className={cn(className)}>
+    <Card
+      className={cn(
+        "overflow-hidden border-border-subtle shadow-sm transition-shadow hover:shadow-md",
+        className,
+      )}
+    >
       <CardHeader className="flex-row items-start gap-4 space-y-0">
         <Initials label={nameText} />
         <div className="min-w-0 flex-1 space-y-1">
+          <p className="type-caption text-alta-600">{role}</p>
           <div className="flex flex-wrap items-center gap-2">
-            <CardTitle className="text-lg">{name}</CardTitle>
+            <CardTitle className="font-display text-xl">{name}</CardTitle>
             {tenureLabel ? <Badge variant="outline">{tenureLabel}</Badge> : null}
           </div>
-          <p className="text-sm font-medium text-alta-600">{role}</p>
         </div>
       </CardHeader>
       {description ? (

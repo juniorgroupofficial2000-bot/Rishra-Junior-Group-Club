@@ -3,16 +3,12 @@ import Link from "next/link";
 import type { HomeCta } from "@/content/home";
 
 const styles = {
-  primary:
-    "bg-alta-500 text-white hover:bg-alta-600 shadow-xs",
-  secondary:
-    "border border-current/30 bg-transparent hover:bg-white/10",
-  ghost:
-    "bg-transparent underline-offset-4 hover:underline px-0",
+  primary: "bg-alta-500 text-white hover:bg-alta-600 shadow-sm",
+  secondary: "border border-current/30 bg-transparent hover:bg-white/10",
+  ghost: "bg-transparent underline-offset-4 hover:underline px-0",
   outline:
-    "border border-border-default bg-transparent text-ink-900 hover:bg-ink-50",
-  solid:
-    "bg-ink-900 text-white hover:bg-ink-800 shadow-xs",
+    "border border-border-default bg-transparent text-ink-900 hover:bg-ink-50 hover:border-ink-300",
+  solid: "bg-ink-900 text-white hover:bg-ink-800 shadow-sm",
 } as const;
 
 type HomeLinkProps = HomeCta & {
@@ -39,7 +35,8 @@ export function HomeLink({
     <Link
       href={href}
       className={cn(
-        "inline-flex min-h-12 items-center justify-center rounded-md px-5 text-sm font-medium transition-colors",
+        "inline-flex min-h-12 items-center justify-center rounded-md px-5 type-button transition-[transform,background-color,border-color,box-shadow] duration-300",
+        "hover:-translate-y-0.5",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         styles[resolved],
         className,

@@ -23,24 +23,26 @@ export function SectionHeader({
   return (
     <header
       className={cn(
-        "flex flex-col gap-4",
+        "flex flex-col gap-5",
         align === "center" && "items-center text-center",
         align === "start" && "sm:flex-row sm:items-end sm:justify-between",
         className,
       )}
       {...props}
     >
-      <div className={cn("max-w-2xl space-y-2", align === "center" && "mx-auto")}>
+      <div className={cn("max-w-2xl space-y-3", align === "center" && "mx-auto")}>
         {eyebrow ? (
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-alta-600">
-            {eyebrow}
-          </p>
+          <p className="type-caption text-alta-600">{eyebrow}</p>
         ) : null}
-        <TitleTag className="font-display text-3xl font-semibold tracking-tight text-ink-900 text-balance sm:text-4xl">
+        <TitleTag className="type-h2 text-ink-900 text-balance">
           {title}
         </TitleTag>
+        <div
+          className="h-px w-16 bg-gradient-to-r from-alta-500 to-marigold-400"
+          aria-hidden
+        />
         {description ? (
-          <p className="text-base text-ink-500 leading-relaxed">{description}</p>
+          <p className="type-body-large text-ink-500">{description}</p>
         ) : null}
       </div>
       {actions ? <div className="flex shrink-0 flex-wrap gap-2">{actions}</div> : null}
