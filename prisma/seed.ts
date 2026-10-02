@@ -1,6 +1,7 @@
 /**
  * SAMPLE / FICTIONAL seed data only.
  * Never seed real member personal information.
+ * Blocked in production unless ALLOW_DEMO_SEED=true (still creates only SAMPLE rows).
  */
 import { PrismaClient } from "@prisma/client";
 import { hash } from "bcryptjs";
@@ -8,7 +9,19 @@ import { hash } from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
+  if (
+    process.env.NODE_ENV === "production" &&
+    process.env.ALLOW_DEMO_SEED !== "true"
+  ) {
+    throw new Error(
+      "Refusing to seed demo users/payments in production. Set ALLOW_DEMO_SEED=true only for controlled sandbox databases.",
+    );
+  }
+
   console.log("Seeding SAMPLE / fictional data…");
+  console.warn(
+    "Demo accounts (admin@rjgc.local / member@rjgc.local) are for local/sandbox only. Disable or rotate before any shared environment.",
+  );
 
   await prisma.auditLog.deleteMany();
   await prisma.notification.deleteMany();
@@ -62,7 +75,8 @@ async function main() {
       name: "[SAMPLE] Regular membership",
       description: "Fictional plan for local development only.",
       billingCycle: "MONTHLY",
-      amountPaise: 0,
+      // Fictional sandbox amount only (₹500) — not a live dues quote.
+      amountPaise: 50000,
       currency: "INR",
       active: true,
       isSample: true,
@@ -162,12 +176,13 @@ async function main() {
     data: {
       memberId: member.id,
       number: "INV-SAMPLE-001",
-      amountPaise: 0,
+      amountPaise: 50000,
       currency: "INR",
-      status: "PAID",
+      // Seed never invents a paid/settled financial state for reconciliation demos.
+      status: "ISSUED",
       issuedOn: new Date("2025-11-01"),
       dueOn: new Date("2025-11-10"),
-      notes: "[SAMPLE] Historical invoice placeholder — amount not live.",
+      notes: "[SAMPLE] Invoice placeholder — not a live dues quote.",
       isSample: true,
       createdById: adminUser.id,
     },
@@ -177,14 +192,16 @@ async function main() {
     data: {
       memberId: member.id,
       invoiceId: invoice.id,
-      amountPaise: 0,
+      amountPaise: 50000,
       currency: "INR",
-      status: "SUCCESS",
+      // SUCCESS only via verified webhooks in application code — seed stays PENDING.
+      status: "PENDING",
       method: "BANK_TRANSFER",
-      paidAt: new Date("2025-11-01"),
+      paidAt: null,
       provider: "mock",
       providerPaymentRef: "pay_sample_seed_001",
-      notes: "[SAMPLE] Offline record confirmed for seed only. No provider credentials stored.",
+      notes:
+        "[SAMPLE] Sandbox payment row awaiting verified webhook — not claimed successful.",
       isSample: true,
       createdById: adminUser.id,
     },
@@ -193,19 +210,10 @@ async function main() {
   await prisma.paymentAttempt.create({
     data: {
       paymentId: payment.id,
-      status: "SUCCEEDED",
+      status: "STARTED",
       provider: "mock",
       providerAttemptRef: "pay_sample_seed_001",
       attemptedAt: new Date("2025-11-01"),
-    },
-  });
-
-  await prisma.receipt.create({
-    data: {
-      paymentId: payment.id,
-      number: "RJGC-RCPT-SAMPLE-001",
-      issuedOn: new Date("2025-11-01"),
-      isSample: true,
     },
   });
 

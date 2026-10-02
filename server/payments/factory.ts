@@ -43,8 +43,9 @@ export function getPaymentProvider(): PaymentProvider {
   const name = getPaymentProviderName();
   if (name === "razorpay") {
     try {
-      cached = createRazorpayProviderFromEnv();
-      return cached;
+      const razorpay = createRazorpayProviderFromEnv();
+      cached = razorpay;
+      return razorpay;
     } catch (error) {
       // Never silently degrade to mock — forged webhooks would mark payments SUCCESS.
       throw error instanceof Error
@@ -53,19 +54,22 @@ export function getPaymentProvider(): PaymentProvider {
     }
   }
 
-  if (
-    isProductionRuntime() &&
-    process.env.ALLOW_MOCK_PAYMENTS !== "true"
-  ) {
-    throw new Error(
-      "Mock payment provider is blocked in production. Set PAYMENT_PROVIDER=razorpay or ALLOW_MOCK_PAYMENTS=true for controlled sandbox deploys.",
-    );
+  if (isProductionRuntime()) {
+    const allowMock = process.env.ALLOW_MOCK_PAYMENTS === "true";
+    const confirmed =
+      process.env.MOCK_PAYMENTS_CONFIRM === "I_UNDERSTAND_NO_REAL_MONEY";
+    if (!allowMock || !confirmed) {
+      throw new Error(
+        "Mock payment provider is blocked in production. Use PAYMENT_PROVIDER=razorpay, or set ALLOW_MOCK_PAYMENTS=true and MOCK_PAYMENTS_CONFIRM=I_UNDERSTAND_NO_REAL_MONEY for a controlled sandbox only.",
+      );
+    }
   }
 
-  cached = new MockPaymentProvider({
+  const mock = new MockPaymentProvider({
     webhookSecret: resolveMockWebhookSecret(),
   });
-  return cached;
+  cached = mock;
+  return mock;
 }
 
 /** Test-only override. */

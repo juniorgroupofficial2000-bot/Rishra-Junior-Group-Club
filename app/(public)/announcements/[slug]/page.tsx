@@ -28,10 +28,11 @@ export async function generateMetadata({
   if (!item) return { title: "Announcement not found", robots: { index: false } };
 
   return buildMetadata({
-    title: item.title.replace(/^\[SAMPLE\]\s*/i, ""),
+    title: item.title,
     description: item.summary,
     path: `/announcements/${item.slug}`,
     ogType: "article",
+    noIndex: item.provenance === "sample",
   });
 }
 

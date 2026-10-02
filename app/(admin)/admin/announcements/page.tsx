@@ -21,10 +21,10 @@ export default async function AdminAnnouncementsPage() {
   return (
     <AdminSectionPage
       title="Announcements"
-      description="Pinned and published club announcements."
+      description="Database announcement records for operations. The public announcements page currently reads from content/announcements.ts — admin edits here do not automatically publish until content is unified."
       isEmpty={items.length === 0}
       emptyTitle="No announcements"
-      emptyDescription="Announcements managed here appear on the public site when published."
+      emptyDescription="Create announcements here for internal tracking until public CMS unification."
     >
       <Table>
         <THead>

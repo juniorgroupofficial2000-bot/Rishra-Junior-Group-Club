@@ -30,9 +30,10 @@ export async function generateMetadata({
   if (!album) return { title: "Album not found", robots: { index: false } };
 
   return buildMetadata({
-    title: album.title.replace(/^\[SAMPLE\]\s*/i, ""),
+    title: album.title,
     description: album.description,
     path: `/gallery/${album.slug}`,
+    noIndex: album.provenance === "sample",
     image: {
       url: album.coverImage.src,
       width: album.coverImage.width,

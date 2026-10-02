@@ -3,6 +3,7 @@ import "server-only";
 import { toCsvLine } from "@/server/csv/parse-csv";
 import { prisma } from "@/server/db/prisma";
 import { formatAmountLabel } from "@/server/repositories/prisma/mappers";
+import type { Prisma } from "@prisma/client";
 
 export const ReportTypes = [
   "members",
@@ -50,9 +51,13 @@ export function reportToCsv(report: ReportResult): string {
   return `${lines.join("\n")}\n`;
 }
 
+function sampleFilter(): { isSample?: boolean } {
+  return process.env.NODE_ENV === "production" ? { isSample: false } : {};
+}
+
 async function buildMemberReport(): Promise<ReportResult> {
   const members = await prisma.member.findMany({
-    where: { deletedAt: null },
+    where: { deletedAt: null, ...sampleFilter() },
     orderBy: { membershipNumber: "asc" },
     include: {
       memberships: {
@@ -91,8 +96,13 @@ async function buildMemberReport(): Promise<ReportResult> {
 }
 
 async function buildPaymentCollectionReport(): Promise<ReportResult> {
+  const where: Prisma.PaymentWhereInput = {
+    deletedAt: null,
+    status: "SUCCESS",
+    ...sampleFilter(),
+  };
   const payments = await prisma.payment.findMany({
-    where: { deletedAt: null, status: "SUCCESS" },
+    where,
     orderBy: { paidAt: "desc" },
     include: {
       member: { select: { membershipNumber: true, displayName: true } },
@@ -128,11 +138,13 @@ async function buildPaymentCollectionReport(): Promise<ReportResult> {
 }
 
 async function buildOutstandingDuesReport(): Promise<ReportResult> {
+  const where: Prisma.InvoiceWhereInput = {
+    deletedAt: null,
+    status: { in: ["ISSUED", "OVERDUE"] },
+    ...sampleFilter(),
+  };
   const invoices = await prisma.invoice.findMany({
-    where: {
-      deletedAt: null,
-      status: { in: ["ISSUED", "OVERDUE"] },
-    },
+    where,
     orderBy: { dueOn: "asc" },
     include: {
       member: { select: { membershipNumber: true, displayName: true } },
@@ -165,8 +177,13 @@ async function buildOutstandingDuesReport(): Promise<ReportResult> {
 }
 
 async function buildFailedPaymentReport(): Promise<ReportResult> {
+  const where: Prisma.PaymentWhereInput = {
+    deletedAt: null,
+    status: "FAILED",
+    ...sampleFilter(),
+  };
   const payments = await prisma.payment.findMany({
-    where: { deletedAt: null, status: "FAILED" },
+    where,
     orderBy: { createdAt: "desc" },
     include: {
       member: { select: { membershipNumber: true, displayName: true } },
@@ -201,7 +218,7 @@ async function buildFailedPaymentReport(): Promise<ReportResult> {
 
 async function buildMandateReport(): Promise<ReportResult> {
   const mandates = await prisma.paymentMandate.findMany({
-    where: { deletedAt: null },
+    where: { deletedAt: null, ...sampleFilter() },
     orderBy: { updatedAt: "desc" },
     include: {
       member: { select: { membershipNumber: true, displayName: true } },

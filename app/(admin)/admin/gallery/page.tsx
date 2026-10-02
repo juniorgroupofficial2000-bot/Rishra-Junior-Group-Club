@@ -18,7 +18,7 @@ export default async function AdminGalleryPage() {
   return (
     <AdminSectionPage
       title="Gallery"
-      description="Album publication and media counts."
+      description="Database gallery records for operations. The public gallery currently reads from content/gallery.ts — admin edits here do not automatically publish until content is unified."
       isEmpty={albums.length === 0}
       emptyTitle="No albums"
       emptyDescription="Gallery albums will appear here for content managers."

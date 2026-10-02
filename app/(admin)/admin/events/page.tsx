@@ -18,7 +18,7 @@ export default async function AdminEventsPage() {
   return (
     <AdminSectionPage
       title="Events"
-      description="Club events, publication state, and registration counts."
+      description="Database event records for operations. The public website currently reads from content/events.ts — admin edits here do not automatically publish to the public site until content is unified."
       isEmpty={events.length === 0}
       emptyTitle="No events"
       emptyDescription="Create events to manage registrations and attendance."

@@ -154,19 +154,20 @@ export class MockPaymentProvider implements PaymentProvider {
 
   async refundPayment(input: RefundPaymentInput) {
     const payment = await this.fetchPayment(input.providerPaymentRef);
+    const paymentRef = payment.providerPaymentRef ?? input.providerPaymentRef;
     if (payment.status !== "SUCCESS") {
       return {
         providerRefundRef: `rfnd_mock_${randomUUID().slice(0, 8)}`,
-        providerPaymentRef: payment.providerPaymentRef,
+        providerPaymentRef: paymentRef,
         status: "FAILED" as const,
         amountPaise: input.amountPaise ?? payment.amountPaise,
       };
     }
-    const updated = { ...payment, status: "REFUNDED" as const };
-    this.payments.set(payment.providerPaymentRef, updated);
+    const updated = { ...payment, providerPaymentRef: paymentRef, status: "REFUNDED" as const };
+    this.payments.set(paymentRef, updated);
     return {
       providerRefundRef: `rfnd_mock_${randomUUID().slice(0, 8)}`,
-      providerPaymentRef: payment.providerPaymentRef,
+      providerPaymentRef: paymentRef,
       status: "SUCCESS" as const,
       amountPaise: input.amountPaise ?? payment.amountPaise,
     };

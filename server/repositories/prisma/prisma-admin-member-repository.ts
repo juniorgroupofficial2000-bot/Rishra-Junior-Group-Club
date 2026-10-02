@@ -215,10 +215,13 @@ export const prismaAdminMemberRepository: AdminMemberRepository = {
       select: { userId: true },
     });
 
-    // Soft-deleted members must lose portal login immediately.
+    // Soft-deleted MEMBER logins lose access. Staff accounts keep login.
     if (member.userId) {
-      await prisma.user.update({
-        where: { id: member.userId },
+      await prisma.user.updateMany({
+        where: {
+          id: member.userId,
+          role: { in: ["MEMBER", "PUBLIC"] },
+        },
         data: { active: false, updatedById: actorUserId },
       });
     }
@@ -271,11 +274,15 @@ export const prismaAdminMemberRepository: AdminMemberRepository = {
       include: memberInclude,
     });
 
-    // Keep linked login entitlement aligned with membership status.
+    // Only MEMBER/PUBLIC portal logins follow membership status.
+    // Staff roles are not auto-disabled by membership changes.
     if (member.userId) {
       const portalAllowed = status === "ACTIVE";
-      await prisma.user.update({
-        where: { id: member.userId },
+      await prisma.user.updateMany({
+        where: {
+          id: member.userId,
+          role: { in: ["MEMBER", "PUBLIC"] },
+        },
         data: { active: portalAllowed, updatedById: actorUserId },
       });
     }

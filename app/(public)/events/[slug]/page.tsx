@@ -32,10 +32,11 @@ export async function generateMetadata({
   if (!event) return { title: "Event not found", robots: { index: false } };
 
   return buildMetadata({
-    title: event.title.replace(/^\[SAMPLE\]\s*/i, ""),
+    title: event.title,
     description: event.summary,
     path: `/events/${event.slug}`,
     ogType: "article",
+    noIndex: event.provenance === "sample",
     image: event.coverImage
       ? {
           url: event.coverImage.src,

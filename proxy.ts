@@ -17,6 +17,15 @@ export default auth((request) => {
   const isLogin = pathname === "/login";
   const user = request.auth?.user;
 
+  // Design-system playground must not be public in production.
+  if (
+    pathname.startsWith("/design-system") &&
+    process.env.NODE_ENV === "production" &&
+    process.env.ALLOW_DESIGN_SYSTEM !== "true"
+  ) {
+    return NextResponse.redirect(new URL("/", request.nextUrl.origin));
+  }
+
   if (isAdminRoute) {
     if (!user?.id || !canAccessAdminPortal(user.role)) {
       const loginUrl = new URL("/login", request.nextUrl.origin);
@@ -50,5 +59,5 @@ export default auth((request) => {
 });
 
 export const config = {
-  matcher: ["/member/:path*", "/admin/:path*", "/login"],
+  matcher: ["/member/:path*", "/admin/:path*", "/login", "/design-system/:path*"],
 };
