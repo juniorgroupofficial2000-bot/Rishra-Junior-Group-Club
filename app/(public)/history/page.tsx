@@ -1,36 +1,52 @@
-import { Timeline } from "@/components/club";
-import { ContentPlaceholder, PublicPageShell } from "@/components/public";
-import { metadataForPage } from "@/lib/public-metadata";
+import { InteractiveTimeline } from "@/components/heritage";
+import { SiteContainer } from "@/components/public";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { SectionHeader } from "@/components/ui/section-header";
+import {
+  getPublishedTimelineEntries,
+  historyPageCopy,
+} from "@/content/heritage";
+import { breadcrumbsForPage } from "@/content/pages";
+import { siteConfig } from "@/content/site";
+import { historyPageJsonLd } from "@/lib/heritage-structured-data";
+import { JsonLd } from "@/lib/json-ld";
+import type { Metadata } from "next";
 
-export const metadata = metadataForPage("history");
+export const metadata: Metadata = {
+  title: "History",
+  description: historyPageCopy.description,
+  alternates: { canonical: "/history" },
+  openGraph: {
+    title: `History · ${siteConfig.name}`,
+    description: historyPageCopy.description,
+    url: "/history",
+    type: "website",
+  },
+};
 
 export default function HistoryPage() {
+  const entries = getPublishedTimelineEntries();
+  const crumbs = breadcrumbsForPage("history");
+
   return (
-    <PublicPageShell pageKey="history">
-      <Timeline
-        items={[
-          {
-            id: "2000-puja",
-            year: "2000",
-            title: "Saraswati Puja begins",
-            description:
-              "The club has been organizing Saraswati Puja since 1 February 2000.",
-          },
-          {
-            id: "registration",
-            year: "—",
-            title: "Formal club registration",
-            description:
-              "[PLACEHOLDER: Registration date, authority, and number when verified.]",
-          },
-        ]}
-      />
-      <div className="mt-10">
-        <ContentPlaceholder
-          title="Additional history"
-          body="Further timeline entries will be added from verified club records only."
+    <>
+      <JsonLd data={historyPageJsonLd()} />
+      <SiteContainer as="header" className="pb-6 pt-8 sm:pb-8 sm:pt-10">
+        <Breadcrumbs items={crumbs} className="mb-5" />
+        <SectionHeader
+          eyebrow={historyPageCopy.eyebrow}
+          title={historyPageCopy.title}
+          description={historyPageCopy.description}
+          titleAs="h1"
         />
-      </div>
-    </PublicPageShell>
+      </SiteContainer>
+      <SiteContainer className="min-w-0 pb-16 sm:pb-24">
+        <InteractiveTimeline entries={entries} />
+        <p className="mt-12 max-w-2xl text-sm text-ink-500">
+          {historyPageCopy.emptyNote} SAMPLE entries are labelled and exist only
+          to demonstrate the CMS-ready timeline layout.
+        </p>
+      </SiteContainer>
+    </>
   );
 }

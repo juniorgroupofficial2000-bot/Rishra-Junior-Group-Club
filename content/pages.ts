@@ -48,7 +48,7 @@ export const publicPages: Record<PublicPageKey, PublicPageDefinition> = {
     path: "/history",
     title: "History",
     description:
-      "[PLACEHOLDER: Timeline narrative. Known start: Saraswati Puja from 1 February 2000.]",
+      "Club history timeline for Rishra Junior Group Club, including Saraswati Puja since 1 February 2000.",
     eyebrow: "Since 2000",
   },
   committee: {
@@ -64,7 +64,7 @@ export const publicPages: Record<PublicPageKey, PublicPageDefinition> = {
     path: "/saraswati-puja",
     title: "Saraswati Puja",
     description:
-      "Annual Saraswati Puja organized by the club since 1 February 2000. [PLACEHOLDER: archive intro.]",
+      "Saraswati Puja at Rishra Junior Group Club — celebrated since 1 February 2000. Archive, preparation, and community memories.",
     eyebrow: "Tradition",
   },
   events: {
