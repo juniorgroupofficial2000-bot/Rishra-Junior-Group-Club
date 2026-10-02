@@ -1,3 +1,7 @@
+import {
+  includeSampleContent,
+  isSampleProvenance,
+} from "@/content/include-sample";
 import { siteConfig } from "./site";
 import type { ContentProvenance, MediaItem } from "./shared/media";
 
@@ -215,8 +219,12 @@ export function formatEventDateRange(event: ClubEvent): string {
 }
 
 export function getPublishedEvents(): ClubEvent[] {
+  const allowSample = includeSampleContent();
   return [...clubEvents]
     .filter((event) => event.published)
+    .filter(
+      (event) => allowSample || !isSampleProvenance(event.provenance),
+    )
     .sort(
       (a, b) =>
         new Date(b.startsAt).getTime() - new Date(a.startsAt).getTime(),

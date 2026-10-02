@@ -1,10 +1,8 @@
-import { publicPages, type PublicPageKey } from "@/content/pages";
+import { metadataForPublicPage } from "@/lib/seo/metadata";
+import type { PublicPageKey } from "@/content/pages";
 import type { Metadata } from "next";
 
+/** @deprecated Prefer `metadataForPublicPage` from `@/lib/seo`. */
 export function metadataForPage(key: PublicPageKey): Metadata {
-  const page = publicPages[key];
-  return {
-    title: key === "home" ? undefined : page.title,
-    description: page.description,
-  };
+  return metadataForPublicPage(key);
 }

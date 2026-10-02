@@ -10,6 +10,14 @@
 
   html {
     scroll-behavior: smooth;
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
+  img,
+  video,
+  canvas {
+    max-width: 100%;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -33,7 +41,8 @@
     font-family: var(--font-sans);
     font-size: var(--text-base);
     line-height: var(--leading-normal);
-    overflow-x: hidden;
+    overflow-x: clip;
+    max-width: 100%;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }

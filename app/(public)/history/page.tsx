@@ -1,4 +1,4 @@
-import { InteractiveTimeline } from "@/components/heritage";
+import { HistoryTimelineLazy } from "@/components/heritage/history-timeline-lazy";
 import { SiteContainer } from "@/components/public";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { SectionHeader } from "@/components/ui/section-header";
@@ -7,22 +7,11 @@ import {
   historyPageCopy,
 } from "@/content/heritage";
 import { breadcrumbsForPage } from "@/content/pages";
-import { siteConfig } from "@/content/site";
 import { historyPageJsonLd } from "@/lib/heritage-structured-data";
 import { JsonLd } from "@/lib/json-ld";
-import type { Metadata } from "next";
+import { metadataForPublicPage } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
-  title: "History",
-  description: historyPageCopy.description,
-  alternates: { canonical: "/history" },
-  openGraph: {
-    title: `History · ${siteConfig.name}`,
-    description: historyPageCopy.description,
-    url: "/history",
-    type: "website",
-  },
-};
+export const metadata = metadataForPublicPage("history");
 
 export default function HistoryPage() {
   const entries = getPublishedTimelineEntries();
@@ -41,7 +30,7 @@ export default function HistoryPage() {
         />
       </SiteContainer>
       <SiteContainer className="min-w-0 pb-16 sm:pb-24">
-        <InteractiveTimeline entries={entries} />
+        <HistoryTimelineLazy entries={entries} />
         <p className="mt-12 max-w-2xl text-sm text-ink-500">
           {historyPageCopy.emptyNote} SAMPLE entries are labelled and exist only
           to demonstrate the CMS-ready timeline layout.

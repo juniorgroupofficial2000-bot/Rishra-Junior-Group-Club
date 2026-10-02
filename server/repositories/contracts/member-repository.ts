@@ -6,19 +6,23 @@
 export type MemberStatus = "active" | "pending" | "inactive" | "suspended";
 
 export type MandateStatus =
-  | "not_setup"
+  | "created"
   | "pending"
   | "active"
   | "paused"
-  | "cancelled"
-  | "failed";
-
-/** Historical payment record — not a live payment result. */
-export type PaymentRecordStatus =
-  | "recorded"
-  | "pending_verification"
   | "failed"
-  | "refunded";
+  | "cancelled"
+  | "expired";
+
+/** Payment record status mirrored from provider-confirmed states. */
+export type PaymentRecordStatus =
+  | "created"
+  | "pending"
+  | "authorized"
+  | "success"
+  | "failed"
+  | "refunded"
+  | "cancelled";
 
 export type MemberProfile = {
   id: string;
@@ -37,7 +41,6 @@ export type MembershipInfo = {
   planLabel: string;
   status: MemberStatus;
   billingCycleLabel: string;
-  /** Amounts as display strings only — no invented live pricing engine */
   duesAmountLabel: string;
   nextDueOn: string | null;
 };
@@ -47,6 +50,7 @@ export type MandateInfo = {
   status: MandateStatus;
   providerLabel: string;
   lastUpdatedOn: string | null;
+  nextDebitOn: string | null;
   note: string;
 };
 
@@ -58,7 +62,6 @@ export type PaymentRecord = {
   status: PaymentRecordStatus;
   methodLabel: string;
   receiptNumber: string | null;
-  /** SAMPLE/demo provenance for mock data */
   isSample: boolean;
 };
 

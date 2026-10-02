@@ -18,7 +18,7 @@ const payments: PaymentRecord[] = [
     memberId: DEMO_MEMBER_ID,
     amountLabel: "[SAMPLE] ₹ —",
     paidOn: "2025-11-01",
-    status: "recorded",
+    status: "success",
     methodLabel: "[SAMPLE] Offline / bank transfer",
     receiptNumber: "RJGC-RCPT-SAMPLE-001",
     isSample: true,
@@ -28,7 +28,7 @@ const payments: PaymentRecord[] = [
     memberId: DEMO_MEMBER_ID,
     amountLabel: "[SAMPLE] ₹ —",
     paidOn: null,
-    status: "pending_verification",
+    status: "pending",
     methodLabel: "[SAMPLE] Awaiting verification",
     receiptNumber: null,
     isSample: true,
@@ -63,10 +63,11 @@ function membership() {
 function mandate() {
   return {
     memberId: DEMO_MEMBER_ID,
-    status: "not_setup" as const,
-    providerLabel: "Payment provider (not connected)",
+    status: "created" as const,
+    providerLabel: "Payment provider (mock/sandbox)",
     lastUpdatedOn: null,
-    note: "E-mandate setup is not available in this demo. No payment provider calls are made.",
+    nextDebitOn: null,
+    note: "No active mandate. Setup uses the payment provider abstraction; success requires a verified webhook.",
   };
 }
 
@@ -89,7 +90,7 @@ export const mockMemberRepository: MemberRepository = {
   },
   async getReceipts(memberId) {
     if (memberId !== DEMO_MEMBER_ID) return [];
-    return payments.filter((p) => p.receiptNumber && p.status === "recorded");
+    return payments.filter((p) => p.receiptNumber && p.status === "success");
   },
   async getUpcomingEvents(memberId) {
     if (memberId !== DEMO_MEMBER_ID) return [];

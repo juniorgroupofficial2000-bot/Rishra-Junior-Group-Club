@@ -20,5 +20,7 @@ declare module "next-auth/jwt" {
   interface JWT {
     role?: AppRole;
     memberId?: string | null;
+    lastValidated?: number;
+    error?: "SessionInactive";
   }
 }

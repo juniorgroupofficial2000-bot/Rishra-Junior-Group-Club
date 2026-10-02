@@ -1,6 +1,7 @@
 import { LoginForm } from "@/components/auth/login-form";
 import { siteConfig } from "@/content/site";
 import { isMockRepositoryDriver } from "@/server/repositories";
+import { safeInternalPath } from "@/server/security/safe-path";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -15,28 +16,27 @@ type PageProps = {
 
 export default async function LoginPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const callbackUrl =
-    params.callbackUrl?.startsWith("/member")
-      ? params.callbackUrl
-      : "/member/dashboard";
+  const callbackUrl = safeInternalPath(params.callbackUrl);
+  // Demo credentials are only shown for the intentional mock repository driver.
+  const showDemoHint = isMockRepositoryDriver();
 
   return (
     <div className="w-full max-w-md rounded-2xl border border-border-subtle bg-surface-raised p-6 shadow-sm sm:p-8">
       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-alta-600">
-        Member portal
+        Club portal
       </p>
       <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-ink-900">
         Sign in
       </h1>
       <p className="mt-2 text-sm leading-relaxed text-ink-500">
-        Access membership details, dues history, and club updates. Sessions are
-        secured with encrypted cookies.
+        Access the member or admin portal. Sessions are secured with encrypted
+        cookies and server-side authorization.
       </p>
       <div className="mt-8">
         <LoginForm
           callbackUrl={callbackUrl}
           errorCode={params.error}
-          showDemoHint={isMockRepositoryDriver()}
+          showDemoHint={showDemoHint}
         />
       </div>
     </div>

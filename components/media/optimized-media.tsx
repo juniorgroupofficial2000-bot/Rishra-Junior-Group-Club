@@ -36,11 +36,12 @@ export function OptimizedMedia({
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-ink-900">
         <Image
           src={imageSrc}
-          alt={media.alt}
+          alt={media.alt || "Club media"}
           fill
           sizes={sizes}
           priority={priority}
           loading={priority ? "eager" : "lazy"}
+          decoding="async"
           unoptimized={isSvg}
           className={cn("object-cover", imgClassName)}
         />

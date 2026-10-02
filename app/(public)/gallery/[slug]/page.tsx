@@ -7,7 +7,9 @@ import {
   getPublishedAlbums,
   galleryPageCopy,
 } from "@/content/gallery";
-import { siteConfig } from "@/content/site";
+import { JsonLd } from "@/lib/json-ld";
+import { buildMetadata } from "@/lib/seo/metadata";
+import { breadcrumbJsonLd, organizationJsonLd } from "@/lib/seo/structured-data";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -25,26 +27,19 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const album = getAlbumBySlug(slug);
-  if (!album) return { title: "Album not found" };
+  if (!album) return { title: "Album not found", robots: { index: false } };
 
-  return {
-    title: album.title.replace(/^\[SAMPLE\]\s*/, ""),
+  return buildMetadata({
+    title: album.title.replace(/^\[SAMPLE\]\s*/i, ""),
     description: album.description,
-    alternates: { canonical: `/gallery/${album.slug}` },
-    openGraph: {
-      title: `${album.title} · ${siteConfig.name}`,
-      description: album.description,
-      url: `/gallery/${album.slug}`,
-      images: [
-        {
-          url: album.coverImage.src,
-          width: album.coverImage.width,
-          height: album.coverImage.height,
-          alt: album.coverImage.alt,
-        },
-      ],
+    path: `/gallery/${album.slug}`,
+    image: {
+      url: album.coverImage.src,
+      width: album.coverImage.width,
+      height: album.coverImage.height,
+      alt: album.coverImage.alt,
     },
-  };
+  });
 }
 
 export default async function GalleryAlbumPage({ params }: PageProps) {
@@ -54,6 +49,19 @@ export default async function GalleryAlbumPage({ params }: PageProps) {
 
   return (
     <>
+      <JsonLd
+        data={[
+          organizationJsonLd(),
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: galleryPageCopy.title, path: "/gallery" },
+            {
+              name: album.title.replace(/^\[SAMPLE\]\s*/i, ""),
+              path: `/gallery/${album.slug}`,
+            },
+          ]),
+        ]}
+      />
       <SiteContainer as="header" className="pb-6 pt-8 sm:pb-8 sm:pt-10">
         <Breadcrumbs
           className="mb-5"
@@ -81,14 +89,14 @@ export default async function GalleryAlbumPage({ params }: PageProps) {
           {album.description}
         </p>
       </SiteContainer>
-      <SiteContainer className="pb-16 sm:pb-20">
+      <SiteContainer className="min-w-0 pb-16 sm:pb-20">
         <AlbumMediaGrid media={album.media} />
         <p className="mt-10">
           <Link
             href="/gallery"
             className="text-sm font-medium text-ink-800 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            ← All albums
+            All albums
           </Link>
         </p>
       </SiteContainer>

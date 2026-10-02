@@ -16,6 +16,7 @@ const MOCK_USERS: AuthUserRecord[] = [
     name: "Demo Member",
     role: "MEMBER",
     memberId: "mem_demo_001",
+    memberStatus: "ACTIVE",
     // bcrypt hash of "MemberDemo1!" (cost 12)
     passwordHash:
       "$2b$12$yxYnTxWqMKkj6iLzsPN4ouSgiZBYfi04aekWTfEm3QbCW2bLngYsi",

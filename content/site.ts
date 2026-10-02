@@ -4,13 +4,18 @@
  * Site language: English only.
  */
 
+import { getSiteUrl, seoDefaults } from "@/lib/seo/config";
+
 export const siteConfig = {
-  name: "Rishra Junior Group Club",
-  shortName: "RJGC",
-  /** Production origin for absolute metadata URLs. Override via NEXT_PUBLIC_SITE_URL. */
-  siteUrl:
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
-    "https://www.rishrajuniorgroupclub.org",
+  name: seoDefaults.siteName,
+  shortName: seoDefaults.shortName,
+  /**
+   * Absolute origin for metadata, sitemap, and JSON-LD.
+   * Set via SITE_URL (preferred) or NEXT_PUBLIC_SITE_URL — never invent a domain.
+   */
+  get siteUrl() {
+    return getSiteUrl();
+  },
   establishedLabel: "Since 1 February 2000",
   establishedYear: 2000,
   registrationNote:
@@ -33,7 +38,7 @@ export const siteConfig = {
     privacyUpdated: "[PLACEHOLDER: last updated date]",
     termsUpdated: "[PLACEHOLDER: last updated date]",
   },
-} as const;
+};
 
 export type SiteConfig = typeof siteConfig;
 

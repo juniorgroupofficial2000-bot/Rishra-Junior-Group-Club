@@ -6,7 +6,9 @@ import {
   getAnnouncementBySlug,
   getPublishedAnnouncements,
 } from "@/content/announcements";
-import { siteConfig } from "@/content/site";
+import { JsonLd } from "@/lib/json-ld";
+import { buildMetadata } from "@/lib/seo/metadata";
+import { breadcrumbJsonLd, organizationJsonLd } from "@/lib/seo/structured-data";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -23,20 +25,14 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const item = getAnnouncementBySlug(slug);
-  if (!item) return { title: "Announcement not found" };
+  if (!item) return { title: "Announcement not found", robots: { index: false } };
 
-  return {
-    title: item.title.replace(/^\[SAMPLE\]\s*/, ""),
+  return buildMetadata({
+    title: item.title.replace(/^\[SAMPLE\]\s*/i, ""),
     description: item.summary,
-    alternates: { canonical: `/announcements/${item.slug}` },
-    openGraph: {
-      title: `${item.title} · ${siteConfig.name}`,
-      description: item.summary,
-      url: `/announcements/${item.slug}`,
-      type: "article",
-      publishedTime: item.publishedAt,
-    },
-  };
+    path: `/announcements/${item.slug}`,
+    ogType: "article",
+  });
 }
 
 export default async function AnnouncementDetailPage({ params }: PageProps) {
@@ -46,6 +42,27 @@ export default async function AnnouncementDetailPage({ params }: PageProps) {
 
   return (
     <>
+      <JsonLd
+        data={[
+          organizationJsonLd(),
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: announcementsPageCopy.title, path: "/announcements" },
+            {
+              name: announcement.title.replace(/^\[SAMPLE\]\s*/i, ""),
+              path: `/announcements/${announcement.slug}`,
+            },
+          ]),
+          {
+            "@context": "https://schema.org",
+            "@type": "NewsArticle",
+            headline: announcement.title.replace(/^\[SAMPLE\]\s*/i, ""),
+            datePublished: announcement.publishedAt,
+            description: announcement.summary,
+            mainEntityOfPage: `/announcements/${announcement.slug}`,
+          },
+        ]}
+      />
       <SiteContainer className="pt-8 sm:pt-10">
         <Breadcrumbs
           className="mb-6"
@@ -56,7 +73,7 @@ export default async function AnnouncementDetailPage({ params }: PageProps) {
           ]}
         />
       </SiteContainer>
-      <SiteContainer className="pb-16 sm:pb-20">
+      <SiteContainer className="min-w-0 pb-16 sm:pb-20">
         <AnnouncementDetail announcement={announcement} />
       </SiteContainer>
     </>

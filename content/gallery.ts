@@ -1,3 +1,7 @@
+import {
+  includeSampleContent,
+  isSampleProvenance,
+} from "@/content/include-sample";
 import type { ContentProvenance, MediaItem } from "./shared/media";
 
 /**
@@ -242,8 +246,12 @@ export const galleryAlbums: GalleryAlbum[] = [
 ];
 
 export function getPublishedAlbums(): GalleryAlbum[] {
+  const allowSample = includeSampleContent();
   return [...galleryAlbums]
     .filter((album) => album.published)
+    .filter(
+      (album) => allowSample || !isSampleProvenance(album.provenance),
+    )
     .sort((a, b) => a.sortOrder - b.sortOrder);
 }
 

@@ -1,3 +1,7 @@
+import {
+  includeSampleContent,
+  isSampleProvenance,
+} from "@/content/include-sample";
 import type { ContentProvenance } from "./shared/media";
 
 /**
@@ -120,8 +124,10 @@ export function formatAnnouncementDate(iso: string): string {
 }
 
 export function getPublishedAnnouncements(): Announcement[] {
+  const allowSample = includeSampleContent();
   return [...announcements]
     .filter((item) => item.published)
+    .filter((item) => allowSample || !isSampleProvenance(item.provenance))
     .sort((a, b) => {
       if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
       const byDate =

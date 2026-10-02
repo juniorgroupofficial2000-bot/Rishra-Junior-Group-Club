@@ -6,7 +6,13 @@ import {
   getEventBySlug,
   getPublishedEvents,
 } from "@/content/events";
-import { siteConfig } from "@/content/site";
+import { JsonLd } from "@/lib/json-ld";
+import { buildMetadata } from "@/lib/seo/metadata";
+import {
+  breadcrumbJsonLd,
+  eventJsonLd,
+  organizationJsonLd,
+} from "@/lib/seo/structured-data";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -23,29 +29,22 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const event = getEventBySlug(slug);
-  if (!event) return { title: "Event not found" };
+  if (!event) return { title: "Event not found", robots: { index: false } };
 
-  return {
-    title: event.title.replace(/^\[SAMPLE\]\s*/, ""),
+  return buildMetadata({
+    title: event.title.replace(/^\[SAMPLE\]\s*/i, ""),
     description: event.summary,
-    alternates: { canonical: `/events/${event.slug}` },
-    openGraph: {
-      title: `${event.title} · ${siteConfig.name}`,
-      description: event.summary,
-      url: `/events/${event.slug}`,
-      type: "article",
-      images: event.coverImage
-        ? [
-            {
-              url: event.coverImage.src,
-              width: event.coverImage.width,
-              height: event.coverImage.height,
-              alt: event.coverImage.alt,
-            },
-          ]
-        : undefined,
-    },
-  };
+    path: `/events/${event.slug}`,
+    ogType: "article",
+    image: event.coverImage
+      ? {
+          url: event.coverImage.src,
+          width: event.coverImage.width,
+          height: event.coverImage.height,
+          alt: event.coverImage.alt,
+        }
+      : undefined,
+  });
 }
 
 export default async function EventDetailPage({ params }: PageProps) {
@@ -55,6 +54,17 @@ export default async function EventDetailPage({ params }: PageProps) {
 
   return (
     <>
+      <JsonLd
+        data={[
+          organizationJsonLd(),
+          eventJsonLd(event),
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: eventsPageCopy.title, path: "/events" },
+            { name: event.title.replace(/^\[SAMPLE\]\s*/i, ""), path: `/events/${event.slug}` },
+          ]),
+        ]}
+      />
       <SiteContainer className="pt-8 sm:pt-10">
         <Breadcrumbs
           className="mb-6"
@@ -65,7 +75,7 @@ export default async function EventDetailPage({ params }: PageProps) {
           ]}
         />
       </SiteContainer>
-      <SiteContainer className="pb-16 sm:pb-20">
+      <SiteContainer className="min-w-0 pb-16 sm:pb-20">
         <EventDetail event={event} />
       </SiteContainer>
     </>

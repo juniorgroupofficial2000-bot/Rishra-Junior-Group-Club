@@ -10,39 +10,24 @@ import { SiteContainer } from "@/components/public";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { saraswatiPujaContent } from "@/content/heritage";
 import { breadcrumbsForPage } from "@/content/pages";
-import { siteConfig } from "@/content/site";
 import { saraswatiPujaPageJsonLd } from "@/lib/heritage-structured-data";
 import { JsonLd } from "@/lib/json-ld";
-import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/seo/metadata";
 
 const description =
   "Saraswati Puja at Rishra Junior Group Club — celebrated since 1 February 2000. Explore the archive, preparation, cultural activities, and community memories.";
 
-export const metadata: Metadata = {
+export const metadata = buildMetadata({
   title: "Saraswati Puja",
   description,
-  alternates: { canonical: "/saraswati-puja" },
-  openGraph: {
-    title: `Saraswati Puja · ${siteConfig.name}`,
-    description,
-    url: "/saraswati-puja",
-    type: "website",
-    images: [
-      {
-        url: saraswatiPujaContent.hero.image.src,
-        width: saraswatiPujaContent.hero.image.width,
-        height: saraswatiPujaContent.hero.image.height,
-        alt: saraswatiPujaContent.hero.image.alt,
-      },
-    ],
+  path: "/saraswati-puja",
+  image: {
+    url: saraswatiPujaContent.hero.image.src,
+    width: saraswatiPujaContent.hero.image.width,
+    height: saraswatiPujaContent.hero.image.height,
+    alt: saraswatiPujaContent.hero.image.alt,
   },
-  twitter: {
-    card: "summary_large_image",
-    title: `Saraswati Puja · ${siteConfig.name}`,
-    description,
-    images: [saraswatiPujaContent.hero.image.src],
-  },
-};
+});
 
 export default function SaraswatiPujaPage() {
   const crumbs = breadcrumbsForPage("saraswati-puja");

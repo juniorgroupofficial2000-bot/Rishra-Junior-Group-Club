@@ -1,11 +1,11 @@
-import { siteConfig } from "@/content/site";
-import type { Metadata } from "next";
+import { seoDefaults, getSiteUrl } from "@/lib/seo/config";
+import { ToastProvider } from "@/components/ui/toast";
+import type { Metadata, Viewport } from "next";
 import {
   Fraunces,
   IBM_Plex_Mono,
   Source_Sans_3,
 } from "next/font/google";
-import { ToastProvider } from "@/components/ui/toast";
 import type { ReactNode } from "react";
 import "./globals.css";
 
@@ -29,13 +29,42 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.siteUrl),
+  metadataBase: new URL(getSiteUrl()),
   title: {
-    default: siteConfig.name,
-    template: `%s · ${siteConfig.name}`,
+    default: seoDefaults.defaultTitle,
+    template: `%s · ${seoDefaults.siteName}`,
   },
-  description:
-    "Celebrating community, tradition and togetherness since 2000. Official digital platform for Rishra Junior Group Club.",
+  description: seoDefaults.defaultDescription,
+  applicationName: seoDefaults.shortName,
+  authors: [{ name: seoDefaults.siteName }],
+  creator: seoDefaults.siteName,
+  publisher: seoDefaults.siteName,
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  openGraph: {
+    type: "website",
+    locale: seoDefaults.locale,
+    siteName: seoDefaults.siteName,
+    title: seoDefaults.defaultTitle,
+    description: seoDefaults.defaultDescription,
+  },
+  twitter: {
+    card: seoDefaults.twitterCard,
+    title: seoDefaults.defaultTitle,
+    description: seoDefaults.defaultDescription,
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fafaf9" },
+    { media: "(prefers-color-scheme: dark)", color: "#1c1917" },
+  ],
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -44,7 +73,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       lang="en"
       className={`${fraunces.variable} ${sourceSans.variable} ${ibmPlexMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans">
+      <body className="flex min-h-full min-w-0 flex-col overflow-x-clip font-sans">
         <ToastProvider>{children}</ToastProvider>
       </body>
     </html>

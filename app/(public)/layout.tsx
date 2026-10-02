@@ -4,11 +4,14 @@ import {
   SiteHeader,
   SkipLink,
 } from "@/components/public";
+import { JsonLd } from "@/lib/json-ld";
+import { organizationJsonLd, websiteJsonLd } from "@/lib/seo/structured-data";
 import type { ReactNode } from "react";
 
 export default function PublicLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-dvh min-w-0 flex-col overflow-x-hidden bg-heritage-grain">
+    <div className="flex min-h-dvh min-w-0 flex-col overflow-x-clip bg-heritage-grain">
+      <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
       <SkipLink />
       <SiteHeader />
       <PageTransition>

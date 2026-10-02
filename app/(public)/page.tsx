@@ -11,43 +11,28 @@ import {
   HomePuja,
 } from "@/components/public/home";
 import { homeContent } from "@/content/home";
-import { siteConfig } from "@/content/site";
-import type { Metadata } from "next";
+import { JsonLd } from "@/lib/json-ld";
+import { buildMetadata } from "@/lib/seo/metadata";
+import { homePageJsonLd } from "@/lib/seo/structured-data";
+import { seoDefaults } from "@/lib/seo/config";
 
-export const metadata: Metadata = {
-  title: {
-    absolute: siteConfig.name,
-  },
+export const metadata = buildMetadata({
+  title: seoDefaults.siteName,
+  absoluteTitle: true,
   description: homeContent.hero.support,
-  alternates: {
-    canonical: "/",
+  path: "/",
+  image: {
+    url: homeContent.hero.image.src,
+    width: homeContent.hero.image.width,
+    height: homeContent.hero.image.height,
+    alt: homeContent.hero.image.alt,
   },
-  openGraph: {
-    title: siteConfig.name,
-    description: homeContent.hero.support,
-    type: "website",
-    locale: "en_IN",
-    siteName: siteConfig.name,
-    images: [
-      {
-        url: homeContent.hero.image.src,
-        width: homeContent.hero.image.width,
-        height: homeContent.hero.image.height,
-        alt: homeContent.hero.image.alt,
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: siteConfig.name,
-    description: homeContent.hero.support,
-    images: [homeContent.hero.image.src],
-  },
-};
+});
 
 export default function HomePage() {
   return (
     <>
+      <JsonLd data={homePageJsonLd()} />
       <HomeHero />
       <HomeIntro />
       <HomeHeritage />

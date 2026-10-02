@@ -1,23 +1,30 @@
-import { Stagger, StaggerItem } from "@/components/motion/fade-in";
 import { OptimizedMedia } from "@/components/media/optimized-media";
 import type { MediaItem } from "@/content/shared/media";
 
+/**
+ * Gallery media grid — Server Component by default.
+ * Only the first image is prioritized; the rest lazy-load to reduce LCP contention.
+ */
 export function AlbumMediaGrid({ media }: { media: MediaItem[] }) {
   return (
-    <Stagger className="grid grid-cols-2 gap-3 md:grid-cols-3">
+    <ul className="grid min-w-0 grid-cols-2 gap-3 md:grid-cols-3">
       {media.map((item, index) => (
-        <StaggerItem
+        <li
           key={item.id}
-          className={item.kind === "video" ? "col-span-2 md:col-span-1" : undefined}
+          className={
+            item.kind === "video"
+              ? "col-span-2 min-w-0 md:col-span-1"
+              : "min-w-0 [content-visibility:auto] [contain-intrinsic-size:1px_280px]"
+          }
         >
           <OptimizedMedia
             media={item}
             priority={index === 0}
             sizes="(max-width: 768px) 50vw, 33vw"
-            className="overflow-hidden rounded-lg [&_div]:aspect-square [&_div]:sm:rounded-lg"
+            className="overflow-hidden rounded-lg [&_div]:aspect-square"
           />
-        </StaggerItem>
+        </li>
       ))}
-    </Stagger>
+    </ul>
   );
 }

@@ -1,3 +1,7 @@
+import {
+  includeSampleContent,
+  isSampleProvenance,
+} from "@/content/include-sample";
 import type { TimelineEntry } from "./types";
 
 /**
@@ -101,8 +105,12 @@ export const timelineEntries: TimelineEntry[] = [
 ];
 
 export function getPublishedTimelineEntries(): TimelineEntry[] {
+  const allowSample = includeSampleContent();
   return [...timelineEntries]
     .filter((entry) => entry.published)
+    .filter(
+      (entry) => allowSample || !isSampleProvenance(entry.provenance),
+    )
     .sort((a, b) => a.sortOrder - b.sortOrder);
 }
 

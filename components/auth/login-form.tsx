@@ -60,12 +60,18 @@ export function LoginForm({
 
       {showDemoHint ? (
         <aside className="rounded-md border border-dashed border-border-strong bg-surface-muted px-4 py-3 text-xs leading-relaxed text-ink-500">
-          <p className="font-medium text-ink-700">Demo credentials (mock repository)</p>
-          <p className="mt-1 font-mono">member@rjgc.local</p>
+          <p className="font-medium text-ink-700">
+            SAMPLE credentials (fictional seed data)
+          </p>
+          <p className="mt-2 font-medium text-ink-600">Member</p>
+          <p className="font-mono">member@rjgc.local</p>
           <p className="font-mono">MemberDemo1!</p>
+          <p className="mt-2 font-medium text-ink-600">Admin (SUPER_ADMIN)</p>
+          <p className="font-mono">admin@rjgc.local</p>
+          <p className="font-mono">AdminDemo1!</p>
           <p className="mt-2">
-            Production will use the Prisma user repository — this demo store is
-            not a live membership database.
+            These accounts are fictional development records — never real member
+            personal information.
           </p>
         </aside>
       ) : null}

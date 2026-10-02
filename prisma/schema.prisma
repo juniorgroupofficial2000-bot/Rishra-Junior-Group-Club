@@ -1,0 +1,666 @@
+// PostgreSQL persistence schema for Rishra Junior Group Club.
+// Payment credentials / secrets are never stored — only provider reference IDs.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum AppRole {
+  PUBLIC
+  MEMBER
+  COMMITTEE
+  COMMITTEE_MEMBER
+  CONTENT_MANAGER
+  EVENT_MANAGER
+  VICE_PRESIDENT
+  TREASURER
+  SECRETARY
+  PRESIDENT
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum MemberStatus {
+  ACTIVE
+  PENDING
+  INACTIVE
+  SUSPENDED
+}
+
+enum MembershipStatus {
+  ACTIVE
+  PENDING
+  EXPIRED
+  CANCELLED
+  SUSPENDED
+}
+
+enum BillingCycle {
+  MONTHLY
+  QUARTERLY
+  YEARLY
+  ONE_TIME
+}
+
+enum PaymentStatus {
+  CREATED
+  PENDING
+  AUTHORIZED
+  SUCCESS
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum PaymentAttemptStatus {
+  STARTED
+  REQUIRES_ACTION
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  OFFLINE
+  BANK_TRANSFER
+  UPI
+  CARD
+  NET_BANKING
+  MANDATE
+  OTHER
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  VOID
+  OVERDUE
+}
+
+enum MandateStatus {
+  CREATED
+  PENDING
+  ACTIVE
+  PAUSED
+  FAILED
+  CANCELLED
+  EXPIRED
+}
+
+enum WebhookProcessingStatus {
+  RECEIVED
+  PROCESSING
+  PROCESSED
+  FAILED
+  DUPLICATE_IGNORED
+}
+
+enum EventStatus {
+  DRAFT
+  SCHEDULED
+  CANCELLED
+  COMPLETED
+}
+
+enum RegistrationStatus {
+  REGISTERED
+  CANCELLED
+  WAITLISTED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  REGISTERED
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  OTHER
+}
+
+enum AnnouncementStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum NotificationType {
+  SYSTEM
+  PAYMENT
+  EVENT
+  MEMBERSHIP
+  ANNOUNCEMENT
+}
+
+// ─── Identity ────────────────────────────────────────────────────────────────
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String
+  passwordHash   String
+  role           AppRole   @default(PUBLIC)
+  active         Boolean   @default(true)
+  emailVerifiedAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+  createdById    String?
+  updatedById    String?
+
+  createdBy User? @relation("UserCreatedBy", fields: [createdById], references: [id])
+  updatedBy User? @relation("UserUpdatedBy", fields: [updatedById], references: [id])
+  createdUsers User[] @relation("UserCreatedBy")
+  updatedUsers User[] @relation("UserUpdatedBy")
+
+  member Member?
+
+  notifications Notification[]
+  auditLogs     AuditLog[]     @relation("AuditActor")
+
+  membersCreated       Member[]              @relation("MemberCreatedBy")
+  membersUpdated       Member[]              @relation("MemberUpdatedBy")
+  membershipsCreated   Membership[]          @relation("MembershipCreatedBy")
+  membershipsUpdated   Membership[]          @relation("MembershipUpdatedBy")
+  assignmentsCreated   CommitteeAssignment[] @relation("AssignmentCreatedBy")
+  paymentsCreated      Payment[]             @relation("PaymentCreatedBy")
+  invoicesCreated      Invoice[]             @relation("InvoiceCreatedBy")
+  eventsCreated        Event[]               @relation("EventCreatedBy")
+  eventsUpdated        Event[]               @relation("EventUpdatedBy")
+  attendanceRecorded   EventAttendance[]     @relation("AttendanceRecordedBy")
+  announcementsCreated Announcement[]        @relation("AnnouncementCreatedBy")
+  albumsCreated        GalleryAlbum[]        @relation("AlbumCreatedBy")
+
+  @@index([role])
+  @@index([active])
+  @@index([deletedAt])
+}
+
+model Member {
+  id               String       @id @default(cuid())
+  userId           String?      @unique
+  membershipNumber String       @unique
+  firstName        String
+  lastName         String
+  displayName      String
+  email            String
+  phone            String?
+  status           MemberStatus @default(PENDING)
+  joinedOn         DateTime?
+  addressLine1     String?
+  addressLine2     String?
+  city             String?
+  state            String?
+  postalCode       String?
+  country          String?      @default("IN")
+  internalNotes    String?
+  isSample         Boolean      @default(false)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  deletedAt        DateTime?
+  createdById      String?
+  updatedById      String?
+
+  user      User?  @relation(fields: [userId], references: [id])
+  createdBy User?  @relation("MemberCreatedBy", fields: [createdById], references: [id])
+  updatedBy User?  @relation("MemberUpdatedBy", fields: [updatedById], references: [id])
+
+  memberships          Membership[]
+  committeeAssignments CommitteeAssignment[]
+  payments             Payment[]
+  invoices             Invoice[]
+  mandates             PaymentMandate[]
+  eventRegistrations   EventRegistration[]
+  eventAttendances     EventAttendance[]
+
+  @@index([status])
+  @@index([email])
+  @@index([displayName])
+  @@index([deletedAt])
+  @@index([isSample])
+  @@index([joinedOn])
+  @@index([status, deletedAt])
+}
+
+// ─── Membership ──────────────────────────────────────────────────────────────
+
+model MembershipPlan {
+  id           String       @id @default(cuid())
+  code         String       @unique
+  name         String
+  description  String?
+  billingCycle BillingCycle
+  /// Amount in smallest currency unit (paise). Never a live checkout quote.
+  amountPaise  Int
+  currency     String       @default("INR")
+  active       Boolean      @default(true)
+  isSample     Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  deletedAt    DateTime?
+
+  memberships Membership[]
+
+  @@index([active])
+  @@index([deletedAt])
+}
+
+model Membership {
+  id         String           @id @default(cuid())
+  memberId   String
+  planId     String
+  status     MembershipStatus @default(PENDING)
+  startsOn   DateTime?
+  endsOn     DateTime?
+  nextDueOn  DateTime?
+  isCurrent  Boolean          @default(false)
+  isSample   Boolean          @default(false)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  deletedAt  DateTime?
+  createdById String?
+  updatedById String?
+
+  member    Member         @relation(fields: [memberId], references: [id])
+  plan      MembershipPlan @relation(fields: [planId], references: [id])
+  createdBy User?          @relation("MembershipCreatedBy", fields: [createdById], references: [id])
+  updatedBy User?          @relation("MembershipUpdatedBy", fields: [updatedById], references: [id])
+  invoices  Invoice[]
+
+  @@index([memberId])
+  @@index([planId])
+  @@index([status])
+  @@index([isCurrent])
+  @@index([deletedAt])
+  @@index([memberId, isCurrent])
+}
+
+// ─── Committee ───────────────────────────────────────────────────────────────
+
+model CommitteePosition {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  title       String
+  description String?
+  sortOrder   Int       @default(0)
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  assignments CommitteeAssignment[]
+
+  @@index([active])
+  @@index([sortOrder])
+  @@index([deletedAt])
+}
+
+model CommitteeAssignment {
+  id         String    @id @default(cuid())
+  memberId   String
+  positionId String
+  startsOn   DateTime
+  endsOn     DateTime?
+  isCurrent  Boolean   @default(true)
+  isSample   Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+  createdById String?
+
+  member    Member            @relation(fields: [memberId], references: [id])
+  position  CommitteePosition @relation(fields: [positionId], references: [id])
+  createdBy User?             @relation("AssignmentCreatedBy", fields: [createdById], references: [id])
+
+  @@index([memberId])
+  @@index([positionId])
+  @@index([isCurrent])
+  @@index([deletedAt])
+  @@unique([memberId, positionId, startsOn])
+}
+
+// ─── Billing (no payment credentials stored) ─────────────────────────────────
+
+model Invoice {
+  id           String        @id @default(cuid())
+  memberId     String
+  membershipId String?
+  number       String        @unique
+  amountPaise  Int
+  currency     String        @default("INR")
+  status       InvoiceStatus @default(DRAFT)
+  issuedOn     DateTime?
+  dueOn        DateTime?
+  notes        String?
+  isSample     Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
+  createdById  String?
+
+  member     Member      @relation(fields: [memberId], references: [id])
+  membership Membership? @relation(fields: [membershipId], references: [id])
+  createdBy  User?       @relation("InvoiceCreatedBy", fields: [createdById], references: [id])
+  payments   Payment[]
+
+  @@index([memberId])
+  @@index([membershipId])
+  @@index([status])
+  @@index([dueOn])
+  @@index([deletedAt])
+}
+
+model Payment {
+  id                 String        @id @default(cuid())
+  memberId           String
+  invoiceId          String?
+  mandateId          String?
+  amountPaise        Int
+  currency           String        @default("INR")
+  status             PaymentStatus @default(CREATED)
+  method             PaymentMethod @default(OTHER)
+  paidAt             DateTime?
+  authorizedAt       DateTime?
+  /// External provider payment reference only — never credentials or tokens.
+  provider           String?
+  /// Razorpay (and similar) order id — distinct from payment id.
+  providerOrderRef   String?
+  providerPaymentRef String?
+  notes              String?
+  isSample           Boolean       @default(false)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  deletedAt          DateTime?
+  createdById        String?
+
+  member    Member           @relation(fields: [memberId], references: [id])
+  invoice   Invoice?         @relation(fields: [invoiceId], references: [id])
+  mandate   PaymentMandate?  @relation(fields: [mandateId], references: [id])
+  createdBy User?            @relation("PaymentCreatedBy", fields: [createdById], references: [id])
+  attempts  PaymentAttempt[]
+  receipt   Receipt?
+
+  @@index([memberId])
+  @@index([invoiceId])
+  @@index([mandateId])
+  @@index([status])
+  @@index([paidAt])
+  @@index([providerOrderRef])
+  @@index([providerPaymentRef])
+  @@index([deletedAt])
+  @@index([isSample])
+}
+
+model PaymentAttempt {
+  id                 String               @id @default(cuid())
+  paymentId          String
+  status             PaymentAttemptStatus @default(STARTED)
+  provider           String?
+  /// External attempt/order reference only — never credentials.
+  providerAttemptRef String?
+  failureCode        String?
+  failureMessage     String?
+  attemptedAt        DateTime             @default(now())
+  createdAt          DateTime             @default(now())
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId])
+  @@index([status])
+  @@index([providerAttemptRef])
+}
+
+model Receipt {
+  id        String    @id @default(cuid())
+  paymentId String    @unique
+  number    String    @unique
+  issuedOn  DateTime  @default(now())
+  isSample  Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  payment Payment @relation(fields: [paymentId], references: [id])
+
+  @@index([issuedOn])
+  @@index([deletedAt])
+}
+
+model PaymentMandate {
+  id                       String        @id @default(cuid())
+  memberId                 String
+  status                   MandateStatus @default(CREATED)
+  provider                 String?
+  /// External customer / mandate / plan / subscription refs only — never secrets.
+  providerCustomerRef      String?
+  providerPlanRef          String?
+  providerMandateRef       String?
+  providerSubscriptionRef  String?
+  amountPaise              Int?
+  currency                 String        @default("INR")
+  nextDebitAt              DateTime?
+  note                     String?
+  lastStatusAt             DateTime?
+  isSample                 Boolean       @default(false)
+  createdAt                DateTime      @default(now())
+  updatedAt                DateTime      @updatedAt
+  deletedAt                DateTime?
+
+  member   Member    @relation(fields: [memberId], references: [id])
+  payments Payment[]
+
+  @@index([memberId])
+  @@index([status])
+  @@index([providerMandateRef])
+  @@index([providerSubscriptionRef])
+  @@index([nextDebitAt])
+  @@index([deletedAt])
+  @@index([memberId, status])
+}
+
+/// Persisted provider webhooks for idempotency and auditability.
+model ProviderWebhookEvent {
+  id               String                  @id @default(cuid())
+  provider         String
+  providerEventId  String
+  eventType        String
+  /// Raw verified payload JSON — never contains card/CVV/UPI PIN/passwords by design.
+  payload          Json
+  signatureValid   Boolean
+  processingStatus WebhookProcessingStatus @default(RECEIVED)
+  errorMessage     String?
+  processedAt      DateTime?
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+
+  @@unique([provider, providerEventId])
+  @@index([eventType])
+  @@index([processingStatus])
+  @@index([createdAt])
+}
+
+// ─── Events ──────────────────────────────────────────────────────────────────
+
+model Event {
+  id          String      @id @default(cuid())
+  slug        String      @unique
+  title       String
+  description String?
+  startsAt    DateTime
+  endsAt      DateTime?
+  venueLabel  String?
+  status      EventStatus @default(DRAFT)
+  published   Boolean     @default(false)
+  isSample    Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  deletedAt   DateTime?
+  createdById String?
+  updatedById String?
+
+  createdBy     User?              @relation("EventCreatedBy", fields: [createdById], references: [id])
+  updatedBy     User?              @relation("EventUpdatedBy", fields: [updatedById], references: [id])
+  registrations EventRegistration[]
+  attendances   EventAttendance[]
+
+  @@index([startsAt])
+  @@index([status])
+  @@index([published])
+  @@index([deletedAt])
+}
+
+model EventRegistration {
+  id           String             @id @default(cuid())
+  eventId      String
+  memberId     String
+  status       RegistrationStatus @default(REGISTERED)
+  registeredAt DateTime           @default(now())
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  deletedAt    DateTime?
+
+  event  Event  @relation(fields: [eventId], references: [id])
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@unique([eventId, memberId])
+  @@index([memberId])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+model EventAttendance {
+  id          String           @id @default(cuid())
+  eventId     String
+  memberId    String
+  status      AttendanceStatus @default(REGISTERED)
+  recordedAt  DateTime         @default(now())
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  deletedAt   DateTime?
+  recordedById String?
+
+  event      Event  @relation(fields: [eventId], references: [id])
+  member     Member @relation(fields: [memberId], references: [id])
+  recordedBy User?  @relation("AttendanceRecordedBy", fields: [recordedById], references: [id])
+
+  @@unique([eventId, memberId])
+  @@index([memberId])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+// ─── Media ───────────────────────────────────────────────────────────────────
+
+model GalleryAlbum {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  title       String
+  description String?
+  published   Boolean   @default(false)
+  isSample    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  createdById String?
+
+  createdBy User?          @relation("AlbumCreatedBy", fields: [createdById], references: [id])
+  media     GalleryMedia[]
+
+  @@index([published])
+  @@index([deletedAt])
+}
+
+model GalleryMedia {
+  id        String    @id @default(cuid())
+  albumId   String
+  type      MediaType @default(IMAGE)
+  /// Public/CDN URL or storage object key — not credentials.
+  url       String
+  caption   String?
+  sortOrder Int       @default(0)
+  isSample  Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  album GalleryAlbum @relation(fields: [albumId], references: [id], onDelete: Cascade)
+
+  @@index([albumId])
+  @@index([sortOrder])
+  @@index([deletedAt])
+}
+
+// ─── Communications ──────────────────────────────────────────────────────────
+
+model Announcement {
+  id          String             @id @default(cuid())
+  slug        String             @unique
+  title       String
+  body        String
+  status      AnnouncementStatus @default(DRAFT)
+  pinned      Boolean            @default(false)
+  publishedAt DateTime?
+  isSample    Boolean            @default(false)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  deletedAt   DateTime?
+  createdById String?
+
+  createdBy User? @relation("AnnouncementCreatedBy", fields: [createdById], references: [id])
+
+  @@index([status])
+  @@index([pinned])
+  @@index([publishedAt])
+  @@index([deletedAt])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType @default(SYSTEM)
+  title     String
+  body      String
+  readAt    DateTime?
+  isSample  Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  deletedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([readAt])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([userId, readAt])
+}
+
+// ─── Audit ───────────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorUserId String?
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  actor User? @relation("AuditActor", fields: [actorUserId], references: [id])
+
+  @@index([actorUserId])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([createdAt])
+}
