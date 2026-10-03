@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { PrismaClient } from "@prisma/client";
+import { allowFinancialHardDelete } from "@/server/db/financial-mutation";
 import { MockPaymentProvider } from "@/server/payments/mock-provider";
 import {
   processProviderWebhook,
@@ -29,11 +30,21 @@ describe("payment webhooks", () => {
     memberId = member.id;
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
     provider = new MockPaymentProvider({ webhookSecret: "test-secret" });
+    // Partial unique: at most one open mandate per member.
+    await prisma.paymentMandate.updateMany({
+      where: {
+        memberId,
+        deletedAt: null,
+        status: { in: ["CREATED", "PENDING", "ACTIVE", "PAUSED"] },
+      },
+      data: { status: "CANCELLED", lastStatusAt: new Date() },
+    });
   });
 
   afterAll(async () => {
+    await allowFinancialHardDelete(prisma);
     await prisma.providerWebhookEvent.deleteMany({
       where: { provider: "mock" },
     });
@@ -44,6 +55,7 @@ describe("payment webhooks", () => {
       where: { payment: { memberId } },
     });
     await prisma.payment.deleteMany({ where: { memberId } });
+    await prisma.invoice.deleteMany({ where: { memberId } });
     await prisma.paymentMandate.deleteMany({ where: { memberId } });
     await prisma.member.delete({ where: { id: memberId } });
     await prisma.$disconnect();

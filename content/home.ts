@@ -1,18 +1,17 @@
+import { siteMedia } from "./site-media";
 import { formatAddressLines, siteConfig } from "./site";
 
 /**
- * Homepage content and media slots.
- * Replace `src` values under /public/images/home when real photographs are ready.
+ * Homepage content.
+ * Image paths live in `content/site-media.ts` — do not hardcode URLs here.
  * English only. Do not invent unsupported club claims.
  */
 
 export type HomeImage = {
-  /** Path under /public — swap file in place or update this path */
   src: string;
   alt: string;
   width: number;
   height: number;
-  /** Optional credit / replacement note for editors */
   note?: string;
 };
 
@@ -22,36 +21,13 @@ export type HomeCta = {
   variant?: "primary" | "secondary" | "ghost";
 };
 
+/** @deprecated Prefer `siteMedia` from `@/content/site-media`. */
 export const homeImages = {
-  hero: {
-    src: "/images/home/hero.svg",
-    alt: "Placeholder photograph for the Rishra Junior Group Club community",
-    width: 2400,
-    height: 1600,
-    note: "Replace with a wide community or puja photograph.",
-  },
-  intro: {
-    src: "/images/home/intro.svg",
-    alt: "Placeholder photograph introducing club life",
-    width: 1600,
-    height: 1200,
-    note: "Replace with a candid club gathering photograph.",
-  },
-  puja: {
-    src: "/images/home/puja.svg",
-    alt: "Placeholder photograph for Saraswati Puja",
-    width: 1800,
-    height: 1200,
-    note: "Replace with a Saraswati Puja photograph from the archive.",
-  },
-  location: {
-    src: "/images/home/location.svg",
-    alt: "Placeholder image for the club neighbourhood in Rishra",
-    width: 1600,
-    height: 1000,
-    note: "Replace with a photograph of the club premises or locality.",
-  },
-} as const satisfies Record<string, HomeImage | readonly HomeImage[]>;
+  hero: siteMedia.hero,
+  intro: siteMedia.intro,
+  puja: siteMedia.puja,
+  location: siteMedia.location,
+} as const;
 
 export const homeContent = {
   hero: {
@@ -73,7 +49,6 @@ export const homeContent = {
     body: [
       "Rishra Junior Group Club brings neighbours together through shared tradition, service, and celebration.",
       "The club has organized Saraswati Puja since 1 February 2000 and has recently become formally registered as a club.",
-      "[PLACEHOLDER: One or two sentences on the club’s day-to-day role in the community.]",
     ],
     image: homeImages.intro,
     cta: { label: "Read about us", href: "/about" } satisfies HomeCta,
@@ -82,28 +57,20 @@ export const homeContent = {
     eyebrow: "Heritage",
     title: "A story still being written",
     description:
-      "From the first Saraswati Puja in 2000 to formal registration, the club’s public record will grow as verified milestones are added.",
+      "Verified milestones appear here as the committee confirms them. Saraswati Puja has been organized since 2000.",
     items: [
       {
         id: "2000",
         year: "2000",
         title: "Saraswati Puja begins",
-        description:
-          "Organizing Saraswati Puja since 1 February 2000.",
+        description: "Organizing Saraswati Puja since 1 February 2000.",
       },
       {
-        id: "registration",
-        year: "—",
-        title: "Formal club registration",
-        description:
-          "[PLACEHOLDER: Registration date, authority, and number when verified.]",
-      },
-      {
-        id: "next",
+        id: "today",
         year: "Today",
-        title: "Building a digital home",
+        title: "Member portal and public archive",
         description:
-          "This platform will help members stay informed, participate, and preserve club memory.",
+          "Members can sign in for membership and payment records. Public pages share committee-approved information.",
       },
     ],
     cta: { label: "View full history", href: "/history" } satisfies HomeCta,
@@ -113,7 +80,7 @@ export const homeContent = {
     title: "Saraswati Puja",
     description:
       "Our annual Saraswati Puja is the heart of the club calendar — a gathering of learning, devotion, and neighbourhood togetherness, celebrated since 2000.",
-    body: "[PLACEHOLDER: Short note on how the puja is observed each year.]",
+    body: "Details for each year’s celebration are published in the archive as photographs and notes become available.",
     image: homeImages.puja,
     cta: { label: "Open the puja archive", href: "/saraswati-puja" } satisfies HomeCta,
   },
@@ -122,23 +89,21 @@ export const homeContent = {
     title: "Committee",
     description:
       "Club affairs are guided by the committee. Names and roles only — personal contact details are not published.",
-    /** Preview sourced at render time from `content/committee.ts`. */
+    /** Preview sourced at render time from the published committee DB rows. */
     previewLimit: 3,
     cta: { label: "Meet the committee", href: "/committee" } satisfies HomeCta,
   },
   events: {
     eyebrow: "Calendar",
     title: "Upcoming events",
-    description:
-      "Public events from the club calendar. SAMPLE listings are labelled on the Events page.",
+    description: "Public events from the club calendar.",
     previewLimit: 2,
     cta: { label: "All events", href: "/events" } satisfies HomeCta,
   },
   gallery: {
     eyebrow: "Memories",
     title: "Gallery",
-    description:
-      "Album preview from the gallery. SAMPLE albums are labelled.",
+    description: "Albums from club celebrations and gatherings.",
     previewLimit: 6,
     cta: { label: "Browse the gallery", href: "/gallery" } satisfies HomeCta,
   },
@@ -154,7 +119,7 @@ export const homeContent = {
     title: "Membership",
     description:
       "Membership keeps the club active — supporting celebrations, community work, and the years ahead.",
-    body: "[PLACEHOLDER: Brief note on who can join and how applications are reviewed.]",
+    body: "Enquire through the Contact page. The committee will share next steps. Online applications will open here when that workflow is enabled.",
     ctas: [
       { label: "Learn about membership", href: "/membership", variant: "primary" },
       { label: "Contact the club", href: "/contact", variant: "secondary" },

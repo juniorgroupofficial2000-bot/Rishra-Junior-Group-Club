@@ -3,15 +3,10 @@
 import { CommitteeMemberCard } from "@/components/committee/committee-member-card";
 import { Reveal } from "@/components/motion";
 import { SiteContainer } from "@/components/public/site-container";
-import {
-  getPublishedCommitteeMembers,
-  type CommitteeMember,
-} from "@/content/committee";
-import { homeContent } from "@/content/home";
+import type { CommitteeMember } from "@/content/committee";
+import { homeContent, type HomeContent } from "@/content/home";
 import { HomeLink } from "./home-link";
 import { HomeSectionHeading } from "./home-section-heading";
-
-const content = homeContent.committee;
 
 function pickPreview(members: CommitteeMember[]) {
   const president = members.find((m) => m.roleKey === "president");
@@ -21,16 +16,19 @@ function pickPreview(members: CommitteeMember[]) {
   return { president, secretary, treasurer, vps };
 }
 
-export function HomeCommittee() {
-  const members = getPublishedCommitteeMembers();
+export function HomeCommittee({
+  members = [],
+  content = homeContent.committee,
+}: {
+  members?: CommitteeMember[];
+  content?: HomeContent["committee"];
+} = {}) {
   const { president, secretary, treasurer, vps } = pickPreview(members);
+  const officers = [secretary, treasurer, ...vps].filter(
+    Boolean,
+  ) as CommitteeMember[];
 
-  const sequence: CommitteeMember[] = [
-    ...(president ? [president] : []),
-    ...(secretary ? [secretary] : []),
-    ...(treasurer ? [treasurer] : []),
-    ...vps,
-  ];
+  if (!president && officers.length === 0) return null;
 
   return (
     <section
@@ -48,16 +46,32 @@ export function HomeCommittee() {
           />
         </Reveal>
 
-        <div className="mx-auto mt-10 grid max-w-4xl grid-cols-2 gap-4 lg:grid-cols-4">
-          {sequence.map((member, index) => (
+        {president ? (
+          <div className="mt-12">
             <CommitteeMemberCard
-              key={member.id}
-              member={member}
-              featured={member.roleKey === "president"}
-              index={index}
+              member={president}
+              variant="featured"
+              description={
+                president.biography ??
+                `${president.role} of Rishra Junior Group Club.`
+              }
+              index={0}
             />
-          ))}
-        </div>
+          </div>
+        ) : null}
+
+        {officers.length > 0 ? (
+          <div className="mt-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+            {officers.map((member, index) => (
+              <CommitteeMemberCard
+                key={member.id}
+                member={member}
+                variant="secondary"
+                index={index + 1}
+              />
+            ))}
+          </div>
+        ) : null}
       </SiteContainer>
     </section>
   );

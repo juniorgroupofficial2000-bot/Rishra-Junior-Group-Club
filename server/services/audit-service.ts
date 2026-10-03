@@ -2,6 +2,7 @@ import "server-only";
 
 import { sanitizeAuditMetadata } from "@/server/audit/sanitize";
 import { prisma } from "@/server/db/prisma";
+import { logAdminOperation } from "@/server/observability/events";
 import type { Prisma } from "@prisma/client";
 
 export async function writeAuditEvent(input: {
@@ -14,7 +15,7 @@ export async function writeAuditEvent(input: {
 }) {
   const sanitized = sanitizeAuditMetadata(input.metadata ?? null);
 
-  return prisma.auditLog.create({
+  const row = await prisma.auditLog.create({
     data: {
       actorUserId: input.actorUserId ?? null,
       action: input.action,
@@ -27,6 +28,16 @@ export async function writeAuditEvent(input: {
       ipAddress: input.ipAddress ?? null,
     },
   });
+
+  logAdminOperation({
+    action: input.action,
+    entityType: input.entityType,
+    entityId: input.entityId,
+    actorUserId: input.actorUserId,
+    outcome: "success",
+  });
+
+  return row;
 }
 
 export async function listAuditLogs(input?: {

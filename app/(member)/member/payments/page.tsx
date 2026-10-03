@@ -1,4 +1,10 @@
 import { Badge } from "@/components/ui/badge";
+import {
+  EmptyRecords,
+  RecordCard,
+  ResponsiveRecords,
+} from "@/components/ui/record-card";
+import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { MemberPageHeader } from "@/components/member/member-page-header";
 import { requireMemberId } from "@/server/auth/member-context";
 import { loadPayments } from "@/server/services/member-portal-service";
@@ -37,7 +43,10 @@ export default async function MemberPaymentsPage() {
               latestFailedPayment.currency,
             )}
             ).{" "}
-            <Link href="/member/mandate" className="font-medium underline-offset-4 hover:underline">
+            <Link
+              href="/member/mandate"
+              className="font-medium underline-offset-4 hover:underline"
+            >
               Review mandate
             </Link>
           </div>
@@ -51,47 +60,69 @@ export default async function MemberPaymentsPage() {
           . Mandate status: {mandate?.status ?? "CREATED"}.
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-border-subtle bg-surface-raised shadow-xs">
-          <table className="w-full min-w-[36rem] text-left text-sm">
-            <thead className="bg-surface-muted text-xs uppercase tracking-wide text-ink-500">
-              <tr>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3">Amount</th>
-                <th className="px-4 py-3">Method</th>
-                <th className="px-4 py-3">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border-subtle">
-              {payments.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-4 py-6 text-ink-500">
-                    No payments yet.
-                  </td>
-                </tr>
-              ) : (
-                payments.map((payment) => (
-                  <tr key={payment.id}>
-                    <td className="px-4 py-3 font-mono text-ink-700">
-                      {payment.paidOn ?? "—"}
-                    </td>
-                    <td className="px-4 py-3 text-ink-900">
-                      {payment.amountLabel}
-                    </td>
-                    <td className="px-4 py-3 text-ink-600">
-                      {payment.methodLabel}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge variant="outline">
-                        {payment.status.replaceAll("_", " ")}
-                        {payment.isSample ? " · SAMPLE" : ""}
-                      </Badge>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <ResponsiveRecords
+          mobile={
+            payments.length === 0 ? (
+              <EmptyRecords message="Your payment history will appear here after your first payment." />
+            ) : (
+              payments.map((payment) => (
+                <RecordCard
+                  key={payment.id}
+                  title={payment.amountLabel}
+                  subtitle={payment.paidOn ?? "—"}
+                  badge={
+                    <Badge variant="outline">
+                      {payment.status.replaceAll("_", " ")}
+                      {payment.isSample ? " · SAMPLE" : ""}
+                    </Badge>
+                  }
+                  fields={[
+                    { label: "Date", value: payment.paidOn ?? "—" },
+                    { label: "Method", value: payment.methodLabel },
+                  ]}
+                />
+              ))
+            )
+          }
+          desktop={
+            <Table>
+              <THead>
+                <TR>
+                  <TH>Date</TH>
+                  <TH>Amount</TH>
+                  <TH>Method</TH>
+                  <TH>Status</TH>
+                </TR>
+              </THead>
+              <TBody>
+                {payments.length === 0 ? (
+                  <TR>
+                    <TD colSpan={4} className="py-10 text-center text-ink-500">
+                      Your payment history will appear here after your first
+                      payment.
+                    </TD>
+                  </TR>
+                ) : (
+                  payments.map((payment) => (
+                    <TR key={payment.id}>
+                      <TD className="font-mono text-ink-700">
+                        {payment.paidOn ?? "—"}
+                      </TD>
+                      <TD className="text-ink-900">{payment.amountLabel}</TD>
+                      <TD className="text-ink-600">{payment.methodLabel}</TD>
+                      <TD>
+                        <Badge variant="outline">
+                          {payment.status.replaceAll("_", " ")}
+                          {payment.isSample ? " · SAMPLE" : ""}
+                        </Badge>
+                      </TD>
+                    </TR>
+                  ))
+                )}
+              </TBody>
+            </Table>
+          }
+        />
       </div>
     </>
   );

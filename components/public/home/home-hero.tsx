@@ -2,17 +2,18 @@
 
 import { INTRO_DONE_EVENT } from "@/components/motion/intro-overlay";
 import { SiteContainer } from "@/components/public/site-container";
-import { homeContent } from "@/content/home";
+import { homeContent, type HomeContent } from "@/content/home";
 import { siteMedia } from "@/content/site-media";
 import { cn } from "@/lib/cn";
 import {
   heroStaggerVariants,
   lineRevealVariants,
-  premiumEase,
   transitionCinematic,
   transitionNormal,
   transitionSlow,
 } from "@/lib/motion";
+import { HeroLcpImage } from "@/components/media/hero-lcp-image";
+import { usePrefersStaticMotion } from "@/lib/hooks/use-media-query";
 import {
   motion,
   useReducedMotion,
@@ -20,11 +21,9 @@ import {
   useSpring,
   useTransform,
 } from "motion/react";
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
-const content = homeContent.hero;
 const media = siteMedia.hero;
 
 /** English brand lines — no non-English copy. */
@@ -33,7 +32,11 @@ const TAGLINE = "Community · Tradition · Togetherness";
 
 const emptySubscribe = () => () => {};
 
-export function HomeHero() {
+export function HomeHero({
+  content = homeContent.hero,
+}: {
+  content?: HomeContent["hero"];
+} = {}) {
   const reduceMotion = useReducedMotion();
   const sectionRef = useRef<HTMLElement>(null);
   const mounted = useSyncExternalStore(
@@ -93,8 +96,10 @@ export function HomeHero() {
   const textScale = useTransform(smooth, [0, 0.65], [1, 0.92]);
   const overlayOpacity = useTransform(smooth, [0, 1], [0.5, 0.9]);
 
-  const isSvg = media.src.endsWith(".svg");
+  const prefersStatic = usePrefersStaticMotion();
+  // Keep entrance stagger; skip scroll-linked parallax on mobile/touch.
   const motionOn = mounted && !reduceMotion;
+  const parallaxOn = motionOn && !prefersStatic;
   const play = motionOn && ready;
 
   return (
@@ -103,40 +108,24 @@ export function HomeHero() {
       aria-labelledby="home-hero-heading"
       className="relative isolate -mt-16 min-h-[82dvh] overflow-hidden bg-ink-950 text-white sm:-mt-[4.5rem] sm:min-h-[90dvh]"
     >
+      {/*
+        Hero image stays fully painted for LCP. Parallax may run after mount;
+        intro only gates text/CTA reveal — never the LCP image itself.
+      */}
       <motion.div
         className="absolute inset-0"
         style={
-          motionOn
+          parallaxOn
             ? { y: imageY, scale: imageScale, opacity: imageOpacity }
             : undefined
         }
       >
-        <motion.div
-          className="absolute inset-0 will-change-transform"
-          initial={false}
-          animate={
-            play
-              ? { clipPath: "inset(0% 0% 0% 0%)", scale: 1, opacity: 1 }
-              : motionOn
-                ? { clipPath: "inset(12% 28% 12% 28%)", scale: 1.18, opacity: 0.45 }
-                : { clipPath: "inset(0% 0% 0% 0%)", scale: 1, opacity: 1 }
-          }
-          transition={{ duration: 1.25, ease: premiumEase }}
-        >
-          <Image
-            src={media.src}
-            alt={media.alt}
-            fill
-            priority
-            sizes="100vw"
-            unoptimized={isSvg}
-            className="object-cover"
-            style={{ objectPosition: media.objectPosition }}
-          />
-        </motion.div>
+        <div className="absolute inset-0">
+          <HeroLcpImage media={media} />
+        </div>
         <motion.div
           className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/72 to-ink-950/30"
-          style={motionOn ? { opacity: overlayOpacity } : undefined}
+          style={parallaxOn ? { opacity: overlayOpacity } : undefined}
           aria-hidden
         />
         <div
@@ -154,7 +143,7 @@ export function HomeHero() {
         <motion.div
           className="max-w-3xl"
           style={
-            motionOn
+            parallaxOn
               ? { y: textY, opacity: textOpacity, scale: textScale }
               : undefined
           }

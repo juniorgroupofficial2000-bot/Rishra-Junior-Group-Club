@@ -14,6 +14,7 @@ export function EventDetail({ event }: { event: ClubEvent }) {
   const status = getEventTemporalStatus(event);
   const cover = event.coverImage;
   const isSvg = cover?.src.endsWith(".svg");
+  const title = event.title.replace(/^\[SAMPLE\]\s*/i, "");
 
   return (
     <article className="space-y-10">
@@ -25,7 +26,7 @@ export function EventDetail({ event }: { event: ClubEvent }) {
           <ProvenanceBadge provenance={event.provenance} />
         </div>
         <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight text-ink-900 sm:text-4xl">
-          {event.title}
+          {title}
         </h1>
         <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-500">
           {event.summary}
@@ -65,7 +66,10 @@ export function EventDetail({ event }: { event: ClubEvent }) {
               alt={cover.alt}
               fill
               priority
+              fetchPriority="high"
               sizes="(max-width: 768px) 100vw, 768px"
+              quality={isSvg ? undefined : 80}
+              decoding="async"
               unoptimized={isSvg}
               className="object-cover"
             />

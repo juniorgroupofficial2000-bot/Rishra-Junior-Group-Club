@@ -46,14 +46,20 @@ export function formatAmountLabel(amountPaise: number, currency = "INR"): string
 
 export function toPortalMemberStatus(status: PrismaMemberStatus): MemberStatus {
   switch (status) {
-    case "ACTIVE":
-      return "active";
+    case "APPLICATION":
+      return "application";
     case "PENDING":
       return "pending";
+    case "APPROVED":
+      return "approved";
+    case "ACTIVE":
+      return "active";
     case "INACTIVE":
       return "inactive";
     case "SUSPENDED":
       return "suspended";
+    case "ARCHIVED":
+      return "archived";
     default:
       return "inactive";
   }
@@ -120,6 +126,8 @@ export function toAuthUser(
     memberStatus: member?.status ?? null,
     passwordHash: user.passwordHash,
     active: user.active && !user.deletedAt,
+    mfaEnabled: user.mfaEnabled,
+    mfaTotpSecretEnc: user.mfaTotpSecretEnc ?? null,
   };
 }
 
@@ -204,13 +212,18 @@ export function toPaymentRecord(
   };
 }
 
-export function toEventItem(event: Event): MemberEventItem {
+export function toEventItem(
+  event: Event & { _count?: { registrations: number } },
+): MemberEventItem {
   return {
     id: event.id,
     title: event.title,
     startsAt: event.startsAt.toISOString(),
     venueLabel: event.venueLabel ?? "TBA",
     href: `/events/${event.slug}`,
+    registrationRequired: event.registrationRequired,
+    capacity: event.capacity,
+    registeredCount: event._count?.registrations ?? 0,
   };
 }
 
@@ -255,18 +268,36 @@ export function toNotification(row: Notification): MemberNotification {
 
 type MemberWithPlan = Member & {
   memberships: Array<Membership & { plan: MembershipPlan }>;
+  portraitAsset?: {
+    id: string;
+    status: string;
+    deletedAt: Date | null;
+  } | null;
+  committeeAssignments?: Array<{
+    deletedAt: Date | null;
+    position: { title: string; code: string };
+  }>;
+  payments?: Array<{ status: string }>;
 };
 
 export function toAdminMemberRecord(member: MemberWithPlan): AdminMemberRecord {
   const current = member.memberships.find((m) => m.isCurrent) ?? member.memberships[0];
+  const assignment = member.committeeAssignments?.find((row) => row.deletedAt == null);
+  const portraitReady =
+    member.portraitAsset &&
+    member.portraitAsset.deletedAt == null &&
+    member.portraitAsset.status === "READY";
+  const latestPayment = member.payments?.[0];
   return {
     id: member.id,
     membershipNumber: member.membershipNumber,
+    cardPublicId: member.cardPublicId,
     firstName: member.firstName,
     lastName: member.lastName,
     displayName: member.displayName,
     email: member.email,
     phone: member.phone,
+    dateOfBirth: member.dateOfBirth ?? null,
     status: member.status,
     joinedOn: member.joinedOn,
     addressLine1: member.addressLine1,
@@ -275,6 +306,14 @@ export function toAdminMemberRecord(member: MemberWithPlan): AdminMemberRecord {
     state: member.state,
     postalCode: member.postalCode,
     country: member.country,
+    emergencyContactName: member.emergencyContactName ?? null,
+    emergencyContactPhone: member.emergencyContactPhone ?? null,
+    reviewNotes: member.reviewNotes ?? null,
+    statusReason: member.statusReason ?? null,
+    portraitAssetId: member.portraitAssetId ?? null,
+    portraitUrl: portraitReady
+      ? `/api/media/${member.portraitAsset!.id}?v=md`
+      : null,
     internalNotes: member.internalNotes,
     userId: member.userId,
     isSample: member.isSample,
@@ -282,5 +321,8 @@ export function toAdminMemberRecord(member: MemberWithPlan): AdminMemberRecord {
     updatedAt: member.updatedAt,
     deletedAt: member.deletedAt,
     currentPlanLabel: current?.plan.name ?? null,
+    currentPlanId: current?.planId ?? null,
+    committeeRoleLabel: assignment?.position.title ?? null,
+    paymentStatusLabel: latestPayment?.status ?? null,
   };
 }

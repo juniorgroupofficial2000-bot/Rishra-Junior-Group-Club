@@ -2,8 +2,9 @@
 
 import { ClipImageReveal } from "@/components/motion";
 import { SiteContainer } from "@/components/public/site-container";
-import { homeContent } from "@/content/home";
+import { homeContent, type HomeContent } from "@/content/home";
 import { siteMedia } from "@/content/site-media";
+import { usePrefersStaticMotion } from "@/lib/hooks/use-media-query";
 import { lineRevealVariants, transitionSlow } from "@/lib/motion";
 import {
   motion,
@@ -17,12 +18,17 @@ import { useRef } from "react";
 import { HomeLink } from "./home-link";
 import { HomeSectionHeading } from "./home-section-heading";
 
-const content = homeContent.puja;
 const media = siteMedia.puja;
 const isSvg = media.src.endsWith(".svg");
 
-export function HomePuja() {
+export function HomePuja({
+  content = homeContent.puja,
+}: {
+  content?: HomeContent["puja"];
+} = {}) {
   const reduce = Boolean(useReducedMotion());
+  const staticMotion = usePrefersStaticMotion();
+  const scrollFx = !reduce && !staticMotion;
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -55,7 +61,7 @@ export function HomePuja() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_20%,rgba(196,154,26,0.28),transparent_50%)]" />
       </div>
 
-      {!reduce ? (
+      {scrollFx ? (
         <motion.div
           aria-hidden
           className="pointer-events-none absolute -right-16 top-10 h-56 w-56 rounded-full border border-marigold-400/25"
@@ -66,7 +72,7 @@ export function HomePuja() {
       <SiteContainer className="relative">
         <div className="grid gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
           <motion.div
-            style={reduce ? undefined : { x: textX }}
+            style={scrollFx ? { x: textX } : undefined}
             initial={reduce ? false : "hidden"}
             whileInView="visible"
             viewport={{ once: true, margin: "-12%" }}
@@ -103,12 +109,12 @@ export function HomePuja() {
             </motion.div>
           </motion.div>
 
-          <motion.div style={reduce ? undefined : { x: mediaX }} className="mx-auto w-full max-w-sm">
+          <motion.div style={scrollFx ? { x: mediaX } : undefined} className="mx-auto w-full max-w-sm">
             <ClipImageReveal className="rounded-xl ring-1 ring-white/15 shadow-lg">
               <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl">
                 <motion.div
                   className="absolute inset-0"
-                  style={reduce ? undefined : { scale: imageScale, y: imageY }}
+                  style={scrollFx ? { scale: imageScale, y: imageY } : undefined}
                 >
                   <Image
                     src={media.src}

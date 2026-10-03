@@ -5,8 +5,8 @@ import {
 import type { ContentProvenance } from "./shared/media";
 
 /**
- * Public announcements — CMS-ready.
- * SAMPLE items demonstrate listing, pinning, and detail pages.
+ * Announcement types + SAMPLE seed fixtures.
+ * Runtime pages use Prisma via `loadPublishedAnnouncements()`.
  */
 
 export type AnnouncementCategory =
@@ -15,6 +15,8 @@ export type AnnouncementCategory =
   | "membership"
   | "puja"
   | "urgent";
+
+export type AnnouncementPriority = "NORMAL" | "HIGH" | "URGENT";
 
 export type Announcement = {
   id: string;
@@ -25,10 +27,17 @@ export type Announcement = {
   /** ISO date (date-only or datetime) */
   publishedAt: string;
   category: AnnouncementCategory;
+  priority: AnnouncementPriority;
   pinned: boolean;
   sortOrder: number;
   published: boolean;
   provenance: ContentProvenance;
+};
+
+export const announcementPriorityLabel: Record<AnnouncementPriority, string> = {
+  NORMAL: "Normal",
+  HIGH: "High",
+  URGENT: "Urgent",
 };
 
 export const announcementCategoryLabel: Record<AnnouncementCategory, string> = {
@@ -59,6 +68,7 @@ export const announcements: Announcement[] = [
     ],
     publishedAt: "2026-01-15",
     category: "general",
+    priority: "HIGH",
     pinned: true,
     sortOrder: 10,
     published: true,
@@ -76,6 +86,7 @@ export const announcements: Announcement[] = [
     ],
     publishedAt: "2025-12-20",
     category: "puja",
+    priority: "NORMAL",
     pinned: false,
     sortOrder: 20,
     published: true,
@@ -92,6 +103,7 @@ export const announcements: Announcement[] = [
     ],
     publishedAt: "2025-11-02",
     category: "membership",
+    priority: "NORMAL",
     pinned: false,
     sortOrder: 30,
     published: true,
@@ -107,6 +119,7 @@ export const announcements: Announcement[] = [
     ],
     publishedAt: "2025-10-10",
     category: "events",
+    priority: "NORMAL",
     pinned: false,
     sortOrder: 40,
     published: true,

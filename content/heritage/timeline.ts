@@ -118,7 +118,7 @@ export const historyPageCopy = {
   eyebrow: "Since 2000",
   title: "Club history",
   description:
-    "A living timeline of Rishra Junior Group Club. Verified milestones appear first; SAMPLE entries demonstrate the future CMS layout and are clearly labelled.",
+    "A living timeline of Rishra Junior Group Club. Verified milestones are published as the committee confirms them.",
   emptyNote:
     "Additional timeline entries will be published from verified club records only.",
 } as const;

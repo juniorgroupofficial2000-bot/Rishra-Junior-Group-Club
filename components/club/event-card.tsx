@@ -68,7 +68,7 @@ export function EventCard({
         <CardFooter>
           <Link
             href={href}
-            className="inline-flex h-9 w-full items-center justify-center rounded-md border border-border-default px-3 text-sm font-medium text-ink-900 transition-colors hover:bg-ink-50 sm:w-auto"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-default px-3 text-sm font-medium text-ink-900 transition-colors hover:bg-ink-50 sm:w-auto"
           >
             View details
           </Link>

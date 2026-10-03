@@ -2,9 +2,10 @@
 
 import { AnimatedCounter } from "@/components/motion";
 import { SiteContainer } from "@/components/public/site-container";
-import { homeContent } from "@/content/home";
+import { homeContent, type HomeContent } from "@/content/home";
 import { siteConfig } from "@/content/site";
 import { cn } from "@/lib/cn";
+import { usePrefersStaticMotion } from "@/lib/hooks/use-media-query";
 import { cardRevealVariants, premiumEase, transitionSlow } from "@/lib/motion";
 import {
   motion,
@@ -17,12 +18,20 @@ import { useRef } from "react";
 import { HomeLink } from "./home-link";
 import { HomeSectionHeading } from "./home-section-heading";
 
-const content = homeContent.heritage;
-/** Fixed from verified start year — avoids SSR/client year edge cases. */
-const yearsOfPuja = Math.max(1, 2026 - siteConfig.establishedYear);
+/** Derived from the verified founding year — never invent member/payment totals. */
+const yearsOfPuja = Math.max(
+  1,
+  new Date().getFullYear() - siteConfig.establishedYear,
+);
 
-export function HomeHeritage() {
+export function HomeHeritage({
+  content = homeContent.heritage,
+}: {
+  content?: HomeContent["heritage"];
+} = {}) {
   const reduce = Boolean(useReducedMotion());
+  const staticMotion = usePrefersStaticMotion();
+  const scrollFx = !reduce && !staticMotion;
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -56,7 +65,7 @@ export function HomeHeritage() {
           />
         </motion.div>
 
-        {/* Verified stats only — established year + years of puja since 2000 */}
+        {/* Verified founding facts only — never invent member counts or dues totals. */}
         <div className="mt-12 grid grid-cols-2 gap-6 border-y border-border-subtle py-8 sm:max-w-lg">
           <div>
             <p className="font-display text-4xl font-semibold text-alta-600 sm:text-5xl">
@@ -68,7 +77,9 @@ export function HomeHeritage() {
             <p className="font-display text-4xl font-semibold text-alta-600 sm:text-5xl">
               <AnimatedCounter value={yearsOfPuja} suffix="+" />
             </p>
-            <p className="mt-1 type-caption text-ink-500">Years of celebration</p>
+            <p className="mt-1 type-caption text-ink-500">
+              Years organizing Saraswati Puja
+            </p>
           </div>
         </div>
 
@@ -79,7 +90,7 @@ export function HomeHeritage() {
           >
             <motion.div
               className="origin-top h-full w-full bg-gradient-to-b from-alta-500 via-marigold-400 to-lotus-500"
-              style={reduce ? { scaleY: 1 } : { scaleY: lineScale }}
+              style={scrollFx ? { scaleY: lineScale } : { scaleY: 1 }}
             />
           </div>
 

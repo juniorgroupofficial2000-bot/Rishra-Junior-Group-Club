@@ -19,24 +19,35 @@ export const siteConfig = {
   establishedLabel: "Since 1 February 2000",
   establishedYear: 2000,
   registrationNote:
-    "[PLACEHOLDER: Formal registration details — date, authority, registration number.]",
+    "Formal registration details will be published when verified by the committee.",
   address: {
     line1: "786, Morepukur, Natun Gram",
     line2: "Rishra, Hooghly",
     line3: "West Bengal 712250, India",
   },
   contact: {
-    email: "[PLACEHOLDER: public email]",
-    phone: "[PLACEHOLDER: public phone]",
-    hours: "[PLACEHOLDER: visiting / contact hours]",
+    /** Empty until CONTACT_PUBLIC_EMAIL is set — never invent an address. */
+    get email() {
+      return process.env.CONTACT_PUBLIC_EMAIL?.trim() || "";
+    },
+    /** Empty until CONTACT_PUBLIC_PHONE is set — never invent a number. */
+    get phone() {
+      return process.env.CONTACT_PUBLIC_PHONE?.trim() || "";
+    },
+    get hours() {
+      return (
+        process.env.CONTACT_PUBLIC_HOURS?.trim() ||
+        "Contact hours will be published by the committee."
+      );
+    },
   },
   social: [] as ReadonlyArray<{
     label: string;
     href: string;
   }>,
   legal: {
-    privacyUpdated: "[PLACEHOLDER: last updated date]",
-    termsUpdated: "[PLACEHOLDER: last updated date]",
+    privacyUpdated: "3 October 2026",
+    termsUpdated: "3 October 2026",
   },
 };
 

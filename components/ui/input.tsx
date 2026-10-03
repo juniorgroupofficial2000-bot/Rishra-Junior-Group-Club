@@ -45,7 +45,7 @@ export function Field({
 }
 
 const controlClass =
-  "w-full rounded-md border border-border-default bg-surface-raised px-3 py-2.5 text-sm text-ink-900 placeholder:text-ink-400 shadow-xs transition-[border-color,box-shadow] duration-200 focus-visible:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:opacity-60 aria-[invalid=true]:border-alta-500";
+  "min-h-11 w-full rounded-md border border-border-default bg-surface-raised px-3 py-2.5 text-sm text-ink-900 placeholder:text-ink-400 shadow-xs transition-[border-color,box-shadow] duration-200 focus-visible:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:opacity-60 aria-[invalid=true]:border-alta-500";
 
 export type InputProps = InputHTMLAttributes<HTMLInputElement> & {
   label?: string;

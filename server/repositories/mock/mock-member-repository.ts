@@ -101,6 +101,9 @@ export const mockMemberRepository: MemberRepository = {
         startsAt: "2026-02-01T09:00:00+05:30",
         venueLabel: "Club premises, Rishra",
         href: "/events/sample-saraswati-puja-gathering",
+        registrationRequired: true,
+        capacity: 100,
+        registeredCount: 12,
       },
     ];
   },

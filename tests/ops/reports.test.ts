@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { PrismaClient } from "@prisma/client";
+import { allowFinancialHardDelete } from "@/server/db/financial-mutation";
 import {
   buildReport,
   reportToCsv,
@@ -77,6 +78,7 @@ describe("operational reports", () => {
   });
 
   afterAll(async () => {
+    await allowFinancialHardDelete(prisma);
     await prisma.invoice.deleteMany({ where: { memberId } });
     await prisma.paymentMandate.deleteMany({ where: { memberId } });
     await prisma.payment.deleteMany({ where: { memberId } });

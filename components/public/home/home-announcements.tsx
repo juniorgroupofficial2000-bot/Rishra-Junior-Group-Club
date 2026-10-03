@@ -1,15 +1,19 @@
 import { AnnouncementList } from "@/components/announcements";
 import { FadeIn } from "@/components/motion/fade-in";
 import { SiteContainer } from "@/components/public/site-container";
-import { getPublishedAnnouncements } from "@/content/announcements";
-import { homeContent } from "@/content/home";
+import type { Announcement } from "@/content/announcements";
+import { homeContent, type HomeContent } from "@/content/home";
 import { HomeLink } from "./home-link";
 import { HomeSectionHeading } from "./home-section-heading";
 
-const content = homeContent.announcements;
-
-export function HomeAnnouncements() {
-  const items = getPublishedAnnouncements().slice(0, content.previewLimit);
+export function HomeAnnouncements({
+  items = [],
+  content = homeContent.announcements,
+}: {
+  items?: Announcement[];
+  content?: HomeContent["announcements"];
+} = {}) {
+  if (items.length === 0) return null;
 
   return (
     <section

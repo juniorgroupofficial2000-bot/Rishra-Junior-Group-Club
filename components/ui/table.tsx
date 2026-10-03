@@ -6,9 +6,14 @@ export function Table({
   ...props
 }: TableHTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="w-full overflow-x-auto rounded-xl border border-border-subtle bg-surface-raised shadow-xs">
+    <div className="w-full min-w-0 overflow-x-auto rounded-xl border border-border-subtle bg-surface-raised shadow-xs">
       <table
-        className={cn("w-full min-w-[36rem] border-collapse text-sm", className)}
+        className={cn(
+          // Desktop lists pair with ResponsiveRecords; avoid forcing 576px width
+          // on phones when this table is shown. Keep natural column width.
+          "w-full min-w-0 border-collapse text-sm",
+          className,
+        )}
         {...props}
       />
     </div>

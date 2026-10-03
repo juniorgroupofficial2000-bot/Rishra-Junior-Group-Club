@@ -17,6 +17,12 @@ export function consumeRateLimit(
   limit: number,
   windowMs: number,
 ): boolean {
+  // Playwright / controlled sandbox runs set E2E_TEST=1 so login flows
+  // are not blocked by the tight in-process auth buckets.
+  if (process.env.E2E_TEST === "1") {
+    return true;
+  }
+
   const now = Date.now();
   const existing = buckets.get(key);
 

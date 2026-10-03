@@ -20,10 +20,12 @@ export function StatTile({ label, value, hint, className }: StatTileProps) {
       <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-500">
         {label}
       </p>
-      <p className="mt-2 font-display text-3xl font-semibold tracking-tight text-ink-900">
+      <p className="mt-2 break-words font-display text-2xl font-semibold tracking-tight text-ink-900 sm:text-3xl">
         {value}
       </p>
-      {hint ? <p className="mt-1 text-sm text-ink-500">{hint}</p> : null}
+      {hint ? (
+        <p className="mt-1 break-words text-sm text-ink-500">{hint}</p>
+      ) : null}
     </div>
   );
 }

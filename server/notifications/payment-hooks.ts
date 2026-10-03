@@ -18,9 +18,17 @@ import type { VerifiedWebhookEvent } from "@/server/payments/types";
 export async function notifyFromVerifiedWebhook(
   event: VerifiedWebhookEvent,
 ) {
-  if (event.paymentRef && event.paymentStatus) {
+  if ((event.paymentRef || event.orderRef) && event.paymentStatus) {
     const payment = await prisma.payment.findFirst({
-      where: { providerPaymentRef: event.paymentRef, deletedAt: null },
+      where: {
+        deletedAt: null,
+        OR: [
+          ...(event.paymentRef
+            ? [{ providerPaymentRef: event.paymentRef }]
+            : []),
+          ...(event.orderRef ? [{ providerOrderRef: event.orderRef }] : []),
+        ],
+      },
     });
     if (payment) {
       await writeAuditEvent({
@@ -30,7 +38,8 @@ export async function notifyFromVerifiedWebhook(
         entityId: payment.id,
         metadata: {
           status: event.paymentStatus,
-          providerPaymentRef: event.paymentRef,
+          providerPaymentRef: event.paymentRef ?? null,
+          providerOrderRef: event.orderRef ?? null,
           eventType: event.eventType,
         },
       });

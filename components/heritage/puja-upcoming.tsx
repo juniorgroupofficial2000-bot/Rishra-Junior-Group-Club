@@ -2,7 +2,6 @@ import { FadeIn } from "@/components/motion/fade-in";
 import { SiteContainer } from "@/components/public/site-container";
 import { saraswatiPujaContent } from "@/content/heritage";
 import Link from "next/link";
-import { ProvenanceBadge } from "./provenance-badge";
 
 export function PujaUpcoming() {
   const content = saraswatiPujaContent.upcoming;
@@ -15,12 +14,9 @@ export function PujaUpcoming() {
     >
       <SiteContainer>
         <FadeIn className="mx-auto max-w-3xl text-center">
-          <div className="flex justify-center">
-            <ProvenanceBadge provenance={content.provenance} />
-          </div>
           <h2
             id="puja-upcoming-heading"
-            className="mt-3 font-display text-3xl font-semibold tracking-tight text-ink-900 sm:text-4xl"
+            className="font-display text-3xl font-semibold tracking-tight text-ink-900 sm:text-4xl"
           >
             {content.title}
           </h2>

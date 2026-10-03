@@ -1,0 +1,153 @@
+# After CI succeeds on `main` → PRODUCTION environment.
+# Never deploy feature/* or fix/* branches here.
+# Migrations: prisma migrate deploy only (never db push / migrate reset).
+name: Deploy Production
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: Type production to confirm a manual deploy of main
+        required: true
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm manual dispatch
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.confirm != 'production' }}
+        run: |
+          echo "Confirmation failed — type production exactly"
+          exit 1
+
+      - name: Require successful CI for automated deploys
+        if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion != 'success' }}
+        run: |
+          echo "CI did not succeed — refusing production deploy"
+          exit 1
+
+  deploy:
+    name: Deploy to production
+    needs: [guard]
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ vars.APP_URL }}
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate
+
+      - name: Validate schema
+        run: npm run db:validate
+
+      - name: Build (APP_ENV=production)
+        run: npm run build
+        env:
+          APP_ENV: production
+          NEXT_PUBLIC_APP_ENV: production
+          APP_URL: ${{ vars.APP_URL }}
+          NEXT_PUBLIC_APP_URL: ${{ vars.APP_URL }}
+          SITE_URL: ${{ vars.APP_URL }}
+          AUTH_URL: ${{ vars.APP_URL }}
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          REPOSITORY_DRIVER: prisma
+          PAYMENT_PROVIDER: ${{ vars.PAYMENT_PROVIDER }}
+          PAYMENT_MODE: ${{ vars.PAYMENT_MODE }}
+          RAZORPAY_KEY_ID: ${{ secrets.RAZORPAY_KEY_ID }}
+          RAZORPAY_KEY_SECRET: ${{ secrets.RAZORPAY_KEY_SECRET }}
+          RAZORPAY_WEBHOOK_SECRET: ${{ secrets.RAZORPAY_WEBHOOK_SECRET }}
+          MEDIA_STORAGE_DRIVER: ${{ vars.MEDIA_STORAGE_DRIVER }}
+          MEDIA_S3_BUCKET: ${{ secrets.MEDIA_S3_BUCKET }}
+          MEDIA_S3_REGION: ${{ vars.MEDIA_S3_REGION }}
+          MEDIA_S3_ACCESS_KEY_ID: ${{ secrets.MEDIA_S3_ACCESS_KEY_ID }}
+          MEDIA_S3_SECRET_ACCESS_KEY: ${{ secrets.MEDIA_S3_SECRET_ACCESS_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_FROM: ${{ vars.EMAIL_FROM }}
+          REQUIRE_STAFF_MFA: "true"
+          CONTENT_INCLUDE_SAMPLE: "false"
+          ALLOW_DEMO_SEED: "false"
+          ALLOW_MOCK_PAYMENTS: "false"
+          NEXT_PHASE: phase-production-build
+
+      - name: Pre-migration checklist reminder
+        run: |
+          echo "Production migration path:"
+          echo "1. Validate (db:validate) — done in this job"
+          echo "2. Backup — ensure managed DB backup / snapshot before migrate"
+          echo "3. Apply — prisma migrate deploy (non-destructive)"
+          echo "4. Verify — schema + smoke checks"
+          echo "5. Monitor — errors / payments / auth"
+          if [ "${SKIP_DB_MIGRATE:-}" = "true" ]; then
+            echo "SKIP_DB_MIGRATE=true — migrate step will be skipped"
+          fi
+
+      - name: Migrate production database (non-destructive)
+        run: |
+          if [ "${SKIP_DB_MIGRATE:-}" = "true" ]; then
+            echo "Skipping migrate by request"
+            exit 0
+          fi
+          if [ -z "${DATABASE_URL:-}" ]; then
+            echo "DATABASE_URL not set — refusing silent skip on production"
+            exit 1
+          fi
+          # Never: prisma migrate reset, prisma db push --force-reset, DROP DATABASE
+          npx prisma migrate deploy
+          npx prisma migrate status
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          APP_ENV: production
+          SKIP_DB_MIGRATE: ${{ vars.SKIP_DB_MIGRATE }}
+
+      - name: Deploy to Vercel production
+        run: |
+          if [ -z "${VERCEL_TOKEN:-}" ]; then
+            echo "Vercel not configured — skipping remote deploy"
+            exit 0
+          fi
+          npx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          npx vercel build --prod --token="$VERCEL_TOKEN"
+          npx vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Deploy hook
+        run: |
+          if [ -z "${DEPLOY_HOOK_URL:-}" ]; then
+            exit 0
+          fi
+          curl -fsS -X POST "$DEPLOY_HOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d '{"ref":"main","environment":"production","appEnv":"production"}'
+        env:
+          DEPLOY_HOOK_URL: ${{ secrets.DEPLOY_HOOK_URL }}

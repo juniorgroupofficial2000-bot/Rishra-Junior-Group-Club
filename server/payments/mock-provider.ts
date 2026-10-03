@@ -251,6 +251,10 @@ export class MockPaymentProvider implements PaymentProvider {
         typeof body.payload.paymentRef === "string"
           ? body.payload.paymentRef
           : null,
+      orderRef:
+        typeof body.payload.orderRef === "string"
+          ? body.payload.orderRef
+          : null,
       mandateRef:
         typeof body.payload.mandateRef === "string"
           ? body.payload.mandateRef

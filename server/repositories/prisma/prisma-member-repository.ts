@@ -78,11 +78,21 @@ export const prismaMemberRepository: MemberRepository = {
       where: {
         deletedAt: null,
         published: true,
+        contentStatus: "PUBLISHED",
         status: { in: ["SCHEDULED"] },
         startsAt: { gte: new Date() },
       },
       orderBy: { startsAt: "asc" },
-      take: 10,
+      take: 20,
+      include: {
+        _count: {
+          select: {
+            registrations: {
+              where: { deletedAt: null, status: "REGISTERED" },
+            },
+          },
+        },
+      },
     });
     return events.map(toEventItem);
   },
@@ -147,11 +157,21 @@ export const prismaMemberRepository: MemberRepository = {
           where: {
             deletedAt: null,
             published: true,
+            contentStatus: "PUBLISHED",
             status: "SCHEDULED",
             startsAt: { gte: new Date() },
           },
           orderBy: { startsAt: "asc" },
           take: 5,
+          include: {
+            _count: {
+              select: {
+                registrations: {
+                  where: { deletedAt: null, status: "REGISTERED" },
+                },
+              },
+            },
+          },
         }),
         prisma.announcement.findMany({
           where: { deletedAt: null, status: "PUBLISHED" },

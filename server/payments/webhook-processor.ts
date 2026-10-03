@@ -1,6 +1,11 @@
+import { randomUUID } from "node:crypto";
+
 import { notifyFromVerifiedWebhook } from "@/server/notifications/payment-hooks";
+import { WebhookNonRetryableError } from "@/server/payments/errors";
 import type { PaymentProvider } from "@/server/payments/provider";
-import { paymentLog } from "@/server/payments/logging";
+import { createScopedLog } from "@/server/observability/logger";
+
+const webhookLog = createScopedLog("webhooks");
 import type { VerifiedWebhookEvent } from "@/server/payments/types";
 import type {
   MandateStatus,
@@ -19,13 +24,111 @@ export class WebhookSignatureError extends Error {
 export type WebhookProcessResult =
   | { status: "processed"; eventId: string }
   | { status: "duplicate"; eventId: string }
-  | { status: "failed"; eventId?: string; error: string };
+  | {
+      status: "failed";
+      eventId?: string;
+      error: string;
+      /** When false, HTTP layer should acknowledge without provider retry. */
+      retryable: boolean;
+    };
+
+/** Stale PROCESSING rows older than this may be retried (crash recovery). */
+const STALE_PROCESSING_MS = 2 * 60_000;
+
+const TERMINAL_PAYMENT_STATUSES = new Set<PaymentStatus>([
+  "SUCCESS",
+  "REFUNDED",
+  "CANCELLED",
+]);
+
+const CLOSED_MANDATE_STATUSES = new Set<MandateStatus>([
+  "CANCELLED",
+  "EXPIRED",
+]);
+
+function isPrismaUniqueViolation(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2002"
+  );
+}
+
+function resolveAmountPaise(
+  preferred: number | null | undefined,
+  fallback: number | null | undefined,
+): number {
+  const amount = preferred ?? fallback;
+  if (amount == null || amount <= 0) {
+    throw new WebhookNonRetryableError(
+      "Payment amount must be a positive paise value.",
+    );
+  }
+  return amount;
+}
+
+/**
+ * Monotonic payment status transitions for webhook updates.
+ * SUCCESS may only move to REFUNDED; REFUNDED/CANCELLED are terminal.
+ */
+export function nextPaymentStatus(
+  current: PaymentStatus,
+  incoming: PaymentStatus,
+): PaymentStatus | null {
+  if (current === incoming) {
+    return current;
+  }
+  if (current === "REFUNDED" || current === "CANCELLED") {
+    return null;
+  }
+  if (current === "SUCCESS") {
+    return incoming === "REFUNDED" ? "REFUNDED" : null;
+  }
+  return incoming;
+}
+
+async function issueInvoice(
+  tx: Tx,
+  input: {
+    memberId: string;
+    amountPaise: number;
+    currency: string;
+  },
+) {
+  const number = `INV-${Date.now().toString(36)}-${randomUUID().slice(0, 8)}`.toUpperCase();
+  return tx.invoice.create({
+    data: {
+      memberId: input.memberId,
+      number,
+      amountPaise: input.amountPaise,
+      currency: input.currency,
+      status: "ISSUED",
+      issuedOn: new Date(),
+      dueOn: new Date(),
+      notes: "Issued for provider payment / recurring debit.",
+    },
+  });
+}
+
+async function markInvoicePaid(tx: Tx, invoiceId: string | null | undefined) {
+  if (!invoiceId) return;
+  await tx.invoice.updateMany({
+    where: {
+      id: invoiceId,
+      status: { in: ["DRAFT", "ISSUED", "OVERDUE"] },
+    },
+    data: { status: "PAID" },
+  });
+}
 
 /**
  * Verify, persist, and apply a provider webhook with:
  * - signature verification
  * - idempotency via unique (provider, providerEventId)
- * - retry-safe / transaction-safe DB updates
+ * - claim locking for PROCESSING
+ * - monotonic settled payment status
+ * - invoice + receipt updates on SUCCESS
  */
 export async function processProviderWebhook(input: {
   prisma: PrismaClient;
@@ -40,7 +143,7 @@ export async function processProviderWebhook(input: {
       signatureHeader: input.signatureHeader,
     });
   } catch (error) {
-    paymentLog.error("webhook_signature_invalid", {
+    webhookLog.error("webhook_signature_invalid", {
       provider: input.provider.name,
       error: error instanceof Error ? error.message : "unknown",
     });
@@ -63,7 +166,7 @@ export async function processProviderWebhook(input: {
       });
 
       if (existing?.processingStatus === "PROCESSED") {
-        paymentLog.info("webhook_duplicate_ignored", {
+        webhookLog.info("webhook_duplicate_ignored", {
           provider,
           providerEventId: verified.providerEventId,
         });
@@ -74,33 +177,84 @@ export async function processProviderWebhook(input: {
       }
 
       if (existing?.processingStatus === "PROCESSING") {
-        paymentLog.warn("webhook_already_processing", {
-          provider,
-          providerEventId: verified.providerEventId,
-        });
-        return {
-          status: "duplicate" as const,
-          eventId: existing.id,
-        };
-      }
-
-      const eventRow =
-        existing ??
-        (await tx.providerWebhookEvent.create({
-          data: {
+        const started = existing.processingStartedAt ?? existing.updatedAt;
+        const ageMs = Date.now() - started.getTime();
+        if (ageMs < STALE_PROCESSING_MS) {
+          webhookLog.warn("webhook_already_processing", {
             provider,
             providerEventId: verified.providerEventId,
-            eventType: verified.eventType,
-            payload: verified.payload as Prisma.InputJsonValue,
-            signatureValid: true,
-            processingStatus: "RECEIVED",
-          },
-        }));
+          });
+          return {
+            status: "duplicate" as const,
+            eventId: existing.id,
+          };
+        }
+        webhookLog.warn("webhook_stale_processing_retry", {
+          provider,
+          providerEventId: verified.providerEventId,
+          ageMs,
+        });
+      }
 
-      await tx.providerWebhookEvent.update({
-        where: { id: eventRow.id },
-        data: { processingStatus: "PROCESSING" },
+      let eventRow = existing;
+      if (!eventRow) {
+        try {
+          eventRow = await tx.providerWebhookEvent.create({
+            data: {
+              provider,
+              providerEventId: verified.providerEventId,
+              eventType: verified.eventType,
+              payload: verified.payload as Prisma.InputJsonValue,
+              signatureValid: true,
+              processingStatus: "RECEIVED",
+            },
+          });
+        } catch (error) {
+          if (!isPrismaUniqueViolation(error)) {
+            throw error;
+          }
+          eventRow = await tx.providerWebhookEvent.findUniqueOrThrow({
+            where: {
+              provider_providerEventId: {
+                provider,
+                providerEventId: verified.providerEventId,
+              },
+            },
+          });
+          if (eventRow.processingStatus === "PROCESSED") {
+            return {
+              status: "duplicate" as const,
+              eventId: eventRow.id,
+            };
+          }
+        }
+      }
+
+      const staleBefore = new Date(Date.now() - STALE_PROCESSING_MS);
+      const claimed = await tx.providerWebhookEvent.updateMany({
+        where: {
+          id: eventRow.id,
+          OR: [
+            { processingStatus: { in: ["RECEIVED", "FAILED"] } },
+            {
+              processingStatus: "PROCESSING",
+              processingStartedAt: { lt: staleBefore },
+            },
+          ],
+        },
+        data: {
+          processingStatus: "PROCESSING",
+          processingStartedAt: new Date(),
+          errorMessage: null,
+        },
       });
+
+      if (claimed.count === 0) {
+        return {
+          status: "duplicate" as const,
+          eventId: eventRow.id,
+        };
+      }
 
       await applyVerifiedWebhookEvent(tx, verified, provider);
 
@@ -113,7 +267,7 @@ export async function processProviderWebhook(input: {
         },
       });
 
-      paymentLog.info("webhook_processed", {
+      webhookLog.info("webhook_processed", {
         provider,
         providerEventId: verified.providerEventId,
         eventType: verified.eventType,
@@ -124,7 +278,7 @@ export async function processProviderWebhook(input: {
 
     if (result.status === "processed") {
       await notifyFromVerifiedWebhook(verified).catch((error) => {
-        paymentLog.warn("webhook_notification_failed", {
+        webhookLog.warn("webhook_notification_failed", {
           error: error instanceof Error ? error.message : "unknown",
           providerEventId: verified.providerEventId,
         });
@@ -134,10 +288,12 @@ export async function processProviderWebhook(input: {
     return result;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Webhook failed.";
-    paymentLog.error("webhook_processing_failed", {
+    const retryable = !(error instanceof WebhookNonRetryableError);
+    webhookLog.error("webhook_processing_failed", {
       provider,
       providerEventId: verified.providerEventId,
       error: message,
+      retryable,
     });
 
     await input.prisma.providerWebhookEvent
@@ -164,7 +320,7 @@ export async function processProviderWebhook(input: {
       })
       .catch(() => undefined);
 
-    return { status: "failed", error: message };
+    return { status: "failed", error: message, retryable };
   }
 }
 
@@ -186,6 +342,7 @@ export async function applyVerifiedWebhookEvent(
     });
   }
 
+  let paymentPathHandled = false;
   if (event.paymentRef && event.paymentStatus) {
     await updatePaymentFromWebhook(tx, {
       provider,
@@ -198,10 +355,13 @@ export async function applyVerifiedWebhookEvent(
       occurredAt: event.occurredAt ?? new Date(),
       mandateRef: event.mandateRef,
     });
+    paymentPathHandled = true;
   }
 
-  // Recurring debit failure/success events that only carry subscription + amount
+  // Recurring debit events without a provider payment id (synthetic ledger row).
+  // Never run when the payment path already handled the same event.
   if (
+    !paymentPathHandled &&
     !event.paymentRef &&
     event.mandateRef &&
     (event.eventType.includes("charged") ||
@@ -246,7 +406,7 @@ async function updateMandateFromWebhook(
     },
   });
   if (!mandate) {
-    paymentLog.warn("webhook_mandate_not_found", {
+    webhookLog.warn("webhook_mandate_not_found", {
       mandateRef: input.mandateRef,
     });
     return;
@@ -279,13 +439,21 @@ async function updatePaymentFromWebhook(
   },
 ) {
   let payment = await tx.payment.findFirst({
-    where: { providerPaymentRef: input.paymentRef, deletedAt: null },
+    where: {
+      providerPaymentRef: input.paymentRef,
+      deletedAt: null,
+      provider: input.provider,
+    },
   });
 
   // Razorpay: local row is keyed by order id until the payment id is known.
   if (!payment && input.orderRef) {
     payment = await tx.payment.findFirst({
-      where: { providerOrderRef: input.orderRef, deletedAt: null },
+      where: {
+        providerOrderRef: input.orderRef,
+        deletedAt: null,
+        provider: input.provider,
+      },
     });
   }
 
@@ -300,24 +468,43 @@ async function updatePaymentFromWebhook(
       },
     });
     if (mandate) {
-      // Amount must match mandate when provided — reject silent under/over billing.
+      if (
+        CLOSED_MANDATE_STATUSES.has(mandate.status) &&
+        input.status !== "REFUNDED"
+      ) {
+        throw new WebhookNonRetryableError(
+          `Cannot create payment for closed mandate (${mandate.status}).`,
+        );
+      }
       if (
         input.amountPaise != null &&
         mandate.amountPaise != null &&
         input.amountPaise !== mandate.amountPaise
       ) {
-        paymentLog.warn("webhook_amount_mismatch", {
+        webhookLog.warn("webhook_amount_mismatch", {
           paymentRef: input.paymentRef,
           expected: mandate.amountPaise,
           received: input.amountPaise,
         });
-        throw new Error("Webhook amount does not match mandate amount.");
+        throw new WebhookNonRetryableError(
+          "Webhook amount does not match mandate amount.",
+        );
       }
+      const amountPaise = resolveAmountPaise(
+        input.amountPaise,
+        mandate.amountPaise,
+      );
+      const invoice = await issueInvoice(tx, {
+        memberId: mandate.memberId,
+        amountPaise,
+        currency: mandate.currency,
+      });
       payment = await tx.payment.create({
         data: {
           memberId: mandate.memberId,
           mandateId: mandate.id,
-          amountPaise: input.amountPaise ?? mandate.amountPaise ?? 0,
+          invoiceId: invoice.id,
+          amountPaise,
           currency: mandate.currency,
           status: "CREATED",
           method: "MANDATE",
@@ -330,7 +517,7 @@ async function updatePaymentFromWebhook(
   }
 
   if (!payment) {
-    paymentLog.warn("webhook_payment_not_found", {
+    webhookLog.warn("webhook_payment_not_found", {
       paymentRef: input.paymentRef,
       orderRef: input.orderRef ?? null,
     });
@@ -342,26 +529,52 @@ async function updatePaymentFromWebhook(
     payment.amountPaise !== input.amountPaise &&
     input.status === "SUCCESS"
   ) {
-    paymentLog.warn("webhook_amount_mismatch", {
+    webhookLog.warn("webhook_amount_mismatch", {
       paymentId: payment.id,
       expected: payment.amountPaise,
       received: input.amountPaise,
     });
-    throw new Error("Webhook amount does not match payment amount.");
+    throw new WebhookNonRetryableError(
+      "Webhook amount does not match payment amount.",
+    );
   }
 
-  // Do not claim SUCCESS unless verified webhook says SUCCESS.
+  const status = nextPaymentStatus(payment.status, input.status);
+  if (!status) {
+    webhookLog.info("webhook_status_ignored", {
+      paymentId: payment.id,
+      current: payment.status,
+      incoming: input.status,
+    });
+    if (TERMINAL_PAYMENT_STATUSES.has(payment.status)) {
+      await tx.paymentAttempt.create({
+        data: {
+          paymentId: payment.id,
+          status: "CANCELLED",
+          provider: input.provider,
+          providerAttemptRef: `${input.paymentRef}:ignored:${randomUUID().slice(0, 8)}`,
+          failureCode: input.failureCode ?? "STATUS_IGNORED",
+          failureMessage:
+            input.failureMessage ??
+            `Ignored transition ${payment.status} → ${input.status}`,
+          attemptedAt: input.occurredAt,
+        },
+      });
+    }
+    return;
+  }
+
   const paidAt =
-    input.status === "SUCCESS" ? input.occurredAt : payment.paidAt;
+    status === "SUCCESS" ? (payment.paidAt ?? input.occurredAt) : payment.paidAt;
   const authorizedAt =
-    input.status === "AUTHORIZED" || input.status === "SUCCESS"
-      ? payment.authorizedAt ?? input.occurredAt
+    status === "AUTHORIZED" || status === "SUCCESS"
+      ? (payment.authorizedAt ?? input.occurredAt)
       : payment.authorizedAt;
 
   await tx.payment.update({
     where: { id: payment.id },
     data: {
-      status: input.status,
+      status,
       paidAt,
       authorizedAt,
       provider: input.provider,
@@ -370,7 +583,7 @@ async function updatePaymentFromWebhook(
       notes:
         input.failureMessage ??
         payment.notes ??
-        `Status ${input.status} via verified webhook`,
+        `Status ${status} via verified webhook`,
     },
   });
 
@@ -378,11 +591,11 @@ async function updatePaymentFromWebhook(
     data: {
       paymentId: payment.id,
       status:
-        input.status === "SUCCESS"
+        status === "SUCCESS"
           ? "SUCCEEDED"
-          : input.status === "FAILED"
+          : status === "FAILED"
             ? "FAILED"
-            : input.status === "CANCELLED"
+            : status === "CANCELLED" || status === "REFUNDED"
               ? "CANCELLED"
               : "STARTED",
       provider: input.provider,
@@ -393,7 +606,7 @@ async function updatePaymentFromWebhook(
     },
   });
 
-  if (input.status === "SUCCESS") {
+  if (status === "SUCCESS") {
     const existingReceipt = await tx.receipt.findUnique({
       where: { paymentId: payment.id },
     });
@@ -406,6 +619,7 @@ async function updatePaymentFromWebhook(
         },
       });
     }
+    await markInvoicePaid(tx, payment.invoiceId);
   }
 }
 
@@ -433,16 +647,51 @@ async function recordRecurringDebitFromWebhook(
   });
   if (!mandate) return;
 
+  if (CLOSED_MANDATE_STATUSES.has(mandate.status)) {
+    throw new WebhookNonRetryableError(
+      `Ignoring recurring debit for closed mandate (${mandate.status}).`,
+    );
+  }
+
+  const amountPaise = resolveAmountPaise(
+    input.amountPaise,
+    mandate.amountPaise,
+  );
+
+  const providerPaymentRef = `wh_${input.eventType}_${input.occurredAt.getTime()}_${randomUUID().slice(0, 8)}`;
+
+  const existing = await tx.payment.findFirst({
+    where: {
+      provider: input.provider,
+      providerPaymentRef,
+      deletedAt: null,
+    },
+  });
+  if (existing) {
+    webhookLog.info("webhook_recurring_duplicate_ignored", {
+      paymentId: existing.id,
+      providerPaymentRef,
+    });
+    return;
+  }
+
+  const invoice = await issueInvoice(tx, {
+    memberId: mandate.memberId,
+    amountPaise,
+    currency: mandate.currency,
+  });
+
   const payment = await tx.payment.create({
     data: {
       memberId: mandate.memberId,
       mandateId: mandate.id,
-      amountPaise: input.amountPaise ?? mandate.amountPaise ?? 0,
+      invoiceId: invoice.id,
+      amountPaise,
       currency: mandate.currency,
       status: input.status,
       method: "MANDATE",
       provider: input.provider,
-      providerPaymentRef: `wh_${input.eventType}_${input.occurredAt.getTime()}`,
+      providerPaymentRef,
       paidAt: input.status === "SUCCESS" ? input.occurredAt : null,
       notes: input.failureMessage ?? `Recurring debit via ${input.eventType}`,
     },
@@ -458,6 +707,17 @@ async function recordRecurringDebitFromWebhook(
       attemptedAt: input.occurredAt,
     },
   });
+
+  if (input.status === "SUCCESS") {
+    await tx.receipt.create({
+      data: {
+        paymentId: payment.id,
+        number: `RJGC-RCPT-${payment.id.slice(-10).toUpperCase()}`,
+        issuedOn: input.occurredAt,
+      },
+    });
+    await markInvoicePaid(tx, invoice.id);
+  }
 
   if (input.status === "FAILED") {
     await tx.paymentMandate.update({

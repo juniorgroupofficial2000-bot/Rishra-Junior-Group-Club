@@ -5,6 +5,7 @@
  */
 
 import type { ContentProvenance } from "../shared/media";
+import type { PujaLiveStatus } from "@/lib/puja/status";
 
 export type { ContentProvenance };
 
@@ -15,6 +16,7 @@ export type HeritageMedia = {
   width: number;
   height: number;
   caption?: string;
+  category?: string;
   provenance: ContentProvenance;
 };
 
@@ -36,14 +38,47 @@ export type TimelineEntry = {
   provenance: ContentProvenance;
 };
 
+export type PujaScheduleItem = {
+  id: string;
+  stage: string;
+  stageLabel: string;
+  title: string;
+  description?: string;
+  startsAt?: string;
+  endsAt?: string;
+  sortOrder: number;
+  liveStatus: PujaLiveStatus | null;
+};
+
+export type PujaDocumentLink = {
+  title: string;
+  url: string;
+};
+
+export type PujaVideoLink = {
+  title: string;
+  url: string;
+  poster?: string;
+};
+
 export type PujaArchiveYear = {
   id: string;
   year: number;
   title: string;
   summary: string;
+  theme?: string;
+  startsOn?: string;
+  endsOn?: string;
+  locationLabel?: string;
+  locationDetail?: string;
+  committeeNote?: string;
   coverImage?: HeritageMedia;
   highlights?: string[];
   gallery?: HeritageMedia[];
+  videos?: PujaVideoLink[];
+  documents?: PujaDocumentLink[];
+  schedule?: PujaScheduleItem[];
+  liveStatus?: PujaLiveStatus | null;
   href?: string;
   published: boolean;
   provenance: ContentProvenance;

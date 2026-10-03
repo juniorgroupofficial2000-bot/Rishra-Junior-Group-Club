@@ -6,8 +6,8 @@ import { siteConfig } from "./site";
 import type { ContentProvenance, MediaItem } from "./shared/media";
 
 /**
- * Club events — CMS-ready.
- * SAMPLE events demonstrate listing + detail UI only.
+ * Event types + SAMPLE seed fixtures.
+ * Runtime pages use Prisma via `loadPublishedEvents()` — not these arrays.
  */
 
 export type EventRegistration = {

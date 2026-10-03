@@ -15,10 +15,11 @@ const variants = {
 } as const;
 
 const sizes = {
-  sm: "h-9 px-3 type-body-small gap-1.5 rounded-md",
-  md: "h-11 px-5 type-button gap-2 rounded-md",
-  lg: "h-12 px-6 type-button gap-2 rounded-lg",
-  icon: "h-11 w-11 rounded-md",
+  // 40px minimum; prefer `md` (44px) for primary portal actions.
+  sm: "min-h-10 h-10 px-3 type-body-small gap-1.5 rounded-md",
+  md: "min-h-11 h-11 px-5 type-button gap-2 rounded-md",
+  lg: "min-h-12 h-12 px-6 type-button gap-2 rounded-lg",
+  icon: "min-h-11 min-w-11 h-11 w-11 rounded-md",
 } as const;
 
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {

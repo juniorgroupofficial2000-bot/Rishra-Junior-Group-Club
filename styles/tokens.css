@@ -37,9 +37,10 @@
   --color-lotus-100: #E3EDE8;
   --color-lotus-50: #F2F7F4;
 
-  --color-ivory-50: #F7F2E8;
-  --color-ivory-100: #EFE8DA;
-  --color-ivory-200: #E2D8C4;
+  /* Cool stone paper — heritage institution, not warm cream SaaS */
+  --color-ivory-50: #F2F0EC;
+  --color-ivory-100: #E8E4DC;
+  --color-ivory-200: #D4CFC4;
 
   --color-success-600: #2F6F4E;
   --color-success-100: #E4F2EA;
@@ -70,7 +71,7 @@
   --color-error: var(--color-danger-600);
 
   --surface-canvas: var(--color-ivory-50);
-  --surface-raised: #FFFCFA;
+  --surface-raised: #FAF9F7;
   --surface-sunken: var(--color-ivory-100);
   --surface-muted: var(--color-ivory-100);
   --surface-inverse: var(--color-ink-900);
@@ -125,22 +126,23 @@
   --breakpoint-xl: 80rem;
   --breakpoint-2xl: 96rem;
 
-  /* ——— Typography (Playfair + Plus Jakarta) ——— */
+  /* ——— Typography (Playfair Display + Plus Jakarta Sans via next/font) ——— */
   --font-display: var(--font-playfair), "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  --font-sans: var(--font-plus-jakarta), "Segoe UI", sans-serif;
+  --font-sans: var(--font-plus-jakarta), "Segoe UI", system-ui, sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
 
-  --text-display: clamp(2.75rem, 5vw + 1rem, 4.75rem);
-  --text-h1: clamp(2.25rem, 3.2vw + 1rem, 3.5rem);
-  --text-h2: clamp(1.75rem, 2vw + 0.85rem, 2.5rem);
-  --text-h3: clamp(1.35rem, 1.2vw + 0.85rem, 1.75rem);
-  --text-h4: 1.2rem;
-  --text-body-large: 1.175rem;
+  /* Deliberate scale: display → heritage H1 → section H2 → UI H3/H4 → body */
+  --text-display: clamp(3rem, 6vw + 1rem, 5.25rem);
+  --text-h1: clamp(2.5rem, 3.6vw + 1rem, 3.75rem);
+  --text-h2: clamp(1.85rem, 2.2vw + 0.85rem, 2.65rem);
+  --text-h3: clamp(1.4rem, 1.15vw + 0.9rem, 1.85rem);
+  --text-h4: 1.125rem;
+  --text-body-large: 1.2rem;
   --text-body: 1rem;
   --text-body-small: 0.875rem;
-  --text-caption: 0.75rem;
+  --text-caption: 0.6875rem;
   --text-button: 0.9375rem;
-  --text-navigation: 0.9rem;
+  --text-navigation: 0.875rem;
 
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;

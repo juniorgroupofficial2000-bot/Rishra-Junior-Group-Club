@@ -50,10 +50,10 @@ export const membershipPageCopy = {
   eyebrow: "Belong",
   title: "Membership",
   description:
-    "Learn how to enquire about joining Rishra Junior Group Club, what membership involves, and how the future member portal will work.",
+    "Learn how to enquire about joining Rishra Junior Group Club, what membership involves, and how enrolled members use the portal.",
   cta: {
     title: "Ready to enquire?",
-    body: "Reach out through the club’s official contact channels. Online applications will open here when the membership workflow is enabled.",
+    body: "Reach out through the club’s official contact channels. The committee will respond with next steps.",
     primaryLabel: "Contact the club",
     primaryHref: "/contact",
     secondaryLabel: "Meet the committee",
@@ -67,7 +67,7 @@ export const membershipSections: MembershipSection[] = [
     title: "Who can enquire",
     body: [
       "People with a connection to the club’s community in Rishra — neighbours, families, and supporters interested in participating in club activities — may enquire about membership.",
-      "[PLACEHOLDER: Any formal eligibility criteria confirmed by the committee.]",
+      "Additional eligibility rules will be published here when the committee confirms them.",
     ],
   },
   {
@@ -80,7 +80,6 @@ export const membershipSections: MembershipSection[] = [
       "Send an enquiry via the Contact page (or in person when meeting club representatives).",
       "Provide the basic information listed below so the committee can respond.",
       "Await guidance on verification, introduction to the club, and any formal steps.",
-      "[PLACEHOLDER: Committee-approved steps after enquiry — interview, proposer, documents, etc.]",
     ],
   },
   {
@@ -92,8 +91,7 @@ export const membershipSections: MembershipSection[] = [
     items: [
       "Participation in club activities and celebrations",
       "Voice in community initiatives as defined by club rules",
-      "Access to member updates and announcements (when the member portal launches)",
-      "[PLACEHOLDER: Additional benefits confirmed by the committee — without inventing dues or perks]",
+      "Access to member updates through the signed-in member portal",
     ],
   },
   {
@@ -107,7 +105,6 @@ export const membershipSections: MembershipSection[] = [
       "Preferred contact method (phone or email — shared privately with the club, not published)",
       "Locality / connection to Rishra Junior Group Club",
       "Brief note on why you wish to join",
-      "[PLACEHOLDER: Any additional fields the committee will require for formal applications]",
     ],
   },
   {
@@ -116,16 +113,15 @@ export const membershipSections: MembershipSection[] = [
     body: [
       "Use the official Contact page for membership enquiries. The club address is listed there for reference.",
       "Personal details you share in an enquiry are treated as private club correspondence — they are not displayed on this website.",
-      "A future online application form will submit securely to the club’s systems; until then, contact remains the supported path.",
+      "Online applications will open on this page when that workflow is enabled; until then, Contact remains the supported path.",
     ],
   },
   {
     id: "member-portal",
-    title: "Member portal introduction",
+    title: "Member portal",
     body: [
-      "A member portal is planned as part of this platform. Signed-in members will eventually manage profile details, view dues history, register for events, and receive announcements.",
-      "The portal is not open yet. Public visitors can still learn about membership here and enquire via Contact.",
-      "[PLACEHOLDER: Launch timing and first portal features when the committee confirms them.]",
+      "Enrolled members can sign in to the member portal for profile details, dues history, event registration, and announcements.",
+      "If you are not yet a member, enquire via Contact. Existing members who need portal access should contact the committee.",
     ],
   },
 ];

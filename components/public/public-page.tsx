@@ -8,8 +8,8 @@ export type PublicPageShellProps = {
 };
 
 export function ContentPlaceholder({
-  title = "Content forthcoming",
-  body = "This section is ready for verified club information. No details have been invented.",
+  title = "Information will be updated soon",
+  body = "Verified club details for this section have not been published yet.",
 }: {
   title?: string;
   body?: string;
@@ -18,7 +18,6 @@ export function ContentPlaceholder({
     <div className="rounded-xl border border-dashed border-border-strong bg-surface-raised px-5 py-8 sm:px-8">
       <p className="font-display text-lg font-semibold text-ink-900">{title}</p>
       <p className="mt-2 max-w-prose text-sm leading-relaxed text-ink-500">{body}</p>
-      <p className="mt-4 font-mono text-xs text-ink-400">[PLACEHOLDER]</p>
     </div>
   );
 }

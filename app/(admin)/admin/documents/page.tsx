@@ -1,7 +1,8 @@
-import { AdminSectionPage } from "@/components/admin/admin-section-page";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminStatusBanner } from "@/components/admin/admin-status-banner";
 import { EmptyAdminPanel } from "@/components/admin/empty-admin-panel";
-import { Permissions } from "@/server/domain/permissions";
 import { requirePermission } from "@/server/auth/session";
+import { Permissions } from "@/server/domain/permissions";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -13,14 +14,21 @@ export default async function AdminDocumentsPage() {
   await requirePermission(Permissions.DOCUMENTS_READ, "/admin/documents");
 
   return (
-    <AdminSectionPage
-      title="Documents"
-      description="Club document registry for policies, minutes, and notices."
-    >
-      <EmptyAdminPanel
-        title="Document store not connected yet"
-        description="This admin surface is permission-gated. Unrestricted file uploads are intentionally disabled until a signed, typed upload pipeline is implemented."
+    <>
+      <AdminPageHeader
+        title="Documents"
+        description="Club document library. Upload pipeline is not enabled in this release."
       />
-    </AdminSectionPage>
+      <div className="space-y-6 p-4 sm:p-6 lg:p-8">
+        <AdminStatusBanner>
+          Empty state by design — binary uploads stay disabled until a storage
+          provider and virus-scan path are configured.
+        </AdminStatusBanner>
+        <EmptyAdminPanel
+          title="No documents yet"
+          description="When document storage is enabled, this page will list searchable, paginated files with confirmation for deletes."
+        />
+      </div>
+    </>
   );
 }

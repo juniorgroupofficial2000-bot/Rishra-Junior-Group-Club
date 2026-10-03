@@ -1,9 +1,19 @@
-import { AdminSectionPage } from "@/components/admin/admin-section-page";
+import { AdminEmptyRow } from "@/components/admin/admin-empty-row";
+import { AdminFilterBar } from "@/components/admin/admin-filter-bar";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminPagination } from "@/components/admin/admin-pagination";
+import { AdminStatusBanner } from "@/components/admin/admin-status-banner";
 import { Badge } from "@/components/ui/badge";
+import {
+  EmptyRecords,
+  RecordCard,
+  ResponsiveRecords,
+} from "@/components/ui/record-card";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
-import { Permissions } from "@/server/domain/permissions";
+import { parsePage } from "@/lib/admin/list-params";
 import { requirePermission } from "@/server/auth/session";
-import { listAdminCommittee } from "@/server/services/admin-catalog-service";
+import { Permissions } from "@/server/domain/permissions";
+import { searchAdminPublicCommittee } from "@/server/services/admin-list-service";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -12,69 +22,163 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function AdminCommitteePage() {
+export default async function AdminCommitteePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ query?: string; status?: string; page?: string }>;
+}) {
   await requirePermission(Permissions.COMMITTEE_READ, "/admin/committee");
-  const positions = await listAdminCommittee();
+  const params = await searchParams;
+  const page = parsePage(params.page);
+
+  let result;
+  let loadError: string | null = null;
+  try {
+    result = await searchAdminPublicCommittee({
+      query: params.query,
+      status: params.status || undefined,
+      page,
+      pageSize: 20,
+    });
+  } catch (error) {
+    loadError =
+      error instanceof Error ? error.message : "Could not load committee.";
+    result = { items: [], total: 0, page: 1, pageSize: 20 };
+  }
 
   return (
-    <AdminSectionPage
-      title="Committee"
-      description="Current committee positions and assignments."
-      isEmpty={positions.length === 0}
-      emptyTitle="No committee positions"
-      emptyDescription="Committee positions will appear here once configured."
-    >
-      <div className="space-y-6">
-        {positions.map((position) => (
-          <section
-            key={position.id}
-            className="rounded-xl border border-border-subtle bg-surface-raised p-5 shadow-xs"
-          >
-            <div className="flex flex-wrap items-center gap-3">
-              <h2 className="font-display text-lg font-semibold text-ink-900">
-                {position.title}
-              </h2>
-              <Badge variant="outline">{position.code}</Badge>
-              {!position.active ? (
-                <Badge variant="neutral">Inactive</Badge>
-              ) : null}
-            </div>
-            {position.assignments.length === 0 ? (
-              <p className="mt-3 text-sm text-ink-500">No current assignment.</p>
+    <>
+      <AdminPageHeader
+        title="Committee"
+        description="Public committee roster — the same records shown on /committee. Manage position, photo, biography, order, and term."
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/admin/content/committee-roster/new"
+              className="inline-flex min-h-11 items-center rounded-md bg-ink-900 px-3 text-sm font-medium text-white hover:bg-ink-800"
+            >
+              Add committee member
+            </Link>
+            <Link
+              href="/admin/content/positions"
+              className="inline-flex min-h-11 items-center rounded-md border border-border-default px-3 text-sm font-medium hover:bg-ink-50"
+            >
+              Manage positions
+            </Link>
+          </div>
+        }
+      />
+      <div className="space-y-6 p-4 sm:p-6 lg:p-8">
+        {loadError ? (
+          <AdminStatusBanner tone="error">{loadError}</AdminStatusBanner>
+        ) : null}
+        <AdminFilterBar
+          fields={[
+            {
+              type: "text",
+              name: "query",
+              label: "Search",
+              defaultValue: params.query,
+              placeholder: "Name or role…",
+            },
+            {
+              type: "select",
+              name: "status",
+              label: "Status",
+              defaultValue: params.status,
+              options: [
+                { value: "", label: "All" },
+                { value: "DRAFT", label: "Draft / inactive" },
+                { value: "PUBLISHED", label: "Active (public)" },
+                { value: "ARCHIVED", label: "Archived" },
+              ],
+            },
+          ]}
+        />
+        <ResponsiveRecords
+          mobile={
+            result.items.length === 0 ? (
+              <EmptyRecords message="No committee members match these filters. Add a published roster entry to appear on the public site." />
             ) : (
-              <Table className="mt-4 min-w-0">
-                <THead>
-                  <TR>
-                    <TH>Member</TH>
-                    <TH>Number</TH>
-                    <TH>Status</TH>
-                    <TH>Since</TH>
-                  </TR>
-                </THead>
-                <TBody>
-                  {position.assignments.map((assignment) => (
-                    <TR key={assignment.id}>
+              result.items.map((row) => (
+                <RecordCard
+                  key={row.id}
+                  title={row.displayName}
+                  subtitle={row.roleTitle}
+                  href={`/admin/content/committee-roster/${row.id}`}
+                  badge={<Badge variant="outline">{row.status}</Badge>}
+                  fields={[
+                    { label: "Term", value: row.termYear ?? "—" },
+                    { label: "Order", value: row.sortOrder },
+                    {
+                      label: "Photo",
+                      value: row.portraitAssetId ? "Linked" : "None",
+                    },
+                  ]}
+                />
+              ))
+            )
+          }
+          desktop={
+            <Table>
+              <THead>
+                <TR>
+                  <TH>Member</TH>
+                  <TH>Position</TH>
+                  <TH>Term</TH>
+                  <TH>Order</TH>
+                  <TH>Status</TH>
+                  <TH>Actions</TH>
+                </TR>
+              </THead>
+              <TBody>
+                {result.items.length === 0 ? (
+                  <AdminEmptyRow colSpan={6} />
+                ) : (
+                  result.items.map((row) => (
+                    <TR key={row.id}>
                       <TD>
                         <Link
-                          href={`/admin/members/${assignment.memberId}`}
+                          href={`/admin/content/committee-roster/${row.id}`}
                           className="font-medium underline-offset-4 hover:underline"
                         >
-                          {assignment.memberName}
+                          {row.displayName}
+                        </Link>
+                        {row.biography ? (
+                          <p className="mt-1 line-clamp-2 text-xs text-ink-500">
+                            {row.biography}
+                          </p>
+                        ) : null}
+                      </TD>
+                      <TD>{row.roleTitle}</TD>
+                      <TD>{row.termYear ?? "—"}</TD>
+                      <TD>{row.sortOrder}</TD>
+                      <TD>
+                        <Badge variant="outline">{row.status}</Badge>
+                      </TD>
+                      <TD>
+                        <Link
+                          href={`/admin/content/committee-roster/${row.id}`}
+                          className="text-sm font-medium underline-offset-4 hover:underline"
+                        >
+                          Edit
                         </Link>
                       </TD>
-                      <TD className="font-mono text-xs">
-                        {assignment.membershipNumber}
-                      </TD>
-                      <TD>{assignment.memberStatus}</TD>
-                      <TD>{assignment.startsOn}</TD>
                     </TR>
-                  ))}
-                </TBody>
-              </Table>
-            )}
-          </section>
-        ))}
+                  ))
+                )}
+              </TBody>
+            </Table>
+          }
+        />
+        <AdminPagination
+          basePath="/admin/committee"
+          params={{ query: params.query, status: params.status }}
+          page={result.page}
+          pageSize={result.pageSize}
+          total={result.total}
+        />
       </div>
-    </AdminSectionPage>
+    </>
   );
 }

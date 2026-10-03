@@ -1,6 +1,12 @@
 import { siteConfig } from "@/content/site";
+import { privatePageMetadata } from "@/lib/seo/metadata";
 import Link from "next/link";
 import type { ReactNode } from "react";
+
+export const metadata = privatePageMetadata(
+  "Sign in",
+  "Sign in to the Rishra Junior Group Club member or admin portal.",
+);
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (

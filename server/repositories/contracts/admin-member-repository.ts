@@ -7,11 +7,13 @@ import type {
 export type AdminMemberRecord = {
   id: string;
   membershipNumber: string;
+  cardPublicId: string;
   firstName: string;
   lastName: string;
   displayName: string;
   email: string;
   phone: string | null;
+  dateOfBirth: Date | null;
   status: MemberStatusInput;
   joinedOn: Date | null;
   addressLine1: string | null;
@@ -20,6 +22,12 @@ export type AdminMemberRecord = {
   state: string | null;
   postalCode: string | null;
   country: string | null;
+  emergencyContactName: string | null;
+  emergencyContactPhone: string | null;
+  reviewNotes: string | null;
+  statusReason: string | null;
+  portraitAssetId: string | null;
+  portraitUrl: string | null;
   internalNotes: string | null;
   userId: string | null;
   isSample: boolean;
@@ -27,11 +35,26 @@ export type AdminMemberRecord = {
   updatedAt: Date;
   deletedAt: Date | null;
   currentPlanLabel: string | null;
+  currentPlanId: string | null;
+  committeeRoleLabel: string | null;
+  paymentStatusLabel: string | null;
 };
 
 export type AdminMemberSearchParams = {
   query?: string;
   status?: MemberStatusInput;
+  planId?: string;
+  committeeRole?: string;
+  joinedFrom?: Date;
+  joinedTo?: Date;
+  ids?: string[];
+  sortBy?:
+    | "updatedAt"
+    | "joinedOn"
+    | "membershipNumber"
+    | "displayName"
+    | "status";
+  sortDir?: "asc" | "desc";
   includeDeleted?: boolean;
   sampleOnly?: boolean;
   page: number;
@@ -47,7 +70,7 @@ export type AdminMemberSearchResult = {
 
 export type AdminMemberRepository = {
   create(
-    input: CreateMemberInput,
+    input: CreateMemberInput & { membershipNumber: string },
     actorUserId: string | null,
   ): Promise<AdminMemberRecord>;
   update(
@@ -63,6 +86,7 @@ export type AdminMemberRepository = {
     status: MemberStatusInput,
     actorUserId: string | null,
     reason?: string,
+    reviewNotes?: string,
   ): Promise<AdminMemberRecord>;
   listForExport(params: Omit<AdminMemberSearchParams, "page" | "pageSize">): Promise<
     AdminMemberRecord[]

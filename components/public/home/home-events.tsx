@@ -1,15 +1,19 @@
 import { EventList } from "@/components/events";
 import { FadeIn } from "@/components/motion/fade-in";
 import { SiteContainer } from "@/components/public/site-container";
-import { getUpcomingEvents } from "@/content/events";
-import { homeContent } from "@/content/home";
+import type { ClubEvent } from "@/content/events";
+import { homeContent, type HomeContent } from "@/content/home";
 import { HomeLink } from "./home-link";
 import { HomeSectionHeading } from "./home-section-heading";
 
-const content = homeContent.events;
-
-export function HomeEvents() {
-  const events = getUpcomingEvents().slice(0, content.previewLimit);
+export function HomeEvents({
+  events = [],
+  content = homeContent.events,
+}: {
+  events?: ClubEvent[];
+  content?: HomeContent["events"];
+} = {}) {
+  if (events.length === 0) return null;
 
   return (
     <section

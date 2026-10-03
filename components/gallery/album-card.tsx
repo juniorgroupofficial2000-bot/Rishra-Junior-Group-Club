@@ -25,7 +25,7 @@ export function AlbumCard({
   index = 0,
 }: AlbumCardProps) {
   const cover = album.coverImage;
-  const isSvg = cover.src.endsWith(".svg");
+  const isSvg = Boolean(cover?.src.endsWith(".svg"));
   const reduce = Boolean(useReducedMotion());
 
   return (
@@ -41,46 +41,61 @@ export function AlbumCard({
         href={`/gallery/${album.slug}`}
         data-cursor-label="VIEW"
         className={cn(
-          "group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border-subtle bg-surface-raised shadow-sm",
-          "transition-[transform,box-shadow,border-color] duration-400 ease-[cubic-bezier(0.22,1,0.36,1)]",
-          "hover:-translate-y-2 hover:border-marigold-400/50 hover:shadow-lg",
+          "group relative block h-full overflow-hidden bg-ink-900",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+          featured ? "aspect-[16/10] sm:aspect-[21/10]" : "aspect-[4/3]",
         )}
       >
-        <ClipImageReveal className="relative aspect-[16/10] bg-ink-900" delay={index * 0.04}>
-          <Image
-            src={cover.src}
-            alt={cover.alt}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            priority={priority}
-            loading={priority ? "eager" : "lazy"}
-            unoptimized={isSvg}
-            className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-safe:group-hover:scale-[1.06]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-ink-950/75 via-transparent to-transparent opacity-80 transition-opacity duration-400 group-hover:opacity-95" />
-          <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+        <ClipImageReveal className="absolute inset-0" delay={index * 0.04}>
+          {cover ? (
+            <Image
+              src={cover.src}
+              alt={cover.alt}
+              fill
+              sizes={
+                featured
+                  ? "100vw"
+                  : "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              }
+              priority={priority}
+              loading={priority ? "eager" : "lazy"}
+              decoding="async"
+              quality={isSvg ? undefined : 75}
+              unoptimized={isSvg}
+              className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-safe:group-hover:scale-[1.04]"
+            />
+          ) : (
+            <div
+              className="absolute inset-0 bg-gradient-to-br from-ink-800 via-ink-900 to-ink-950"
+              aria-hidden
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-ink-950/85 via-ink-950/15 to-transparent" />
+          <div className="absolute left-4 top-4">
             <ProvenanceBadge provenance={album.provenance} />
           </div>
-          <div className="absolute inset-x-0 bottom-0 p-4 transition-transform duration-400 group-hover:-translate-y-1">
-            <div className="flex flex-wrap items-center gap-2 type-caption text-white/75">
+          <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
+            <div className="flex flex-wrap items-center gap-2 type-caption text-white/70">
               {album.year ? (
                 <span className="font-mono text-marigold-400">{album.year}</span>
               ) : null}
-              <span>{album.media.length} items</span>
+              <span>{album.mediaCount ?? album.media.length} items</span>
             </div>
-            <h2 className="mt-1.5 font-display text-lg font-semibold tracking-tight text-white sm:text-xl">
+            <h2
+              className={cn(
+                "mt-2 font-display font-semibold tracking-tight text-white",
+                featured ? "text-2xl sm:text-3xl" : "text-lg sm:text-xl",
+              )}
+            >
               {album.title}
             </h2>
+            {!featured && album.description ? (
+              <p className="mt-2 line-clamp-2 max-w-md text-sm text-white/70">
+                {album.description}
+              </p>
+            ) : null}
           </div>
         </ClipImageReveal>
-        {!featured ? (
-          <div className="flex flex-1 flex-col gap-2 p-5">
-            <p className="type-body-small leading-relaxed text-ink-500 line-clamp-2">
-              {album.description}
-            </p>
-          </div>
-        ) : null}
       </Link>
     </motion.div>
   );

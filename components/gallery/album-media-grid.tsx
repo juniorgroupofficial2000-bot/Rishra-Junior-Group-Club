@@ -1,4 +1,5 @@
 import { OptimizedMedia } from "@/components/media/optimized-media";
+import { EmptyState } from "@/components/public/empty-state";
 import type { MediaItem } from "@/content/shared/media";
 
 /**
@@ -6,6 +7,16 @@ import type { MediaItem } from "@/content/shared/media";
  * Only the first image is prioritized; the rest lazy-load to reduce LCP contention.
  */
 export function AlbumMediaGrid({ media }: { media: MediaItem[] }) {
+  if (media.length === 0) {
+    return (
+      <EmptyState
+        title="No photos in this album yet"
+        description="Media appears here after the committee publishes photographs for this album."
+        action={{ label: "All albums", href: "/gallery" }}
+      />
+    );
+  }
+
   return (
     <ul className="grid min-w-0 grid-cols-2 gap-3 md:grid-cols-3">
       {media.map((item, index) => (

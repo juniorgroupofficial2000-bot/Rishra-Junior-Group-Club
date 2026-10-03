@@ -1,14 +1,18 @@
 import { FadeIn } from "@/components/motion/fade-in";
+import { EmptyState } from "@/components/public/empty-state";
 import { SiteContainer } from "@/components/public/site-container";
 import {
-  getPublishedArchiveYears,
   saraswatiPujaContent,
+  type PujaArchiveYear,
 } from "@/content/heritage";
 import { cn } from "@/lib/cn";
 import { ProvenanceBadge } from "./provenance-badge";
 
-export function PujaPreviousYears() {
-  const years = getPublishedArchiveYears();
+export function PujaPreviousYears({
+  years = [],
+}: {
+  years?: PujaArchiveYear[];
+} = {}) {
   const { title, description } = saraswatiPujaContent.previousYears;
 
   return (
@@ -28,31 +32,39 @@ export function PujaPreviousYears() {
           <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-500">
             {description}
           </p>
-          <ul className="mt-8 divide-y divide-border-subtle border-y border-border-subtle">
-            {years.map((year) => (
-              <li
-                key={year.id}
-                className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="font-mono text-sm font-semibold tabular-nums text-alta-600">
-                    {year.year}
-                  </span>
-                  <span className="font-display text-lg font-semibold text-ink-900">
-                    {year.title}
-                  </span>
-                  <ProvenanceBadge provenance={year.provenance} />
-                </div>
-                <p
-                  className={cn(
-                    "max-w-xl text-sm text-ink-500 sm:text-right",
-                  )}
+          {years.length === 0 ? (
+            <EmptyState
+              className="mt-8"
+              title="Previous years will appear here"
+              description="Archive years are listed after the committee publishes them. Nothing is invented to fill this list."
+            />
+          ) : (
+            <ul className="mt-8 divide-y divide-border-subtle border-y border-border-subtle">
+              {years.map((year) => (
+                <li
+                  key={year.id}
+                  className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between"
                 >
-                  {year.summary}
-                </p>
-              </li>
-            ))}
-          </ul>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="font-mono text-sm font-semibold tabular-nums text-alta-600">
+                      {year.year}
+                    </span>
+                    <span className="font-display text-lg font-semibold text-ink-900">
+                      {year.title}
+                    </span>
+                    <ProvenanceBadge provenance={year.provenance} />
+                  </div>
+                  <p
+                    className={cn(
+                      "max-w-xl text-sm text-ink-500 sm:text-right",
+                    )}
+                  >
+                    {year.summary}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
         </FadeIn>
       </SiteContainer>
     </section>

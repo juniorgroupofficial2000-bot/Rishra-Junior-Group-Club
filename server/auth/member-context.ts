@@ -8,11 +8,11 @@ import { redirect } from "next/navigation";
 /**
  * Resolve the authenticated member id from the session only.
  * Never accepts memberId from request params/body (IDOR prevention).
- * Re-checks that the linked member is ACTIVE and not soft-deleted.
+ * Re-checks that the linked member is ACTIVE, not soft-deleted, and owned by the session user.
  */
 export async function requireMemberId() {
   const session = await requireMemberSession();
-  if (!session.user.memberId) {
+  if (!session.user.memberId || !session.user.id) {
     redirect("/login?error=AccessDenied");
   }
 
@@ -28,6 +28,7 @@ export async function requireMemberId() {
   const member = await prisma.member.findFirst({
     where: {
       id: session.user.memberId,
+      userId: session.user.id,
       deletedAt: null,
       status: "ACTIVE",
     },

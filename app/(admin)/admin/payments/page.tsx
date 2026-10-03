@@ -1,13 +1,24 @@
-import { AdminSectionPage } from "@/components/admin/admin-section-page";
+import { AdminEmptyRow } from "@/components/admin/admin-empty-row";
+import { AdminFilterBar } from "@/components/admin/admin-filter-bar";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminPagination } from "@/components/admin/admin-pagination";
+import { AdminStatusBanner } from "@/components/admin/admin-status-banner";
+import { PaymentRefundButton } from "@/components/admin/payment-refund-button";
 import { Badge } from "@/components/ui/badge";
-import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
-import { Permissions } from "@/server/domain/permissions";
-import { requirePermission } from "@/server/auth/session";
-import { formatAmountLabel } from "@/server/repositories/prisma/mappers";
 import {
-  listPaymentAttempts,
-  listPaymentsForReconciliation,
-} from "@/server/payments/payment-service";
+  EmptyRecords,
+  RecordCard,
+  ResponsiveRecords,
+} from "@/components/ui/record-card";
+import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
+import {
+  adminQueryString,
+  parseOptionalDate,
+  parsePage,
+} from "@/lib/admin/list-params";
+import { requirePermission } from "@/server/auth/session";
+import { Permissions, hasPermission } from "@/server/domain/permissions";
+import { searchAdminPayments } from "@/server/services/admin-list-service";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -16,136 +27,273 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+const paymentStatuses = [
+  "CREATED",
+  "PENDING",
+  "AUTHORIZED",
+  "SUCCESS",
+  "FAILED",
+  "REFUNDED",
+  "CANCELLED",
+] as const;
+
 export default async function AdminPaymentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: string }>;
+  searchParams: Promise<{
+    query?: string;
+    status?: string;
+    memberId?: string;
+    from?: string;
+    to?: string;
+    page?: string;
+    error?: string;
+  }>;
 }) {
-  await requirePermission(Permissions.PAYMENTS_READ, "/admin/payments");
+  const session = await requirePermission(
+    Permissions.PAYMENTS_READ,
+    "/admin/payments",
+  );
   const params = await searchParams;
-  const view = params.view === "attempts" ? "attempts" : "reconciliation";
+  const page = parsePage(params.page);
 
-  const [payments, attempts] = await Promise.all([
-    listPaymentsForReconciliation(),
-    listPaymentAttempts(80),
-  ]);
+  let result;
+  let loadError: string | null = null;
+  try {
+    result = await searchAdminPayments({
+      query: params.query,
+      status: params.status || undefined,
+      memberId: params.memberId || undefined,
+      from: parseOptionalDate(params.from),
+      to: parseOptionalDate(params.to),
+      page,
+      pageSize: 20,
+    });
+  } catch (error) {
+    loadError =
+      error instanceof Error ? error.message : "Could not load payments.";
+    result = { items: [], total: 0, page: 1, pageSize: 20 };
+  }
+
+  const filterParams = {
+    query: params.query,
+    status: params.status,
+    memberId: params.memberId,
+    from: params.from,
+    to: params.to,
+  };
+  const exportHref = `/api/admin/export/payments?${adminQueryString(filterParams)}`;
+  const canWrite = hasPermission(session.user.role, Permissions.PAYMENTS_WRITE);
 
   return (
-    <AdminSectionPage
-      title="Payments"
-      description="Provider-confirmed payment states only. Success requires verified webhook or confirmed provider response."
-    >
-      <div className="flex flex-wrap gap-2">
-        <Link
-          href="/admin/payments"
-          className="rounded-md border border-border-default px-3 py-2 text-sm hover:bg-ink-50"
-        >
-          Reconciliation
-        </Link>
-        <Link
-          href="/admin/payments?view=attempts"
-          className="rounded-md border border-border-default px-3 py-2 text-sm hover:bg-ink-50"
-        >
-          Payment attempts
-        </Link>
-      </div>
+    <>
+      <AdminPageHeader
+        title="Payments"
+        description="Server-paginated payment ledger. Status comes from verified webhooks — never from the browser."
+      />
+      <div className="space-y-6 p-4 sm:p-6 lg:p-8">
+        {params.error || loadError ? (
+          <AdminStatusBanner tone="error">
+            {params.error || loadError}
+          </AdminStatusBanner>
+        ) : null}
+        {!canWrite ? (
+          <AdminStatusBanner>
+            Read-only access. Financial mutations require PAYMENTS_WRITE.
+          </AdminStatusBanner>
+        ) : null}
 
-      {view === "attempts" ? (
-        <Table>
-          <THead>
-            <TR>
-              <TH>When</TH>
-              <TH>Member</TH>
-              <TH>Attempt status</TH>
-              <TH>Payment status</TH>
-              <TH>Failure</TH>
-            </TR>
-          </THead>
-          <TBody>
-            {attempts.length === 0 ? (
-              <TR>
-                <TD colSpan={5} className="text-ink-500">
-                  No payment attempts yet.
-                </TD>
-              </TR>
+        <AdminFilterBar
+          fields={[
+            {
+              type: "text",
+              name: "query",
+              label: "Search",
+              defaultValue: params.query,
+              placeholder: "Member, membership #, provider ref…",
+            },
+            {
+              type: "select",
+              name: "status",
+              label: "Status",
+              defaultValue: params.status,
+              options: [
+                { value: "", label: "All statuses" },
+                ...paymentStatuses.map((value) => ({ value, label: value })),
+              ],
+            },
+            {
+              type: "text",
+              name: "memberId",
+              label: "Member ID",
+              defaultValue: params.memberId,
+              placeholder: "Exact member cuid",
+            },
+            {
+              type: "date",
+              name: "from",
+              label: "From",
+              defaultValue: params.from,
+            },
+            {
+              type: "date",
+              name: "to",
+              label: "To",
+              defaultValue: params.to,
+            },
+          ]}
+          actions={
+            <a
+              href={exportHref}
+              className="inline-flex h-11 items-center rounded-md border border-border-default px-4 text-sm font-medium hover:bg-ink-50"
+            >
+              Export CSV
+            </a>
+          }
+        />
+
+        <ResponsiveRecords
+          mobile={
+            result.items.length === 0 ? (
+              <EmptyRecords message="No payments match these filters." />
             ) : (
-              attempts.map((attempt) => (
-                <TR key={attempt.id}>
-                  <TD className="font-mono text-xs">
-                    {attempt.attemptedAt.toISOString().slice(0, 19).replace("T", " ")}
-                  </TD>
-                  <TD>
-                    <p className="font-medium">
-                      {attempt.payment.member.displayName}
-                    </p>
-                    <p className="font-mono text-xs text-ink-500">
-                      {attempt.payment.member.membershipNumber}
-                    </p>
-                  </TD>
-                  <TD>
-                    <Badge variant="outline">{attempt.status}</Badge>
-                  </TD>
-                  <TD>{attempt.payment.status}</TD>
-                  <TD className="text-xs text-ink-600">
-                    {attempt.failureCode ?? "—"}
-                    {attempt.failureMessage
-                      ? ` · ${attempt.failureMessage}`
-                      : ""}
-                  </TD>
-                </TR>
-              ))
-            )}
-          </TBody>
-        </Table>
-      ) : (
-        <Table>
-          <THead>
-            <TR>
-              <TH>Member</TH>
-              <TH>Amount</TH>
-              <TH>Status</TH>
-              <TH>Mandate</TH>
-              <TH>Provider ref</TH>
-              <TH>Reconcile</TH>
-            </TR>
-          </THead>
-          <TBody>
-            {payments.length === 0 ? (
-              <TR>
-                <TD colSpan={6} className="text-ink-500">
-                  No payments to reconcile.
-                </TD>
-              </TR>
-            ) : (
-              payments.map((payment) => (
-                <TR key={payment.id}>
-                  <TD>
-                    <p className="font-medium">{payment.memberName}</p>
-                    <p className="font-mono text-xs text-ink-500">
+              result.items.map((payment) => (
+                <RecordCard
+                  key={payment.id}
+                  title={payment.memberName}
+                  subtitle={
+                    <span className="font-mono">
                       {payment.membershipNumber}
-                    </p>
-                  </TD>
-                  <TD>{formatAmountLabel(payment.amountPaise)}</TD>
-                  <TD>
-                    <Badge variant="outline">{payment.status}</Badge>
-                  </TD>
-                  <TD>{payment.mandateStatus ?? "—"}</TD>
-                  <TD className="font-mono text-xs">
-                    {payment.providerPaymentRef ?? "—"}
-                  </TD>
-                  <TD>
-                    {payment.needsReconciliation ? (
-                      <Badge variant="warning">Needs review</Badge>
-                    ) : (
-                      <Badge variant="success">OK</Badge>
-                    )}
-                  </TD>
-                </TR>
+                    </span>
+                  }
+                  href={`/admin/members/${payment.memberId}`}
+                  badge={<Badge variant="outline">{payment.status}</Badge>}
+                  fields={[
+                    { label: "Amount", value: payment.amountLabel },
+                    {
+                      label: "Paid",
+                      value: (payment.paidAt ?? payment.createdAt).slice(
+                        0,
+                        10,
+                      ),
+                    },
+                    {
+                      label: "Receipt",
+                      value: payment.receiptNumber ?? "—",
+                    },
+                    {
+                      label: "Invoice",
+                      value: payment.invoiceNumber ?? "No invoice",
+                    },
+                    {
+                      label: "Provider ref",
+                      value: (
+                        <span className="font-mono text-xs">
+                          {payment.providerPaymentRef ?? "—"}
+                        </span>
+                      ),
+                    },
+                    ...(payment.isSample
+                      ? [{ label: "Sample", value: "Yes" }]
+                      : []),
+                  ]}
+                  actions={
+                    canWrite && payment.status === "SUCCESS" ? (
+                      <PaymentRefundButton
+                        paymentId={payment.id}
+                        memberName={payment.memberName}
+                        amountLabel={payment.amountLabel}
+                      />
+                    ) : undefined
+                  }
+                />
               ))
-            )}
-          </TBody>
-        </Table>
-      )}
-    </AdminSectionPage>
+            )
+          }
+          desktop={
+            <Table>
+              <THead>
+                <TR>
+                  <TH>Member</TH>
+                  <TH>Amount</TH>
+                  <TH>Status</TH>
+                  <TH>Paid</TH>
+                  <TH>Receipt / Invoice</TH>
+                  <TH>Provider ref</TH>
+                  {canWrite ? <TH>Actions</TH> : null}
+                </TR>
+              </THead>
+              <TBody>
+                {result.items.length === 0 ? (
+                  <AdminEmptyRow
+                    colSpan={canWrite ? 7 : 6}
+                    message="No payments match these filters."
+                  />
+                ) : (
+                  result.items.map((payment) => (
+                    <TR key={payment.id}>
+                      <TD>
+                        <Link
+                          href={`/admin/members/${payment.memberId}`}
+                          className="font-medium underline-offset-4 hover:underline"
+                        >
+                          {payment.memberName}
+                        </Link>
+                        <p className="font-mono text-xs text-ink-500">
+                          {payment.membershipNumber}
+                        </p>
+                      </TD>
+                      <TD>{payment.amountLabel}</TD>
+                      <TD>
+                        <Badge variant="outline">{payment.status}</Badge>
+                        {payment.isSample ? (
+                          <span className="ml-2 text-xs text-ink-400">
+                            SAMPLE
+                          </span>
+                        ) : null}
+                      </TD>
+                      <TD className="text-xs text-ink-600">
+                        {(payment.paidAt ?? payment.createdAt).slice(0, 10)}
+                      </TD>
+                      <TD className="text-xs">
+                        {payment.receiptNumber ?? "—"}
+                        <br />
+                        <span className="text-ink-500">
+                          {payment.invoiceNumber ?? "No invoice"}
+                        </span>
+                      </TD>
+                      <TD className="font-mono text-xs">
+                        {payment.providerPaymentRef ?? "—"}
+                      </TD>
+                      {canWrite ? (
+                        <TD>
+                          {payment.status === "SUCCESS" ? (
+                            <PaymentRefundButton
+                              paymentId={payment.id}
+                              memberName={payment.memberName}
+                              amountLabel={payment.amountLabel}
+                            />
+                          ) : (
+                            <span className="text-xs text-ink-400">—</span>
+                          )}
+                        </TD>
+                      ) : null}
+                    </TR>
+                  ))
+                )}
+              </TBody>
+            </Table>
+          }
+        />
+
+        <AdminPagination
+          basePath="/admin/payments"
+          params={filterParams}
+          page={result.page}
+          pageSize={result.pageSize}
+          total={result.total}
+        />
+      </div>
+    </>
   );
 }

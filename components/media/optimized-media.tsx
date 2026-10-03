@@ -42,6 +42,7 @@ export function OptimizedMedia({
           priority={priority}
           loading={priority ? "eager" : "lazy"}
           decoding="async"
+          quality={isSvg ? undefined : 75}
           unoptimized={isSvg}
           className={cn("object-cover", imgClassName)}
         />

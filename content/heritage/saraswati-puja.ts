@@ -1,4 +1,8 @@
 import { siteConfig } from "../site";
+import {
+  includeSampleContent,
+  isSampleProvenance,
+} from "@/content/include-sample";
 import type { HeritageMedia, PujaArchiveYear, PujaSectionBlock } from "./types";
 
 const sampleCover = (
@@ -15,8 +19,9 @@ const sampleCover = (
 });
 
 /**
- * Saraswati Puja flagship page content — CMS-ready collections.
- * SAMPLE years/blocks are labelled and must not be treated as real archive records.
+ * Saraswati Puja flagship page content.
+ * SAMPLE years exist for local demos only (CONTENT_INCLUDE_SAMPLE=true).
+ * Do not invent ceremonial details or archive years.
  */
 
 export const saraswatiPujaContent = {
@@ -28,7 +33,7 @@ export const saraswatiPujaContent = {
     image: {
       id: "puja-hero",
       src: "/images/heritage/puja-hero.svg",
-      alt: "Placeholder hero photograph for Saraswati Puja",
+      alt: "Saraswati Puja at Rishra Junior Group Club",
       width: 2400,
       height: 1400,
       provenance: "placeholder" as const,
@@ -43,12 +48,12 @@ export const saraswatiPujaContent = {
     title: "History of the celebration",
     body: [
       "The club has organized Saraswati Puja since 1 February 2000.",
-      "[PLACEHOLDER: Verified narrative on how the celebration began and how it has been sustained in Morepukur, Natun Gram.]",
+      "Further historical detail will be published when verified by the committee.",
     ],
     image: {
       id: "puja-history",
       src: "/images/heritage/puja-history.svg",
-      alt: "Placeholder image for Saraswati Puja history",
+      alt: "Saraswati Puja history",
       width: 1600,
       height: 1100,
       provenance: "placeholder" as const,
@@ -59,74 +64,74 @@ export const saraswatiPujaContent = {
     id: "preparation",
     title: "Preparation",
     body: [
-      "[SAMPLE] In the days before the puja, members prepare the pandal, decorations, and community arrangements. This SAMPLE copy shows how the section will read once verified details are provided.",
-      "[PLACEHOLDER: Confirmed preparation traditions, responsibilities, and volunteer roles.]",
+      "Ahead of the celebration, members prepare the pandal, decorations, and community arrangements.",
+      "Detailed preparation notes will be published when confirmed by the committee.",
     ],
     image: {
       id: "puja-prep",
       src: "/images/heritage/puja-prep.svg",
-      alt: "SAMPLE placeholder for puja preparation",
+      alt: "Preparing for Saraswati Puja",
       width: 1400,
       height: 1000,
-      provenance: "sample" as const,
+      provenance: "placeholder" as const,
     },
-    provenance: "sample" as const,
+    provenance: "verified" as const,
   } satisfies PujaSectionBlock,
   pujaDay: {
     id: "puja",
-    title: "Puja",
+    title: "Puja day",
     body: [
-      "[SAMPLE] On the day of worship, the community gathers for rituals honouring Goddess Saraswati. Replace this SAMPLE description with verified ceremonial details from the club.",
-      "[PLACEHOLDER: Timing, ritual sequence, and hospitality notes when confirmed.]",
+      "On the day of worship, the community gathers for rituals honouring Goddess Saraswati.",
+      "Timing and programme details will be published when the committee confirms them.",
     ],
     image: {
       id: "puja-ritual",
       src: "/images/heritage/puja-ritual.svg",
-      alt: "SAMPLE placeholder for puja day",
+      alt: "Saraswati Puja day",
       width: 1400,
       height: 1000,
-      provenance: "sample" as const,
+      provenance: "placeholder" as const,
     },
-    provenance: "sample" as const,
+    provenance: "verified" as const,
   } satisfies PujaSectionBlock,
   cultural: {
     id: "cultural",
     title: "Cultural activities",
     body: [
-      "[SAMPLE] Cultural programmes — music, recitation, and children’s performances — often accompany the celebration. This is SAMPLE framing only.",
-      "[PLACEHOLDER: List verified cultural programmes once documented.]",
+      "Cultural programmes often accompany the celebration — music, recitation, and performances by children and neighbours.",
+      "A confirmed programme list will appear here when published by the committee.",
     ],
     image: {
       id: "puja-culture",
       src: "/images/heritage/puja-culture.svg",
-      alt: "SAMPLE placeholder for cultural activities",
+      alt: "Cultural activities during Saraswati Puja",
       width: 1400,
       height: 1000,
-      provenance: "sample" as const,
+      provenance: "placeholder" as const,
     },
-    provenance: "sample" as const,
+    provenance: "verified" as const,
   } satisfies PujaSectionBlock,
   memories: {
     id: "memories",
     title: "Community memories",
     body: [
       "Saraswati Puja is where neighbours meet, children take part, and the club renews its shared identity each year.",
-      "[PLACEHOLDER: Short member recollections — only with permission and verification.]",
+      "Member recollections will be published here only with permission and verification.",
     ],
     image: {
       id: "puja-memories",
       src: "/images/heritage/puja-memories.svg",
-      alt: "Placeholder image for community memories",
+      alt: "Community memories from Saraswati Puja",
       width: 1400,
       height: 1000,
       provenance: "placeholder" as const,
     },
-    provenance: "placeholder" as const,
+    provenance: "verified" as const,
   } satisfies PujaSectionBlock,
   photoGalleries: {
     title: "Photo galleries",
     description:
-      "Curated frames from the puja archive. SAMPLE images are labelled and should be replaced with verified photographs.",
+      "Photographs from the puja archive appear here when published.",
     images: [
       {
         id: "pg1",
@@ -165,7 +170,7 @@ export const saraswatiPujaContent = {
   archive: {
     title: "Annual celebration archive",
     description:
-      "Year-based records of Saraswati Puja. SAMPLE years demonstrate archive cards for the future CMS — they are not verified celebration years beyond the known start in 2000.",
+      "Year-based records of Saraswati Puja. Additional years are added as the committee verifies them.",
     years: [
       {
         id: "archive-2000",
@@ -176,15 +181,13 @@ export const saraswatiPujaContent = {
         coverImage: {
           id: "arch-2000",
           src: "/images/heritage/timeline-2000.svg",
-          alt: "Placeholder cover for Saraswati Puja 2000",
+          alt: "Saraswati Puja 2000",
           width: 1600,
           height: 1000,
           provenance: "placeholder",
         },
-        highlights: [
-          "Organizing since 1 February 2000",
-          "[PLACEHOLDER: Verified highlight for 2000]",
-        ],
+        highlights: ["Organizing since 1 February 2000"],
+        href: "/saraswati-puja/2000",
         published: true,
         provenance: "verified",
       },
@@ -199,10 +202,7 @@ export const saraswatiPujaContent = {
           "/images/heritage/archive-sample-a.svg",
           "SAMPLE archive cover 2012",
         ),
-        highlights: [
-          "[SAMPLE] Highlight one",
-          "[SAMPLE] Highlight two",
-        ],
+        highlights: ["[SAMPLE] Highlight one", "[SAMPLE] Highlight two"],
         published: true,
         provenance: "sample",
       },
@@ -239,23 +239,30 @@ export const saraswatiPujaContent = {
   },
   previousYears: {
     title: "Previous years",
-    description:
-      "A compact index of archived celebrations. SAMPLE years are labelled.",
+    description: "A compact index of archived celebrations.",
   },
   upcoming: {
     title: "Upcoming celebration",
     body: [
-      "[SAMPLE] Next Saraswati Puja details will appear here once the committee publishes dates and programme notes.",
-      "[PLACEHOLDER: Confirmed date, venue notes, and participation information.]",
+      "Dates and programme notes for the next Saraswati Puja will be published here when the committee confirms them.",
     ],
-    provenance: "sample" as const,
+    provenance: "verified" as const,
     cta: { label: "Contact the club", href: "/contact" },
     venueNote: `${siteConfig.address.line1}, ${siteConfig.address.line2}`,
   },
 } as const;
 
 export function getPublishedArchiveYears(): PujaArchiveYear[] {
+  const allowSample = includeSampleContent();
   return [...saraswatiPujaContent.archive.years]
     .filter((year) => year.published)
+    .filter((year) => allowSample || !isSampleProvenance(year.provenance))
     .sort((a, b) => b.year - a.year);
+}
+
+export function getPublishedPujaGalleryImages(): HeritageMedia[] {
+  const allowSample = includeSampleContent();
+  return saraswatiPujaContent.photoGalleries.images.filter(
+    (image) => allowSample || !isSampleProvenance(image.provenance),
+  );
 }

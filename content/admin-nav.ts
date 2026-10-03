@@ -13,8 +13,18 @@ export const adminNav: AdminNavItem[] = [
     permission: Permissions.DASHBOARD_VIEW,
   },
   {
+    href: "/admin/search",
+    label: "Search",
+    permission: Permissions.DASHBOARD_VIEW,
+  },
+  {
     href: "/admin/members",
     label: "Members",
+    permission: Permissions.MEMBERS_READ,
+  },
+  {
+    href: "/admin/memberships",
+    label: "Memberships",
     permission: Permissions.MEMBERS_READ,
   },
   {
@@ -33,8 +43,23 @@ export const adminNav: AdminNavItem[] = [
     permission: Permissions.MANDATES_READ,
   },
   {
+    href: "/admin/content",
+    label: "Content",
+    permission: Permissions.CONTENT_READ,
+  },
+  {
+    href: "/admin/media",
+    label: "Media",
+    permission: Permissions.MEDIA_READ,
+  },
+  {
     href: "/admin/events",
     label: "Events",
+    permission: Permissions.EVENTS_READ,
+  },
+  {
+    href: "/admin/history",
+    label: "History",
     permission: Permissions.EVENTS_READ,
   },
   {
@@ -49,7 +74,7 @@ export const adminNav: AdminNavItem[] = [
   },
   {
     href: "/admin/puja",
-    label: "Puja",
+    label: "Puja archive",
     permission: Permissions.PUJA_READ,
   },
   {
@@ -76,5 +101,10 @@ export const adminNav: AdminNavItem[] = [
     href: "/admin/settings",
     label: "Settings",
     permission: Permissions.SETTINGS_READ,
+  },
+  {
+    href: "/admin/developer",
+    label: "Developer",
+    permission: Permissions.SETTINGS_WRITE,
   },
 ];

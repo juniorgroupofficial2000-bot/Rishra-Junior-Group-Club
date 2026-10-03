@@ -3,9 +3,11 @@
 import { primaryNav } from "@/content/navigation";
 import { siteConfig } from "@/content/site";
 import { cn } from "@/lib/cn";
+import { useIsMobileViewport } from "@/lib/hooks/use-media-query";
 import { navItemVariants, premiumEase, staggerContainerVariants } from "@/lib/motion";
+import type { PublicChromeContext } from "@/server/services/public-chrome-service";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useMotionValueEvent } from "motion/react";
-import { Menu, X } from "lucide-react";
+import { Bell, Menu, Search, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
@@ -16,7 +18,19 @@ function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function SiteHeader() {
+function initials(name: string | null | undefined) {
+  if (!name) return "?";
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
+  return `${parts[0]![0] ?? ""}${parts[1]![0] ?? ""}`.toUpperCase();
+}
+
+export function SiteHeader({
+  chrome,
+}: {
+  chrome?: PublicChromeContext;
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [menuPathname, setMenuPathname] = useState(pathname);
@@ -25,8 +39,15 @@ export function SiteHeader() {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const reduceMotion = useReducedMotion();
+  const isMobile = useIsMobileViewport();
   const isHome = pathname === "/";
   const { scrollY } = useScroll();
+  const chromeMotion = !reduceMotion && !isMobile;
+  const signedIn = Boolean(chrome?.auth.signedIn);
+  const portalHref = chrome?.auth.portalHref;
+  const portalLabel = chrome?.auth.portalLabel ?? "My portal";
+  const displayName = chrome?.auth.displayName;
+  const newAnnouncement = chrome?.newAnnouncement;
 
   if (pathname !== menuPathname) {
     setMenuPathname(pathname);
@@ -65,14 +86,14 @@ export function SiteHeader() {
         transparent ? "text-white" : "text-ink-900",
       )}
       animate={
-        reduceMotion
-          ? undefined
-          : {
+        chromeMotion
+          ? {
               paddingTop: scrolled ? 10 : 0,
               paddingBottom: scrolled ? 10 : 0,
               paddingLeft: scrolled ? 12 : 0,
               paddingRight: scrolled ? 12 : 0,
             }
+          : undefined
       }
       transition={{ duration: 0.45, ease: premiumEase }}
     >
@@ -80,12 +101,12 @@ export function SiteHeader() {
         className={cn(
           "mx-auto transition-[background-color,box-shadow,border-radius,border-color,backdrop-filter,max-width] duration-500",
           scrolled
-            ? "max-w-[68rem] rounded-2xl border border-border-subtle bg-surface-raised/95 shadow-lg backdrop-blur-xl supports-[backdrop-filter]:bg-surface-raised/90"
+            ? "max-w-[68rem] rounded-xl border border-border-subtle bg-surface-raised/97 shadow-md"
             : transparent
               ? "border-b border-transparent bg-transparent"
-              : "border-b border-border-subtle bg-surface-raised/92 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-surface-raised/88",
+              : "border-b border-border-subtle bg-surface-raised/97",
         )}
-        layout={!reduceMotion}
+        layout={chromeMotion}
       >
         <SiteContainer
           className={cn(
@@ -103,14 +124,14 @@ export function SiteHeader() {
                 transparent ? "text-white" : "text-ink-900",
                 scrolled ? "text-sm sm:text-base" : "text-base sm:text-lg",
               )}
-              layout={!reduceMotion}
+              layout={chromeMotion}
             >
               {siteConfig.name}
             </motion.span>
             <span
               className={cn(
                 "block truncate tracking-wide transition-opacity duration-300",
-                scrolled ? "text-[0.65rem] opacity-80" : "text-xs sm:text-sm",
+                scrolled ? "text-xs opacity-80" : "text-xs sm:text-sm",
                 transparent ? "text-white/70" : "text-ink-500",
               )}
             >
@@ -155,34 +176,106 @@ export function SiteHeader() {
           </nav>
 
           <div className="flex items-center gap-2">
+            {newAnnouncement ? (
+              <Link
+                href={`/announcements/${newAnnouncement.slug}`}
+                className={cn(
+                  "hidden min-h-11 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold uppercase tracking-wide lg:inline-flex",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marigold-400 focus-visible:ring-offset-2",
+                  transparent
+                    ? "bg-white/15 text-white hover:bg-white/20"
+                    : "bg-alta-50 text-alta-700 hover:bg-alta-100",
+                )}
+              >
+                <Bell className="h-3.5 w-3.5" aria-hidden />
+                New Announcement
+              </Link>
+            ) : null}
+
             <Link
-              href="/login"
+              href="/search"
               className={cn(
-                "hidden min-h-11 items-center rounded-md px-3 type-navigation sm:inline-flex",
+                "inline-flex h-11 w-11 items-center justify-center rounded-md",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marigold-400 focus-visible:ring-offset-2",
                 transparent
                   ? "text-white/90 hover:bg-white/10"
                   : "text-ink-700 hover:bg-ink-50",
               )}
+              aria-label="Search the site"
             >
-              Member login
+              <Search className="h-5 w-5" aria-hidden />
             </Link>
-            <Link
-              href="/membership"
-              className={cn(
-                "group hidden min-h-11 items-center gap-1.5 rounded-md bg-alta-500 px-3.5 type-button text-white shadow-xs sm:inline-flex",
-                "transition-[transform,background-color] duration-300 hover:-translate-y-0.5 hover:bg-alta-600",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marigold-400 focus-visible:ring-offset-2",
-              )}
-            >
-              Membership
-              <span
-                aria-hidden
-                className="inline-block transition-transform duration-300 group-hover:translate-x-0.5"
-              >
-                →
-              </span>
-            </Link>
+
+            {signedIn && portalHref ? (
+              <>
+                <Link
+                  href={portalHref}
+                  className={cn(
+                    "hidden min-h-11 items-center gap-2 rounded-md px-2 sm:inline-flex",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marigold-400 focus-visible:ring-offset-2",
+                    transparent
+                      ? "text-white/90 hover:bg-white/10"
+                      : "text-ink-700 hover:bg-ink-50",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "inline-flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold",
+                      transparent
+                        ? "bg-white/20 text-white"
+                        : "bg-ink-100 text-ink-800",
+                    )}
+                    aria-hidden
+                  >
+                    {initials(displayName)}
+                  </span>
+                  <span className="max-w-[8rem] truncate text-sm font-medium">
+                    {displayName ?? portalLabel}
+                  </span>
+                </Link>
+                <Link
+                  href={portalHref}
+                  className={cn(
+                    "group hidden min-h-11 items-center gap-1.5 rounded-md bg-alta-500 px-3.5 type-button text-white shadow-xs sm:inline-flex",
+                    "transition-[transform,background-color] duration-300 hover:-translate-y-0.5 hover:bg-alta-600",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marigold-400 focus-visible:ring-offset-2",
+                  )}
+                >
+                  {portalLabel}
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className={cn(
+                    "hidden min-h-11 items-center rounded-md px-3 type-navigation sm:inline-flex",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marigold-400 focus-visible:ring-offset-2",
+                    transparent
+                      ? "text-white/90 hover:bg-white/10"
+                      : "text-ink-700 hover:bg-ink-50",
+                  )}
+                >
+                  Member login
+                </Link>
+                <Link
+                  href="/membership"
+                  className={cn(
+                    "group hidden min-h-11 items-center gap-1.5 rounded-md bg-alta-500 px-3.5 type-button text-white shadow-xs sm:inline-flex",
+                    "transition-[transform,background-color] duration-300 hover:-translate-y-0.5 hover:bg-alta-600",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marigold-400 focus-visible:ring-offset-2",
+                  )}
+                >
+                  Membership
+                  <span
+                    aria-hidden
+                    className="inline-block transition-transform duration-300 group-hover:translate-x-0.5"
+                  >
+                    →
+                  </span>
+                </Link>
+              </>
+            )}
 
             <button
               ref={menuButtonRef}
@@ -231,6 +324,16 @@ export function SiteHeader() {
                   <X className="h-5 w-5" aria-hidden />
                 </button>
               </div>
+              {newAnnouncement ? (
+                <Link
+                  href={`/announcements/${newAnnouncement.slug}`}
+                  className="mb-3 flex min-h-12 items-center gap-2 rounded-md bg-alta-50 px-3 text-sm font-semibold text-alta-700"
+                  onClick={() => setOpen(false)}
+                >
+                  <Bell className="h-4 w-4" aria-hidden />
+                  New Announcement — {newAnnouncement.title}
+                </Link>
+              ) : null}
               <motion.nav
                 aria-label="Mobile primary"
                 variants={reduceMotion ? undefined : staggerContainerVariants}
@@ -271,22 +374,44 @@ export function SiteHeader() {
                       </motion.li>
                     );
                   })}
+                  <motion.li variants={reduceMotion ? undefined : navItemVariants}>
+                    <Link
+                      href="/search"
+                      className="flex min-h-12 items-center rounded-md px-3 py-2 text-base font-medium text-ink-700 hover:bg-ink-50"
+                      onClick={() => setOpen(false)}
+                    >
+                      Search
+                    </Link>
+                  </motion.li>
                 </ul>
               </motion.nav>
-              <Link
-                href="/login"
-                className="mb-2 flex min-h-12 items-center rounded-md px-3 text-base font-medium text-ink-700 hover:bg-ink-50"
-                onClick={() => setOpen(false)}
-              >
-                Member login
-              </Link>
-              <Link
-                href="/membership"
-                className="flex min-h-12 items-center justify-center rounded-md bg-alta-500 px-4 text-base font-medium text-white hover:bg-alta-600"
-                onClick={() => setOpen(false)}
-              >
-                Membership
-              </Link>
+              {signedIn && portalHref ? (
+                <Link
+                  href={portalHref}
+                  className="flex min-h-12 items-center justify-center rounded-md bg-alta-500 px-4 text-base font-medium text-white hover:bg-alta-600"
+                  onClick={() => setOpen(false)}
+                >
+                  {portalLabel}
+                  {displayName ? ` · ${displayName}` : ""}
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="mb-2 flex min-h-12 items-center rounded-md px-3 text-base font-medium text-ink-700 hover:bg-ink-50"
+                    onClick={() => setOpen(false)}
+                  >
+                    Member login
+                  </Link>
+                  <Link
+                    href="/membership"
+                    className="flex min-h-12 items-center justify-center rounded-md bg-alta-500 px-4 text-base font-medium text-white hover:bg-alta-600"
+                    onClick={() => setOpen(false)}
+                  >
+                    Membership
+                  </Link>
+                </>
+              )}
             </SiteContainer>
           </motion.div>
         ) : null}

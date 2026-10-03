@@ -3,7 +3,14 @@
  * Sensitive fields stay server-side; pages receive DTOs only.
  */
 
-export type MemberStatus = "active" | "pending" | "inactive" | "suspended";
+export type MemberStatus =
+  | "application"
+  | "pending"
+  | "approved"
+  | "active"
+  | "inactive"
+  | "suspended"
+  | "archived";
 
 export type MandateStatus =
   | "created"
@@ -71,6 +78,9 @@ export type MemberEventItem = {
   startsAt: string;
   venueLabel: string;
   href: string;
+  registrationRequired: boolean;
+  capacity: number | null;
+  registeredCount: number;
 };
 
 export type MemberAnnouncementItem = {

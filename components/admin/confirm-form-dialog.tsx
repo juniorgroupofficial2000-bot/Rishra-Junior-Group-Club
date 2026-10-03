@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
+import { useToast } from "@/components/ui/toast";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { useState, useTransition } from "react";
 
@@ -16,6 +17,7 @@ export function ConfirmFormDialog({
   triggerLabel,
   action,
   tone = "danger",
+  triggerVariant,
 }: {
   title: string;
   description: string;
@@ -23,15 +25,19 @@ export function ConfirmFormDialog({
   triggerLabel: string;
   action: () => Promise<void>;
   tone?: "danger" | "default";
+  triggerVariant?: "secondary" | "outline" | "ghost" | "primary" | "accent";
 }) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+  const { toast } = useToast();
 
   return (
     <>
       <Button
         type="button"
-        variant={tone === "danger" ? "secondary" : "outline"}
+        variant={
+          triggerVariant ?? (tone === "danger" ? "secondary" : "outline")
+        }
         onClick={() => setOpen(true)}
       >
         {triggerLabel}
@@ -62,8 +68,14 @@ export function ConfirmFormDialog({
                     setOpen(false);
                   } catch (error) {
                     if (isRedirectError(error)) throw error;
-                    setOpen(false);
-                    throw error;
+                    toast({
+                      title: "Unable to complete action",
+                      description:
+                        error instanceof Error
+                          ? error.message
+                          : "Please try again.",
+                      variant: "danger",
+                    });
                   }
                 });
               }}

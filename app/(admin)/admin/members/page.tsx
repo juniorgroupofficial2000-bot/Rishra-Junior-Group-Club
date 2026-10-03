@@ -1,10 +1,17 @@
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminPagination } from "@/components/admin/admin-pagination";
+import { AdminStatusBanner } from "@/components/admin/admin-status-banner";
 import { MemberFilters } from "@/components/admin/member-filters";
-import { Badge } from "@/components/ui/badge";
-import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
-import { Permissions } from "@/server/domain/permissions";
+import { MembersOpsTable } from "@/components/admin/member-bulk-toolbar";
+import { parsePage } from "@/lib/admin/list-params";
+import { memberStatusLabel } from "@/server/domain/member-lifecycle";
+import {
+  hasPermission,
+  Permissions,
+} from "@/server/domain/permissions";
 import { requirePermission } from "@/server/auth/session";
 import { searchMembers } from "@/server/services/member-admin-service";
+import type { MemberStatusInput } from "@/server/validation/member";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -19,126 +26,140 @@ export default async function AdminMembersPage({
   searchParams: Promise<{
     query?: string;
     status?: string;
+    planId?: string;
+    committeeRole?: string;
+    joinedFrom?: string;
+    joinedTo?: string;
+    sortBy?: string;
+    sortDir?: string;
     page?: string;
     deleted?: string;
+    error?: string;
   }>;
 }) {
-  await requirePermission(Permissions.MEMBERS_READ, "/admin/members");
+  const session = await requirePermission(
+    Permissions.MEMBERS_READ,
+    "/admin/members",
+  );
   const params = await searchParams;
-  const page = Number(params.page ?? "1") || 1;
+  const page = parsePage(params.page);
+  const canExport = hasPermission(session.user.role, Permissions.MEMBERS_EXPORT);
 
-  const result = await searchMembers({
-    query: params.query,
-    status: params.status || undefined,
-    page,
-    pageSize: 20,
-  });
+  let result;
+  let loadError: string | null = null;
+  try {
+    result = await searchMembers({
+      query: params.query,
+      status: params.status || undefined,
+      planId: params.planId || undefined,
+      committeeRole: params.committeeRole || undefined,
+      joinedFrom: params.joinedFrom || undefined,
+      joinedTo: params.joinedTo || undefined,
+      sortBy: params.sortBy || undefined,
+      sortDir: params.sortDir || undefined,
+      page,
+      pageSize: 20,
+    });
+  } catch (error) {
+    loadError =
+      error instanceof Error ? error.message : "Could not load members.";
+    result = { items: [], total: 0, page: 1, pageSize: 20 };
+  }
 
-  const totalPages = Math.max(1, Math.ceil(result.total / result.pageSize));
+  const exportParams = new URLSearchParams();
+  if (params.query) exportParams.set("query", params.query);
+  if (params.status) exportParams.set("status", params.status);
+  if (params.planId) exportParams.set("planId", params.planId);
+  if (params.committeeRole)
+    exportParams.set("committeeRole", params.committeeRole);
+  if (params.joinedFrom) exportParams.set("joinedFrom", params.joinedFrom);
+  if (params.joinedTo) exportParams.set("joinedTo", params.joinedTo);
+  if (params.sortBy) exportParams.set("sortBy", params.sortBy);
+  if (params.sortDir) exportParams.set("sortDir", params.sortDir);
+  const exportHref = `/api/admin/export/members${
+    exportParams.size > 0 ? `?${exportParams.toString()}` : ""
+  }`;
 
   return (
     <>
       <AdminPageHeader
         title="Members"
-        description="Search, filter, and manage membership records."
+        description="Search, filter, approve, and manage the membership lifecycle."
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/admin/members?status=PENDING"
+              className="inline-flex min-h-11 items-center rounded-md border border-border-default px-3 text-sm font-medium hover:bg-ink-50"
+            >
+              Pending review
+            </Link>
+            {canExport ? (
+              <a
+                href={exportHref}
+                className="inline-flex min-h-11 items-center rounded-md bg-ink-900 px-3 text-sm font-medium text-white hover:bg-ink-800"
+              >
+                Export CSV
+              </a>
+            ) : null}
+          </div>
+        }
       />
       <div className="space-y-6 p-4 sm:p-6 lg:p-8">
         {params.deleted ? (
-          <p
-            role="status"
-            className="rounded-md border border-border-subtle bg-surface-muted px-4 py-3 text-sm text-ink-700"
-          >
-            Member was soft-deleted and recorded in the audit log.
-          </p>
+          <AdminStatusBanner tone="success">
+            Member was archived. Financial history is retained.
+          </AdminStatusBanner>
+        ) : null}
+        {params.error || loadError ? (
+          <AdminStatusBanner tone="error">
+            {params.error || loadError}
+          </AdminStatusBanner>
         ) : null}
 
-        <MemberFilters query={params.query} status={params.status} />
+        <MemberFilters
+          query={params.query}
+          status={params.status}
+          planId={params.planId}
+          committeeRole={params.committeeRole}
+          joinedFrom={params.joinedFrom}
+          joinedTo={params.joinedTo}
+          sortBy={params.sortBy}
+          sortDir={params.sortDir}
+        />
 
-        <p className="text-sm text-ink-500">
-          {result.total} member{result.total === 1 ? "" : "s"} found
-        </p>
+        <MembersOpsTable
+          canExport={canExport}
+          exportHref={exportHref}
+          members={result.items.map((member) => ({
+            id: member.id,
+            displayName: member.displayName,
+            email: member.email,
+            membershipNumber: member.membershipNumber,
+            statusLabel: memberStatusLabel(member.status as MemberStatusInput),
+            currentPlanLabel: member.currentPlanLabel,
+            committeeRoleLabel: member.committeeRoleLabel,
+            joinedOn: member.joinedOn
+              ? member.joinedOn.toISOString().slice(0, 10)
+              : null,
+          }))}
+        />
 
-        <Table>
-          <THead>
-            <TR>
-              <TH>Member</TH>
-              <TH>Number</TH>
-              <TH>Status</TH>
-              <TH>Plan</TH>
-              <TH>Joined</TH>
-            </TR>
-          </THead>
-          <TBody>
-            {result.items.length === 0 ? (
-              <TR>
-                <TD colSpan={5} className="text-ink-500">
-                  No members match these filters.
-                </TD>
-              </TR>
-            ) : (
-              result.items.map((member) => (
-                <TR key={member.id}>
-                  <TD>
-                    <Link
-                      href={`/admin/members/${member.id}`}
-                      className="font-medium text-ink-900 underline-offset-4 hover:underline"
-                    >
-                      {member.displayName}
-                    </Link>
-                    <p className="text-xs text-ink-500">{member.email}</p>
-                  </TD>
-                  <TD className="font-mono text-xs">{member.membershipNumber}</TD>
-                  <TD>
-                    <Badge variant="outline">{member.status}</Badge>
-                    {member.isSample ? (
-                      <span className="ml-2 text-xs text-ink-400">SAMPLE</span>
-                    ) : null}
-                  </TD>
-                  <TD>{member.currentPlanLabel ?? "—"}</TD>
-                  <TD>
-                    {member.joinedOn
-                      ? member.joinedOn.toISOString().slice(0, 10)
-                      : "—"}
-                  </TD>
-                </TR>
-              ))
-            )}
-          </TBody>
-        </Table>
-
-        {totalPages > 1 ? (
-          <div className="flex items-center justify-between gap-3 text-sm">
-            <p className="text-ink-500">
-              Page {result.page} of {totalPages}
-            </p>
-            <div className="flex gap-2">
-              {result.page > 1 ? (
-                <Link
-                  href={`/admin/members?${new URLSearchParams({
-                    ...(params.query ? { query: params.query } : {}),
-                    ...(params.status ? { status: params.status } : {}),
-                    page: String(result.page - 1),
-                  }).toString()}`}
-                  className="rounded-md border border-border-default px-3 py-2 hover:bg-ink-50"
-                >
-                  Previous
-                </Link>
-              ) : null}
-              {result.page < totalPages ? (
-                <Link
-                  href={`/admin/members?${new URLSearchParams({
-                    ...(params.query ? { query: params.query } : {}),
-                    ...(params.status ? { status: params.status } : {}),
-                    page: String(result.page + 1),
-                  }).toString()}`}
-                  className="rounded-md border border-border-default px-3 py-2 hover:bg-ink-50"
-                >
-                  Next
-                </Link>
-              ) : null}
-            </div>
-          </div>
-        ) : null}
+        <AdminPagination
+          basePath="/admin/members"
+          params={{
+            query: params.query,
+            status: params.status,
+            planId: params.planId,
+            committeeRole: params.committeeRole,
+            joinedFrom: params.joinedFrom,
+            joinedTo: params.joinedTo,
+            sortBy: params.sortBy,
+            sortDir: params.sortDir,
+          }}
+          page={result.page}
+          pageSize={result.pageSize}
+          total={result.total}
+        />
       </div>
     </>
   );

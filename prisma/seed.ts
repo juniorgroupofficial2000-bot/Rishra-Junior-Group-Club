@@ -1,27 +1,61 @@
 /**
- * SAMPLE / FICTIONAL seed data only.
+ * SAMPLE / FICTIONAL seed data only — local and controlled sandboxes.
  * Never seed real member personal information.
- * Blocked in production unless ALLOW_DEMO_SEED=true (still creates only SAMPLE rows).
+ * Never copy production member dumps into development.
+ *
+ * Public pages do not read this file at runtime. They load published Prisma rows
+ * via `server/content/public-loaders.ts`. SAMPLE rows stay hidden unless
+ * CONTENT_INCLUDE_SAMPLE=true (forbidden in production).
  */
 import { PrismaClient } from "@prisma/client";
 import { hash } from "bcryptjs";
+import { resolveAppEnv } from "../config/app-env";
+import {
+  looksLikeLocalDatabaseUrl,
+  mergeProductionMarkers,
+} from "../config/isolation";
+import { assertDestructiveOpAllowed } from "../config/destructive-ops";
+import { allowFinancialHardDelete } from "../server/db/financial-mutation";
 
 const prisma = new PrismaClient();
 
-async function main() {
-  if (
-    process.env.NODE_ENV === "production" &&
-    process.env.ALLOW_DEMO_SEED !== "true"
-  ) {
+/** Callable from CLI and non-production developer utilities. */
+export async function runDemoSeed() {
+  const appEnv = resolveAppEnv(process.env);
+  if (appEnv === "production") {
     throw new Error(
-      "Refusing to seed demo users/payments in production. Set ALLOW_DEMO_SEED=true only for controlled sandbox databases.",
+      "Refusing to seed when APP_ENV=production — use a non-production database.",
     );
   }
 
+  const databaseUrl = process.env.DATABASE_URL?.trim() ?? "";
+  const markers = mergeProductionMarkers(process.env.PRODUCTION_RESOURCE_MARKERS);
+  if (markers.some((m) => databaseUrl.toLowerCase().includes(m))) {
+    throw new Error(
+      "Refusing to seed: DATABASE_URL matches production resource markers.",
+    );
+  }
+
+  if (
+    appEnv === "local" &&
+    databaseUrl &&
+    !looksLikeLocalDatabaseUrl(databaseUrl) &&
+    process.env.ALLOW_REMOTE_LOCAL_DATABASE !== "true"
+  ) {
+    throw new Error(
+      "Refusing to seed a non-local DATABASE_URL when APP_ENV=local.",
+    );
+  }
+
+  assertDestructiveOpAllowed("database_seed_wipe");
+
   console.log("Seeding SAMPLE / fictional data…");
   console.warn(
-    "Demo accounts (admin@rjgc.local / member@rjgc.local) are for local/sandbox only. Disable or rotate before any shared environment.",
+    "Demo accounts use fictional @rjgc.local addresses for local/sandbox only. Passwords are not logged.",
   );
+
+  // Seed teardown may hard-delete SAMPLE rows; production app never enables this.
+  await allowFinancialHardDelete(prisma);
 
   await prisma.auditLog.deleteMany();
   await prisma.notification.deleteMany();
@@ -30,6 +64,15 @@ async function main() {
   await prisma.galleryMedia.deleteMany();
   await prisma.galleryAlbum.deleteMany();
   await prisma.announcement.deleteMany();
+  await prisma.publicCommitteeMember.deleteMany();
+  await prisma.event.updateMany({ data: { coverAssetId: null } });
+  await prisma.pujaYear.updateMany({ data: { coverAssetId: null } });
+  await prisma.mediaAsset.deleteMany();
+  await prisma.faqItem.deleteMany();
+  await prisma.timelineEntry.deleteMany();
+  await prisma.pujaYear.deleteMany();
+  await prisma.siteContentBlock.deleteMany();
+  await prisma.providerWebhookEvent.deleteMany({ where: { provider: "mock" } });
   await prisma.receipt.deleteMany();
   await prisma.paymentAttempt.deleteMany();
   await prisma.payment.deleteMany();
@@ -217,25 +260,14 @@ async function main() {
     },
   });
 
-  await prisma.payment.create({
-    data: {
-      memberId: member.id,
-      amountPaise: 0,
-      currency: "INR",
-      status: "PENDING",
-      method: "OTHER",
-      notes: "[SAMPLE] Awaiting verified webhook — not claimed successful.",
-      isSample: true,
-      createdById: adminUser.id,
-    },
-  });
-
   await prisma.paymentMandate.create({
     data: {
       memberId: member.id,
       status: "CREATED",
       provider: "mock",
       providerMandateRef: null,
+      amountPaise: 50000,
+      currency: "INR",
       note: "[SAMPLE] E-mandate not configured. Credentials are never stored.",
       isSample: true,
     },
@@ -318,6 +350,9 @@ async function main() {
     },
   });
 
+  const { seedPublicCmsContent } = await import("./seed-cms-content");
+  await seedPublicCmsContent(prisma, adminUser.id);
+
   await prisma.auditLog.create({
     data: {
       actorUserId: adminUser.id,
@@ -327,21 +362,27 @@ async function main() {
       metadata: {
         note: "SAMPLE seed only — no real personal data",
         members: [member.membershipNumber, secondMember.membershipNumber],
+        cms: true,
       },
     },
   });
 
   console.log("Seed complete.");
-  console.log("  Demo member login: member@rjgc.local / MemberDemo1!");
-  console.log("  Demo admin login:  admin@rjgc.local / AdminDemo1!");
+  console.log("  Demo logins: member@rjgc.local and admin@rjgc.local (passwords not printed).");
   console.log("  All records are marked SAMPLE / fictional.");
 }
 
-main()
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+const isCli =
+  typeof process.argv[1] === "string" &&
+  /(^|[\\/])seed\.(ts|js|mjs|cjs)$/.test(process.argv[1]);
+
+if (isCli) {
+  runDemoSeed()
+    .catch((error) => {
+      console.error(error);
+      process.exit(1);
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+    });
+}

@@ -2,9 +2,11 @@
 
 import { ProvenanceBadge } from "@/components/heritage/provenance-badge";
 import { StaggerChildren, StaggerItem } from "@/components/motion";
+import { EmptyState } from "@/components/public/empty-state";
 import { Badge } from "@/components/ui/badge";
 import {
   announcementCategoryLabel,
+  announcementPriorityLabel,
   formatAnnouncementDate,
   type Announcement,
 } from "@/content/announcements";
@@ -17,9 +19,11 @@ export function AnnouncementList({ items }: { items: Announcement[] }) {
 
   if (items.length === 0) {
     return (
-      <p className="rounded-xl border border-dashed border-border-strong px-5 py-8 text-sm text-ink-500">
-        No published announcements yet.
-      </p>
+      <EmptyState
+        title="No announcements yet"
+        description="Official notices appear here when the committee publishes them."
+        action={{ label: "Contact the club", href: "/contact" }}
+      />
     );
   }
 
@@ -30,8 +34,14 @@ export function AnnouncementList({ items }: { items: Announcement[] }) {
           <article>
             <Link
               href={`/announcements/${item.slug}`}
-              className="group flex flex-col gap-3 py-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:flex-row sm:items-start sm:justify-between sm:gap-8"
+              className="group grid gap-4 py-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:grid-cols-[7.5rem_1fr] sm:gap-10"
             >
+              <time
+                dateTime={item.publishedAt}
+                className="font-mono text-xs text-ink-400 sm:pt-1 sm:text-sm"
+              >
+                {formatAnnouncementDate(item.publishedAt)}
+              </time>
               <div className="min-w-0 space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
                   {item.pinned ? (
@@ -41,7 +51,11 @@ export function AnnouncementList({ items }: { items: Announcement[] }) {
                         initial={reduce ? false : { scale: 0.7, opacity: 0 }}
                         whileInView={{ scale: 1, opacity: 1 }}
                         viewport={{ once: true }}
-                        transition={{ type: "spring", stiffness: 280, damping: 16 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 280,
+                          damping: 16,
+                        }}
                         className="inline-flex"
                       >
                         <Pin className="h-3 w-3" />
@@ -52,21 +66,20 @@ export function AnnouncementList({ items }: { items: Announcement[] }) {
                   <Badge variant="outline">
                     {announcementCategoryLabel[item.category]}
                   </Badge>
+                  {item.priority !== "NORMAL" ? (
+                    <Badge variant="accent">
+                      {announcementPriorityLabel[item.priority]}
+                    </Badge>
+                  ) : null}
                   <ProvenanceBadge provenance={item.provenance} />
                 </div>
-                <h2 className="font-display text-xl font-semibold tracking-tight text-ink-900 transition-colors group-hover:text-alta-600">
+                <h2 className="font-display text-2xl font-semibold tracking-tight text-ink-900 transition-colors group-hover:text-alta-600">
                   {item.title}
                 </h2>
-                <p className="text-sm leading-relaxed text-ink-500">
+                <p className="max-w-2xl text-sm leading-relaxed text-ink-500 sm:text-base">
                   {item.summary}
                 </p>
               </div>
-              <time
-                dateTime={item.publishedAt}
-                className="shrink-0 font-mono text-xs text-ink-400 sm:pt-1 sm:text-sm"
-              >
-                {formatAnnouncementDate(item.publishedAt)}
-              </time>
             </Link>
           </article>
         </StaggerItem>

@@ -90,7 +90,7 @@ export function TabsTrigger({
       tabIndex={selected ? 0 : -1}
       onClick={() => setValue(value)}
       className={cn(
-        "relative shrink-0 px-3 py-2.5 text-sm font-medium text-ink-500 transition-colors duration-200",
+        "relative shrink-0 min-h-11 px-3 py-2.5 text-sm font-medium text-ink-500 transition-colors duration-200",
         "hover:text-ink-800",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         selected && "text-ink-900",

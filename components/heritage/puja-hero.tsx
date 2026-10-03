@@ -1,16 +1,19 @@
 "use client";
 
+import { PujaStatusBadge } from "@/components/heritage/puja-status-badge";
 import { SiteContainer } from "@/components/public/site-container";
 import { saraswatiPujaContent } from "@/content/heritage";
+import type { PujaLiveStatus } from "@/lib/puja/status";
 import { siteMedia } from "@/content/site-media";
+import { HeroLcpImage } from "@/components/media/hero-lcp-image";
 import {
   heroStaggerVariants,
   lineRevealVariants,
-  premiumEase,
   transitionCinematic,
   transitionNormal,
   transitionSlow,
 } from "@/lib/motion";
+import { usePrefersStaticMotion } from "@/lib/hooks/use-media-query";
 import {
   motion,
   useReducedMotion,
@@ -18,7 +21,6 @@ import {
   useSpring,
   useTransform,
 } from "motion/react";
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
@@ -26,7 +28,13 @@ const content = saraswatiPujaContent.hero;
 const media = siteMedia.pujaHero;
 const emptySubscribe = () => () => {};
 
-export function PujaHero() {
+export function PujaHero({
+  status,
+  statusLabel,
+}: {
+  status?: PujaLiveStatus | null;
+  statusLabel?: string | null;
+} = {}) {
   const reduceMotion = useReducedMotion();
   const sectionRef = useRef<HTMLElement>(null);
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
@@ -50,8 +58,9 @@ export function PujaHero() {
   const imageScale = useTransform(smooth, [0, 1], [1, 1.12]);
   const textY = useTransform(smooth, [0, 1], ["0%", "-18%"]);
   const textOpacity = useTransform(smooth, [0, 0.55], [1, 0]);
-  const isSvg = media.src.endsWith(".svg");
+  const prefersStatic = usePrefersStaticMotion();
   const motionOn = mounted && !reduceMotion;
+  const parallaxOn = motionOn && !prefersStatic;
   const play = motionOn && ready;
 
   return (
@@ -62,31 +71,11 @@ export function PujaHero() {
     >
       <motion.div
         className="absolute inset-0"
-        style={motionOn ? { y: imageY, scale: imageScale } : undefined}
+        style={parallaxOn ? { y: imageY, scale: imageScale } : undefined}
       >
-        <motion.div
-          className="absolute inset-0"
-          initial={false}
-          animate={
-            play
-              ? { clipPath: "inset(0% 0% 0% 0%)", scale: 1, opacity: 1 }
-              : motionOn
-                ? { clipPath: "inset(10% 24% 10% 24%)", scale: 1.16, opacity: 0.4 }
-                : { clipPath: "inset(0% 0% 0% 0%)", scale: 1, opacity: 1 }
-          }
-          transition={{ duration: 1.2, ease: premiumEase }}
-        >
-          <Image
-            src={media.src}
-            alt={media.alt}
-            fill
-            priority
-            sizes="100vw"
-            unoptimized={isSvg}
-            className="object-cover"
-            style={{ objectPosition: media.objectPosition }}
-          />
-        </motion.div>
+        <div className="absolute inset-0">
+          <HeroLcpImage media={media} />
+        </div>
         <div
           className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/78 to-ink-950/35"
           aria-hidden
@@ -100,18 +89,19 @@ export function PujaHero() {
       <SiteContainer className="relative flex min-h-[72dvh] flex-col justify-end pb-14 pt-32 sm:min-h-[80dvh] sm:pb-24 sm:pt-36">
         <motion.div
           className="max-w-3xl"
-          style={motionOn ? { y: textY, opacity: textOpacity } : undefined}
+          style={parallaxOn ? { y: textY, opacity: textOpacity } : undefined}
           variants={play ? heroStaggerVariants : undefined}
           initial={play ? "hidden" : false}
           animate={play ? "visible" : reduceMotion || !motionOn ? "visible" : "hidden"}
         >
-          <motion.p
+          <motion.div
             variants={lineRevealVariants}
             transition={transitionSlow}
-            className="type-caption text-marigold-400"
+            className="flex flex-wrap items-center gap-3"
           >
-            {content.eyebrow}
-          </motion.p>
+            <p className="type-caption text-marigold-400">{content.eyebrow}</p>
+            <PujaStatusBadge status={status} />
+          </motion.div>
           <motion.h1
             id="puja-hero-heading"
             variants={lineRevealVariants}
@@ -120,6 +110,15 @@ export function PujaHero() {
           >
             {content.title}
           </motion.h1>
+          {statusLabel ? (
+            <motion.p
+              variants={lineRevealVariants}
+              transition={transitionSlow}
+              className="mt-3 font-display text-xl text-marigold-100/90 sm:text-2xl"
+            >
+              {statusLabel}
+            </motion.p>
+          ) : null}
           <motion.p
             variants={lineRevealVariants}
             transition={transitionSlow}

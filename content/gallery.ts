@@ -17,8 +17,11 @@ export type GalleryAlbum = {
   year?: number;
   /** Related event label or slug reference for CMS linking */
   event?: string;
-  coverImage: MediaItem;
+  /** Absent when the album has no published cover or media yet. */
+  coverImage?: MediaItem;
   media: MediaItem[];
+  /** Present on list/summary payloads when `media` is intentionally empty. */
+  mediaCount?: number;
   sortOrder: number;
   published: boolean;
   provenance: ContentProvenance;
@@ -45,8 +48,7 @@ const sampleImage = (
 export const galleryPageCopy = {
   eyebrow: "Moments",
   title: "Gallery",
-  description:
-    "Albums from club celebrations and gatherings. SAMPLE albums are labelled and exist to demonstrate the CMS-ready gallery.",
+  description: "Albums from club celebrations and gatherings.",
 } as const;
 
 export const galleryAlbums: GalleryAlbum[] = [

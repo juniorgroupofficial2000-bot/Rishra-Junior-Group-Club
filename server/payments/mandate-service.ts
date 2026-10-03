@@ -9,12 +9,17 @@ import {
 import { NotificationEvents } from "@/server/notifications/types";
 import { getPaymentProvider } from "@/server/payments/factory";
 import { paymentLog } from "@/server/payments/logging";
+import { logPaymentFailure } from "@/server/observability/events";
 import { writeAuditEvent } from "@/server/services/audit-service";
 
 export class PaymentServiceError extends Error {
   constructor(
     message: string,
-    readonly code: "NOT_FOUND" | "INVALID_STATE" | "PROVIDER" = "PROVIDER",
+    readonly code:
+      | "NOT_FOUND"
+      | "INVALID_STATE"
+      | "INVALID_AMOUNT"
+      | "PROVIDER" = "PROVIDER",
   ) {
     super(message);
     this.name = "PaymentServiceError";
@@ -62,12 +67,12 @@ export async function setupMemberMandate(input: {
     where: {
       memberId: member.id,
       deletedAt: null,
-      status: { in: ["PENDING", "ACTIVE", "PAUSED"] },
+      status: { in: ["CREATED", "PENDING", "ACTIVE", "PAUSED"] },
     },
   });
   if (existing) {
     throw new PaymentServiceError(
-      "An active or pending mandate already exists.",
+      "An open mandate already exists for this member.",
       "INVALID_STATE",
     );
   }
@@ -163,9 +168,10 @@ export async function setupMemberMandate(input: {
       nextDebitAt: row.nextDebitAt,
     };
   } catch (error) {
-    paymentLog.error("mandate_setup_failed", {
+    logPaymentFailure({
+      event: "mandate_setup_failed",
       memberId: member.id,
-      error: error instanceof Error ? error.message : "unknown",
+      error,
     });
     throw new PaymentServiceError(
       error instanceof Error ? error.message : "Mandate setup failed.",

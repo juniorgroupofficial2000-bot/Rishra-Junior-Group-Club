@@ -1,4 +1,4 @@
-import { isProductionRuntime } from "@/server/security/env";
+import { getServerEnv, isProductionAppEnv } from "@/config";
 import type { AdminMemberRepository } from "@/server/repositories/contracts/admin-member-repository";
 import type { MemberRepository } from "@/server/repositories/contracts/member-repository";
 import type { UserRepository } from "@/server/repositories/contracts/user-repository";
@@ -10,31 +10,22 @@ import { prismaUserRepository } from "@/server/repositories/prisma/prisma-user-r
 
 /**
  * Repository factory.
- * `REPOSITORY_DRIVER=mock` uses in-memory demo stores (local/dev only).
- * `REPOSITORY_DRIVER=prisma` uses PostgreSQL via Prisma (required in production).
+ * `REPOSITORY_DRIVER=mock` uses in-memory demo stores (local only).
+ * `REPOSITORY_DRIVER=prisma` uses PostgreSQL via Prisma (required outside local mock).
  */
-export type RepositoryDriver = "mock" | "prisma";
+export type RepositoryDriver = "prisma" | "mock";
 
 function getDriver(): RepositoryDriver {
-  const value = process.env.REPOSITORY_DRIVER?.toLowerCase();
-  if (value === "prisma") return "prisma";
-  if (value === "mock") {
-    if (isProductionRuntime()) {
+  const env = getServerEnv();
+  if (env.repositoryDriver === "mock") {
+    if (isProductionAppEnv(env.appEnv) || env.appEnv === "staging") {
       throw new Error(
-        "REPOSITORY_DRIVER=mock is not allowed in production. Set REPOSITORY_DRIVER=prisma.",
+        `REPOSITORY_DRIVER=mock is not allowed when APP_ENV=${env.appEnv}. Set REPOSITORY_DRIVER=prisma.`,
       );
     }
     return "mock";
   }
-
-  if (isProductionRuntime()) {
-    throw new Error(
-      "REPOSITORY_DRIVER must be set to prisma in production. Mock auth/data is fail-closed.",
-    );
-  }
-
-  // Local/dev convenience when unset.
-  return "mock";
+  return "prisma";
 }
 
 export function getRepositoryDriver(): RepositoryDriver {

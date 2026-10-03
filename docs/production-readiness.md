@@ -1,297 +1,228 @@
-# Production readiness — Rishra Junior Group Club
+# Production readiness — Principal Architect review
 
-Principal Architect handoff review for operating this platform as a real organization.
+**Review date:** 3 October 2026  
+**Application:** Rishra Junior Group Club (Next.js App Router + Prisma + Auth.js + Razorpay)
 
-**This document does not certify the system as production-safe by default.** Shipping requires the configuration, legal, and operational work listed below. Compiling successfully is not a go-live criterion.
-
-Related: [`docs/security.md`](./security.md), [`docs/design-system.md`](./design-system.md).
-
----
-
-## Executive verdict
-
-The platform has a coherent Next.js App Router architecture with Auth.js sessions, Prisma persistence, RBAC admin surfaces, payment provider abstraction, webhook idempotency, SEO metadata, and accessibility foundations.
-
-It is **not yet ready for unattended production with real member money and PII** until:
-
-1. Production env fail-closed settings are applied (`REPOSITORY_DRIVER=prisma`, `PAYMENT_PROVIDER=razorpay`, strong `AUTH_SECRET`, real `SITE_URL`).
-2. Demo seed accounts are absent or rotated.
-3. SAMPLE public content is replaced with verified club content (or kept disabled via `CONTENT_INCLUDE_SAMPLE` default off in production).
-4. Public CMS is unified with admin (today: public site reads `content/*`, admin reads Prisma).
-5. Real notification providers, MFA for staff, backups, edge rate limits, and legal privacy/terms are in place.
+Related: [`README.md`](../README.md), [`security.md`](./security.md), [`payment-architecture.md`](./payment-architecture.md), [`database.md`](./database.md), [`observability.md`](./observability.md), [`testing.md`](./testing.md).
 
 ---
 
-## Completed capabilities
+## 1. Production readiness status
 
-| Area | Status |
+### Verdict: **CONDITIONAL — not approved for unattended live money**
+
+| Surface | Status |
 | --- | --- |
-| Public English website (heritage, events, gallery, membership, contact) | Done (content-driven) |
-| SEO Metadata API, canonical, OG/Twitter, sitemap, robots, JSON-LD | Done |
-| Auth.js credentials login + JWT sessions | Done |
-| Member portal (profile, membership, payments, receipts, mandate, events) | Done |
-| Admin portal with RBAC permissions | Done |
-| Prisma/Postgres schema + migrations + seed (demo-only) | Done |
-| PaymentProvider (mock + Razorpay) with webhook verify + idempotency | Done |
-| Mandate amount from membership plan (not client-chosen) | Done |
-| Order vs payment id linkage (`providerOrderRef`) | Done |
-| Audit log + metadata sanitization | Done |
-| CSV reports with formula neutralization | Done |
-| HTTP security headers + conditional HSTS | Done |
-| Production fail-closed: mock repo, mock payments, demo seed, console notify | Done |
-| Accessibility: skip link, focus, semantic nav, reduced motion | Partial–good |
-| Automated tests (payments webhooks, reports, security helpers) | Partial |
+| Public English website (HTTPS + real `SITE_URL`) | **Ready** after env + verified CMS content + contact env vars |
+| Member portal (non-payment browsing) | **Ready** with prisma driver + migrations |
+| Admin portal (content/media/RBAC) | **Ready** with staff MFA enrolled when `REQUIRE_STAFF_MFA=true` |
+| Razorpay **test** mode | **Ready** after provider certification checklist |
+| Razorpay **live** dues / mandates | **Not approved** until post-deploy checklist below is fully green (MFA enrolled for all financial staff, Resend live, reconcile cron, backups proven, counsel sign-off on policies) |
+
+Compiling successfully is **not** a go-live criterion.
 
 ---
 
-## Severity findings (review snapshot)
+## 2. Severity findings
 
-### CRITICAL (fixed in this pass or fail-closed)
+### BLOCKER (resolved in this pass)
 
-| Issue | Resolution |
-| --- | --- |
-| `REPOSITORY_DRIVER` defaulted to mock | Production requires `prisma` or throws |
-| Known demo seed accounts in shared DBs | Seed blocked in production unless `ALLOW_DEMO_SEED=true` |
-| Razorpay order id stored as payment id | Added `providerOrderRef`; webhooks map `order_id` → payment |
-| Members chose mandate amounts | Amount taken from current membership plan only |
-| SAMPLE content indexed as real | Sample hidden in production by default; no Event JSON-LD for sample |
-
-### HIGH (fixed or explicitly limited)
-
-| Issue | Resolution / remaining |
-| --- | --- |
-| SEO stripped `[SAMPLE]` labels | Stopped cleaning for indexing; sample noindex + omitted from sitemap when gated |
-| Dual public/admin content sources | Documented; admin UI warns; **unification still required** |
-| Membership status disabled staff logins | Only `MEMBER`/`PUBLIC` users auto-deactivated |
-| Mock payments escape hatch | Requires `ALLOW_MOCK_PAYMENTS` **and** `MOCK_PAYMENTS_CONFIRM` |
-| Console notifications claimed success | Production returns `ok: false` |
-| SUPER_ADMIN privilege escalation in service | Actor must be SUPER_ADMIN; last SUPER_ADMIN protected |
-| Seed invented SUCCESS/PAID finances | Seed payments stay `PENDING`; invoices `ISSUED` |
-| Design-system public in production | Redirected unless `ALLOW_DESIGN_SYSTEM=true` |
-| MFA for staff | **Still required before go-live** (not implemented) |
-| Edge/cluster rate limits | App-level only; **WAF required** |
-| Privacy/terms non-operative | Stub pages remain — **legal review required** |
-
-### MEDIUM
-
-- CSP still allows `'unsafe-inline'` / `'unsafe-eval'`
-- JWT revalidation window (~5 minutes)
-- Thin e2e coverage (RBAC/IDOR/Razorpay mapping)
-- No Dockerfile/CI/CD in repo
-- Contact placeholders in `content/site.ts`
-- Append-only audit policy not enforced at DB level
-
-### LOW
-
-- Legacy `ADMIN` / `COMMITTEE` role aliases
-- Postal code inconsistencies in sample data
-- HSTS only when `SITE_URL` is https
-
----
-
-## Known limitations
-
-1. **Public content ≠ admin Prisma content.** Publishing from admin does not update the public site.
-2. **No general file/image upload pipeline.** Gallery uses static/content media; documents admin is intentionally gated.
-3. **Notifications are console adapters** until email/SMS/WhatsApp providers are wired.
-4. **No MFA / passkeys** for admin accounts.
-5. **Rate limiting is in-process** and resets per instance.
-6. **Razorpay live checkout UX** depends on `short_url` / hosted flows; end-to-end certification in test mode is still required.
-7. **Disaster recovery runbooks** are recommendations only — implement on your host.
-
----
-
-## Required production configuration
-
-| Variable | Required | Notes |
+| ID | Issue | Resolution |
 | --- | --- | --- |
-| `AUTH_SECRET` | Yes | ≥32 chars, unique, from CSPRNG |
-| `SITE_URL` | Yes | Real HTTPS origin — never invent in code |
-| `AUTH_URL` | Recommended | Same origin as Auth.js host trust |
-| `REPOSITORY_DRIVER` | Yes | Must be `prisma` |
-| `DATABASE_URL` | Yes | Managed Postgres, private network |
-| `PAYMENT_PROVIDER` | Yes | Must be `razorpay` for real dues |
-| `PAYMENT_MODE` | Yes | `test` then `live` with matching key prefix |
-| `RAZORPAY_KEY_ID` | Yes (razorpay) | `rzp_test_*` or `rzp_live_*` |
-| `RAZORPAY_KEY_SECRET` | Yes | Secret manager |
-| `RAZORPAY_WEBHOOK_SECRET` | Yes | Matches Razorpay dashboard |
-| `CONTENT_INCLUDE_SAMPLE` | No | Default off in production; do not enable for public launch |
-| `ALLOW_MOCK_PAYMENTS` | No | Must be unset/false for real money |
-| `ALLOW_DEMO_SEED` | No | Must be unset/false on production DB |
-| `ALLOW_DESIGN_SYSTEM` | No | Keep unset |
+| B1 | README was create-next-app boilerplate | Replaced with deploy/runbook README |
+| B2 | No staff MFA while collecting dues | TOTP MFA implemented; `PAYMENT_MODE=live` requires `REQUIRE_STAFF_MFA=true`; admin forced enrollment via proxy |
 
-See `.env.example`.
+### CRITICAL (resolved in this pass)
 
----
+| ID | Issue | Resolution |
+| --- | --- | --- |
+| C1 | Privacy/terms were non-operative placeholders | Operative English privacy & terms pages published |
+| C2 | Payment emails console-only in production | Resend email channel; live mode requires Resend config |
+| C3 | Unsafe prod flags (`E2E_TEST`, `ALLOW_DEMO_SEED`) not rejected | `assertProductionConfig()` rejects them; also runs from `instrumentation.register()` |
+| C4 | Demo admin bootstrap undocumented / risky | Documented; seed blocked; never reuse demo emails on prod DB |
+| C5 | Stale PENDING payments with no scheduled reconcile | `POST /api/cron/reconcile-payments` + `CRON_SECRET` |
 
-## Environment variables (summary)
+### HIGH (remaining — schedule before or immediately after soft launch)
 
-**Safe defaults for local:** `REPOSITORY_DRIVER=mock` or `prisma` + local DB, `PAYMENT_PROVIDER=mock`, sample content on.
+| ID | Issue | Owner action |
+| --- | --- | --- |
+| H1 | In-process rate limits only | Put WAF / edge rate limits on `/login`, `/api/auth/*`, webhooks |
+| H2 | Auth.js still `5.0.0-beta.x` | Pin upgrades; watch advisories |
+| H3 | Public CMS empty until seeded | Seed verified CMS content before marketing launch |
+| H4 | Contact still env-driven placeholders until set | Set `CONTACT_PUBLIC_*` |
+| H5 | CSP allows `'unsafe-inline'` / `'unsafe-eval'` | Move to nonce/hash CSP when CMS HTML expands |
+| H6 | Distributed tracing / SIEM not wired | Ship logs to your host aggregator (see observability.md) |
+| H7 | Playwright coverage thin for Razorpay | Complete Razorpay test-mode certification manually |
 
-**Production must fail closed on:** mock repository, mock payments (unless double-confirmed sandbox), missing `AUTH_SECRET`, missing Razorpay secrets when selected, demo seed without allow flag.
+### MEDIUM / LOW (selected)
 
----
-
-## Database migration requirements
-
-1. Provision Postgres 15+.
-2. Set `DATABASE_URL`.
-3. Run:
-
-```bash
-npm ci
-npx prisma migrate deploy
-npx prisma generate
-```
-
-4. **Do not** run `npm run db:seed` against production unless `ALLOW_DEMO_SEED=true` on an isolated sandbox DB.
-5. Create the first real SUPER_ADMIN out-of-band (secure password, MFA when available); never reuse `admin@rjgc.local`.
-6. Apply migration `20261002190000_payment_order_ref` (adds `Payment.providerOrderRef`).
+| ID | Sev | Issue |
+| --- | --- | --- |
+| M1 | MEDIUM | JWT revalidation window ~5 minutes |
+| M2 | MEDIUM | No managed backup restore drill documented per host |
+| L1 | LOW | English-only product — **Bengali typography intentionally omitted** per project rules |
+| L2 | LOW | Per-page `loading.tsx` not universal (segment loaders exist) |
 
 ---
 
-## Payment onboarding requirements
+## 3. Area review summary
 
-1. Create Razorpay account; complete KYC.
-2. Configure webhook: `https://<SITE_URL>/api/webhooks/payments/razorpay`
-   - Events: payment captured/failed, subscription lifecycle as used by the club.
-3. Set `RAZORPAY_*` secrets and `PAYMENT_PROVIDER=razorpay`.
-4. Start with `PAYMENT_MODE=test` + `rzp_test_*` keys; run end-to-end mandate + payment tests.
-5. Flip to `PAYMENT_MODE=live` + `rzp_live_*` only after reconciliation checks.
-6. Confirm SUCCESS paths only via verified webhooks (never from create-order responses alone).
-7. Assign real membership plan amounts (`amountPaise ≥ 100`) before members can set up mandates.
+### Architecture
+Clean boundaries: `app/` UI + actions, `server/` domain/services/auth/payments/media, `prisma/` persistence, `content/` file fallback. Dual mock/prisma and mock/razorpay drivers fail closed in production. Maintainable; scale vertically first, then split workers for reconcile/media.
 
----
+### Security
+Auth.js credentials + JWT; RBAC permissions; member isolation via `requireMemberId`; webhook HMAC; CSV neutralization; media purpose authz; production config assert; staff TOTP MFA. Residual: edge rate limits, Auth.js beta, CSP.
 
-## Domain configuration
+### Database
+Migrations present including financial integrity CHECKs/triggers and staff MFA columns. Use `prisma migrate deploy` only in prod. Soft deletes + audit append-only at DB. Backups: host-level (required).
 
-1. Choose and register the real domain (organization decision — not invented in this repo).
-2. Point DNS to the hosting provider; terminate TLS.
-3. Set `SITE_URL=https://your-domain` (and `AUTH_URL` if required).
-4. Verify `/sitemap.xml`, `/robots.txt`, canonical tags, and OG previews.
-5. Ensure HSTS is active (headers emit when `SITE_URL` is https).
+### Payments
+Mandate amount from plan; webhook verify + idempotency; amount mismatch non-retryable; reconcile cron endpoint; live mode gated on MFA + email.
 
----
+### UX / UI
+Responsive record cards for admin/member lists; portal nav drawers; error boundaries; empty records; English typography (Playfair + Plus Jakarta). Motion gated on mobile. Committee/gallery use responsive grids. **No Bengali UI fonts** (intentional).
 
-## Storage configuration
+### SEO
+Metadata, canonical, OG, sitemap, robots, JSON-LD — require correct HTTPS `SITE_URL`.
 
-- **Today:** no object storage; media is repo/static or placeholder paths.
-- **Before enabling uploads:** use private bucket (S3/GCS/R2), signed uploads, MIME allowlists, size limits, malware scanning, and never serve user content from world-writable paths.
-- Documents admin UI is intentionally disabled for unrestricted uploads.
+### Performance
+`next/font`, hero LCP image, deferred motion chrome, `next/image`. Monitor CWV after real photography replaces SVG placeholders.
 
----
+### Testing
+Vitest unit/integration/security; Playwright auth portals; new TOTP + production-config tests; CI workflow added.
 
-## Notification configuration
+### Observability
+Structured JSON logs, redaction, `onRequestError`, admin_operation from audit. Wire host log drain + alerts per `docs/observability.md`.
 
-- Console channels are **dev-only**; production returns failure (no fake “sent”).
-- Before launch, integrate real providers (e.g. SES/SendGrid + SMS/WhatsApp vendor) behind `NotificationChannel`.
-- Until then, communicate that payment/membership emails are not delivered automatically.
+### Deployment
+Env contract in `.env.example`; migrate deploy script; HTTPS domain; cron; no seed on prod.
+
+### Documentation
+README + docs suite updated; this file is the go-live source of truth.
 
 ---
 
-## Deployment steps
+## 4. Required environment variables
 
-1. Build CI gate: `npm run lint && npm run typecheck && npm test && npm run build`.
-2. Inject production secrets via the host secret manager (not git).
-3. Run `prisma migrate deploy` before/during release.
-4. Deploy the Next.js app (Node 20+ recommended) behind HTTPS.
-5. Configure edge rate limits for `/login` and `/api/webhooks/payments/*`.
-6. Smoke test:
-   - Login works for real admin; demo accounts fail/absent
-   - Member cannot see another member’s receipts
-   - Forged webhook → 401
-   - Sample content absent from public sitemap
-   - Mandate amount matches plan
-7. Monitor logs and audit tables for 24–48h after cutover.
+### Always (production)
 
----
-
-## Backup recommendations
-
-- Daily automated Postgres backups with point-in-time recovery.
-- Retain ≥30 days; quarterly restore drill to a scratch database.
-- Back up webhook/event tables for dispute evidence.
-- Do not rely solely on application soft-deletes for recovery.
-
----
-
-## Monitoring recommendations
-
-| Signal | Why |
+| Variable | Notes |
 | --- | --- |
-| 5xx rate / latency | Availability |
-| Auth failure spikes | Brute force |
-| Webhook 401/429/5xx | Payment integrity |
-| Payments stuck PENDING | Reconciliation |
-| Audit log volume for admin mutations | Insider misuse |
-| Disk / DB connections | Capacity |
+| `SITE_URL` | Public HTTPS origin |
+| `AUTH_URL` | Usually same as `SITE_URL` |
+| `AUTH_SECRET` | ≥32 char CSPRNG |
+| `DATABASE_URL` | Postgres connection string |
+| `REPOSITORY_DRIVER` | Must be `prisma` |
 
-Add uptime checks on `/`, `/login`, and a lightweight health endpoint when introduced.
+### Payments (Razorpay)
 
----
+| Variable | Notes |
+| --- | --- |
+| `PAYMENT_PROVIDER` | `razorpay` |
+| `PAYMENT_MODE` | `test` or `live` |
+| `RAZORPAY_KEY_ID` | `rzp_test_*` / `rzp_live_*` matching mode |
+| `RAZORPAY_KEY_SECRET` | Server only |
+| `RAZORPAY_WEBHOOK_SECRET` | Server only |
 
-## Post-launch checklist
+### Live money additional
 
-- [ ] Real `SITE_URL` + TLS + DNS
-- [ ] `AUTH_SECRET` rotated and unique
-- [ ] `REPOSITORY_DRIVER=prisma`, migrations applied
-- [ ] No demo users; staff MFA plan executed
-- [ ] Razorpay live keys + webhook verified
-- [ ] `ALLOW_MOCK_PAYMENTS` / `ALLOW_DEMO_SEED` / `CONTENT_INCLUDE_SAMPLE` off
-- [ ] Verified privacy policy & terms published
-- [ ] Contact details real (no placeholders)
-- [ ] SAMPLE content removed or unpublished
-- [ ] Public CMS source of truth decided and implemented
-- [ ] Backups + restore drill documented
-- [ ] Edge rate limits + alerting live
-- [ ] Treasurer reconciliation process documented
-- [ ] Incident contact / break-glass SUPER_ADMIN procedure
+| Variable | Notes |
+| --- | --- |
+| `REQUIRE_STAFF_MFA` | Must be `true` for `PAYMENT_MODE=live` |
+| `EMAIL_PROVIDER` | `resend` |
+| `RESEND_API_KEY` | Server only |
+| `EMAIL_FROM` | Verified sender |
+| `CRON_SECRET` | Bearer token for reconcile cron |
 
----
+### Recommended
 
-## Architecture notes (handoff)
+| Variable | Notes |
+| --- | --- |
+| `CONTACT_PUBLIC_EMAIL` / `PHONE` / `HOURS` | Public contact |
+| `MEDIA_STORAGE_DRIVER` | `s3` in multi-instance prod |
+| `MEDIA_S3_*` | When driver is `s3` |
 
-```
-Public (content/*)     Member portal          Admin portal
-      |                     |                        |
-      +-------- App Router + Auth.js session --------+
-                            |
-                     Services / RBAC
-                            |
-              Prisma <--> Postgres
-                            |
-              PaymentProvider <--> Razorpay / mock
-                            |
-              Webhooks (signed, idempotent)
-```
+### Forbidden on production DB
 
-Trust boundary details and threat model: [`docs/security.md`](./security.md).
+`E2E_TEST=1`, `ALLOW_DEMO_SEED=true`, unpaired mock payment flags, weak `AUTH_SECRET`.
 
 ---
 
-## Testing expectations before go-live
+## 5. Required external accounts
 
-Minimum:
-
-```bash
-npm run lint
-npm run typecheck
-npm test
-npm run build
-```
-
-Recommended additions before live payments:
-
-- Razorpay test-mode webhook suite (order → payment linkage)
-- RBAC matrix tests (treasurer vs content manager)
-- IDOR tests for payments/receipts
-- Staging load smoke on login + webhooks
+1. **Hosting** for Node.js (or container) with HTTPS termination  
+2. **Managed PostgreSQL** with automated backups  
+3. **Razorpay** merchant account (test + live keys)  
+4. **DNS** for the Club domain  
+5. **Resend** (or equivalent later) for transactional email  
+6. **Object storage** (S3/R2) when not using single-node local media  
+7. **Log aggregation** (host native, Datadog, etc.)
 
 ---
 
-## Content architecture guidance
+## 6. Required payment-provider configuration
 
-- Keep `provenance: "verified" | "sample" | "placeholder"` discipline.
-- Production must not index sample content.
-- Replace placeholders in contact, privacy, registration, and heritage before public launch.
-- Plan a single write path (Prisma → public queries, or admin publishing into content pipeline) before promising CMS self-service to the committee.
+1. Create Razorpay webhook for `payment.*` / mandate events →  
+   `https://<domain>/api/webhooks/payments/razorpay`
+2. Use webhook secret = `RAZORPAY_WEBHOOK_SECRET`
+3. Keep test and live keyspaces separate (`PAYMENT_MODE` must match key prefix)
+4. Prefer hosted checkout / `short_url` flows already integrated
+5. Certify in **test mode**: success, failure, duplicate delivery, amount mismatch, mandate cancel
+6. Only then switch `PAYMENT_MODE=live` with `rzp_live_*` keys
+
+---
+
+## 7. Required database configuration
+
+1. PostgreSQL 14+ recommended  
+2. Apply migrations: `npm run db:migrate:deploy`  
+3. **Never** `db:seed` on production  
+4. Create the first SUPER_ADMIN out-of-band (SQL/`bcrypt` hash) — do not use `admin@rjgc.local`  
+5. Enable PITR / daily backups; test restore quarterly  
+6. Restrict DB network to app + admin break-glass only  
+
+---
+
+## 8. Deployment steps
+
+1. Set all production env vars on the host (from §4).  
+2. `npm ci`  
+3. `npm run db:migrate:deploy`  
+4. `npx prisma generate`  
+5. `npm run build`  
+6. Start process (`npm start` / systemd / container).  
+7. Attach custom domain + TLS.  
+8. Configure Razorpay webhook + Resend domain.  
+9. Schedule reconcile cron (every 15–60 minutes):  
+   `curl -X POST -H "Authorization: Bearer $CRON_SECRET" https://<domain>/api/cron/reconcile-payments`  
+10. Enroll MFA for every staff user under **Admin → Settings**.  
+11. Publish verified CMS content; set `CONTACT_PUBLIC_*`.  
+12. Confirm privacy/terms URLs are linked in the footer.
+
+---
+
+## 9. Post-deployment verification checklist
+
+- [ ] `https://<domain>` loads; no mixed content  
+- [ ] `/robots.txt` and `/sitemap.xml` use the production host  
+- [ ] `/privacy` and `/terms` show operative English policies  
+- [ ] Member login works; member cannot open `/admin`  
+- [ ] Staff login with MFA code works; wrong TOTP fails  
+- [ ] With `REQUIRE_STAFF_MFA=true`, staff without MFA are forced to Settings  
+- [ ] Razorpay **test** payment + webhook marks SUCCESS once (idempotent on replay)  
+- [ ] Forged webhook signature → 401  
+- [ ] Reconcile cron returns 200 with valid bearer token; 401 without  
+- [ ] Admin export CSV does not execute formula injection  
+- [ ] Application logs are JSON; no passwords/tokens in samples  
+- [ ] Database backup restore drill completed  
+- [ ] `ALLOW_DEMO_SEED` / `E2E_TEST` / mock payment dual flags unset  
+- [ ] Only after all above: consider `PAYMENT_MODE=live`
+
+---
+
+## 10. Explicit non-claims
+
+- This review does **not** replace legal counsel for privacy/terms in your jurisdiction.  
+- This review does **not** certify Razorpay live settlement readiness without your test-mode certification.  
+- Bengali typography is **out of scope** (English-only product rule).  
+- PWA / service workers were evaluated and **not** added (no clear offline/payment value vs complexity).

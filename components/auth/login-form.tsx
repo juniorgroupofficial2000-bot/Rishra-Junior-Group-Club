@@ -3,7 +3,7 @@
 import { loginAction, type LoginActionState } from "@/app/(auth)/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 const initialState: LoginActionState = { status: "idle" };
 
@@ -17,12 +17,19 @@ export function LoginForm({
   showDemoHint?: boolean;
 }) {
   const [state, formAction, pending] = useActionState(loginAction, initialState);
+  const [showTotp, setShowTotp] = useState(false);
+
+  if (state.status === "mfa_required" && !showTotp) {
+    setShowTotp(true);
+  }
 
   return (
     <form action={formAction} className="space-y-5" noValidate>
       <input type="hidden" name="callbackUrl" value={callbackUrl} />
 
-      {(state.status === "error" && state.message) || errorCode ? (
+      {(state.status === "error" && state.message) ||
+      (state.status === "mfa_required" && state.message) ||
+      errorCode ? (
         <div
           role="alert"
           className="rounded-md border border-alta-100 bg-alta-50 px-4 py-3 text-sm text-alta-700"
@@ -54,8 +61,26 @@ export function LoginForm({
         error={state.fieldErrors?.password?.[0]}
       />
 
+      {showTotp ? (
+        <Input
+          id="totp"
+          name="totp"
+          type="text"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          label="Authenticator code"
+          required
+          error={state.fieldErrors?.totp?.[0]}
+          placeholder="6-digit code"
+        />
+      ) : null}
+
       <Button type="submit" className="w-full" disabled={pending}>
-        {pending ? "Signing in…" : "Sign in"}
+        {pending
+          ? "Signing in…"
+          : showTotp
+            ? "Verify and sign in"
+            : "Sign in"}
       </Button>
 
       {showDemoHint ? (

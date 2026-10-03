@@ -1,5 +1,9 @@
 import { publicPages, type PublicPageKey } from "@/content/pages";
-import { absoluteUrl, getSiteUrl, seoDefaults } from "@/lib/seo/config";
+import {
+  absoluteUrl,
+  getSiteUrl,
+  seoDefaults,
+} from "@/lib/seo/config";
 import type { Metadata } from "next";
 
 export type BuildMetadataInput = {
@@ -10,6 +14,9 @@ export type BuildMetadataInput = {
   absoluteTitle?: boolean;
   noIndex?: boolean;
   ogType?: "website" | "article";
+  /** ISO 8601 for article Open Graph. */
+  publishedTime?: string;
+  modifiedTime?: string;
   image?: {
     url: string;
     width?: number;
@@ -18,6 +25,32 @@ export type BuildMetadataInput = {
   };
 };
 
+function resolveImage(input?: BuildMetadataInput["image"]) {
+  const fallback = {
+    url: absoluteUrl(seoDefaults.defaultOgImagePath),
+    width: 1200,
+    height: 630,
+    alt: seoDefaults.siteName,
+  };
+  if (!input) return fallback;
+  return {
+    url: input.url.startsWith("http") ? input.url : absoluteUrl(input.url),
+    width: input.width ?? 1200,
+    height: input.height ?? 630,
+    alt: input.alt ?? seoDefaults.siteName,
+  };
+}
+
+function displayTitle(input: BuildMetadataInput): string {
+  if (input.absoluteTitle) {
+    return input.title ?? seoDefaults.defaultTitle;
+  }
+  if (input.title) {
+    return `${input.title} · ${seoDefaults.siteName}`;
+  }
+  return seoDefaults.defaultTitle;
+}
+
 /** Shared Metadata API builder — canonical, Open Graph, Twitter. */
 export function buildMetadata(input: BuildMetadataInput): Metadata {
   const canonicalPath = input.path.startsWith("/") ? input.path : `/${input.path}`;
@@ -25,52 +58,56 @@ export function buildMetadata(input: BuildMetadataInput): Metadata {
   const title = input.absoluteTitle
     ? { absolute: input.title ?? seoDefaults.defaultTitle }
     : input.title;
-
-  const imageUrl = input.image
-    ? input.image.url.startsWith("http")
-      ? input.image.url
-      : absoluteUrl(input.image.url)
-    : undefined;
+  const ogTitle = displayTitle(input);
+  const image = resolveImage(input.image);
 
   return {
     metadataBase: new URL(getSiteUrl()),
     title,
     description: input.description,
-    alternates: {
-      canonical: canonicalPath,
-    },
+    alternates: input.noIndex
+      ? undefined
+      : {
+          canonical: canonicalPath,
+          // English-only site: no Bengali hreflang alternates.
+          languages: {
+            "en-IN": canonicalPath,
+            en: canonicalPath,
+          },
+        },
     robots: input.noIndex
-      ? { index: false, follow: false, googleBot: { index: false, follow: false } }
+      ? {
+          index: false,
+          follow: false,
+          nocache: true,
+          googleBot: { index: false, follow: false, noimageindex: true },
+        }
       : { index: true, follow: true },
     openGraph: {
-      title:
-        typeof title === "object" && title && "absolute" in title
-          ? title.absolute
-          : `${input.title ?? seoDefaults.defaultTitle} · ${seoDefaults.siteName}`,
+      title: ogTitle,
       description: input.description,
-      url,
+      url: input.noIndex ? undefined : url,
       siteName: seoDefaults.siteName,
       locale: seoDefaults.locale,
       type: input.ogType ?? "website",
-      images: imageUrl
-        ? [
-            {
-              url: imageUrl,
-              width: input.image?.width,
-              height: input.image?.height,
-              alt: input.image?.alt ?? seoDefaults.siteName,
-            },
-          ]
-        : undefined,
+      ...(input.publishedTime
+        ? { publishedTime: input.publishedTime }
+        : {}),
+      ...(input.modifiedTime ? { modifiedTime: input.modifiedTime } : {}),
+      images: [
+        {
+          url: image.url,
+          width: image.width,
+          height: image.height,
+          alt: image.alt,
+        },
+      ],
     },
     twitter: {
       card: seoDefaults.twitterCard,
-      title:
-        typeof title === "object" && title && "absolute" in title
-          ? title.absolute
-          : (input.title ?? seoDefaults.defaultTitle),
+      title: ogTitle,
       description: input.description,
-      images: imageUrl ? [imageUrl] : undefined,
+      images: [image.url],
     },
   };
 }
@@ -78,7 +115,7 @@ export function buildMetadata(input: BuildMetadataInput): Metadata {
 export function metadataForPublicPage(key: PublicPageKey): Metadata {
   const page = publicPages[key];
   return buildMetadata({
-    title: key === "home" ? undefined : page.title,
+    title: key === "home" ? seoDefaults.defaultTitle : page.title,
     absoluteTitle: key === "home",
     description: page.description,
     path: page.path,
@@ -86,14 +123,34 @@ export function metadataForPublicPage(key: PublicPageKey): Metadata {
   });
 }
 
-/** Portal / admin pages — never indexed. */
-export function privatePageMetadata(title: string, description?: string): Metadata {
+/** 404 / missing entity metadata — never indexed. */
+export function notFoundMetadata(title = "Not found"): Metadata {
   return buildMetadata({
+    title,
+    description: `${title} — ${seoDefaults.siteName}.`,
+    path: "/",
+    noIndex: true,
+  });
+}
+
+/**
+ * Portal / admin / auth pages — never indexed.
+ * Does not emit a public canonical URL.
+ */
+export function privatePageMetadata(
+  title: string,
+  description?: string,
+): Metadata {
+  return {
     title,
     description:
       description ??
       `${title} for ${seoDefaults.siteName}. Sign-in required.`,
-    path: "/",
-    noIndex: true,
-  });
+    robots: {
+      index: false,
+      follow: false,
+      nocache: true,
+      googleBot: { index: false, follow: false, noimageindex: true },
+    },
+  };
 }

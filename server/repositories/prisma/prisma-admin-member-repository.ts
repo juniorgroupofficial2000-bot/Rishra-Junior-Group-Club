@@ -1,6 +1,7 @@
 import "server-only";
 
 import { AuditActions } from "@/server/audit/actions";
+import { portalLoginAllowed } from "@/server/domain/member-lifecycle";
 import { prisma } from "@/server/db/prisma";
 import type {
   AdminMemberRecord,
@@ -18,6 +19,21 @@ const memberInclude = {
     orderBy: { updatedAt: "desc" as const },
     take: 3,
   },
+  portraitAsset: {
+    select: { id: true, status: true, deletedAt: true },
+  },
+  committeeAssignments: {
+    where: { deletedAt: null },
+    include: { position: { select: { title: true, code: true } } },
+    take: 1,
+    orderBy: { updatedAt: "desc" as const },
+  },
+  payments: {
+    where: { deletedAt: null },
+    select: { status: true },
+    orderBy: { createdAt: "desc" as const },
+    take: 1,
+  },
 } satisfies Prisma.MemberInclude;
 
 function buildWhere(
@@ -29,12 +45,52 @@ function buildWhere(
     where.deletedAt = null;
   }
 
+  if (params.ids?.length) {
+    where.id = { in: params.ids };
+  }
+
   if (params.status) {
     where.status = params.status;
   }
 
   if (typeof params.sampleOnly === "boolean") {
     where.isSample = params.sampleOnly;
+  }
+
+  if (params.planId) {
+    where.memberships = {
+      some: {
+        planId: params.planId,
+        isCurrent: true,
+        deletedAt: null,
+      },
+    };
+  }
+
+  if (params.committeeRole?.trim()) {
+    where.committeeAssignments = {
+      some: {
+        deletedAt: null,
+        position: {
+          OR: [
+            { code: { equals: params.committeeRole.trim(), mode: "insensitive" } },
+            {
+              title: {
+                contains: params.committeeRole.trim(),
+                mode: "insensitive",
+              },
+            },
+          ],
+        },
+      },
+    };
+  }
+
+  if (params.joinedFrom || params.joinedTo) {
+    where.joinedOn = {
+      ...(params.joinedFrom ? { gte: params.joinedFrom } : {}),
+      ...(params.joinedTo ? { lte: params.joinedTo } : {}),
+    };
   }
 
   if (params.query?.trim()) {
@@ -51,6 +107,25 @@ function buildWhere(
   }
 
   return where;
+}
+
+function buildOrderBy(
+  params: AdminMemberSearchParams,
+): Prisma.MemberOrderByWithRelationInput[] {
+  const dir = params.sortDir ?? "desc";
+  const sortBy = params.sortBy ?? "updatedAt";
+  switch (sortBy) {
+    case "joinedOn":
+      return [{ joinedOn: dir }, { membershipNumber: "asc" }];
+    case "membershipNumber":
+      return [{ membershipNumber: dir }];
+    case "displayName":
+      return [{ displayName: dir }];
+    case "status":
+      return [{ status: dir }, { displayName: "asc" }];
+    default:
+      return [{ updatedAt: dir }, { membershipNumber: "asc" }];
+  }
 }
 
 async function writeAudit(input: {
@@ -79,6 +154,7 @@ export const prismaAdminMemberRepository: AdminMemberRepository = {
           displayName: input.displayName,
           email: input.email,
           phone: input.phone,
+          dateOfBirth: input.dateOfBirth ?? null,
           status: input.status,
           joinedOn: input.joinedOn ?? null,
           addressLine1: input.addressLine1,
@@ -87,6 +163,10 @@ export const prismaAdminMemberRepository: AdminMemberRepository = {
           state: input.state,
           postalCode: input.postalCode,
           country: input.country,
+          emergencyContactName: input.emergencyContactName,
+          emergencyContactPhone: input.emergencyContactPhone,
+          reviewNotes: input.reviewNotes,
+          portraitAssetId: input.portraitAssetId ?? null,
           internalNotes: input.internalNotes,
           userId: input.userId ?? null,
           createdById: actorUserId,
@@ -137,9 +217,6 @@ export const prismaAdminMemberRepository: AdminMemberRepository = {
     await prisma.member.update({
       where: { id },
       data: {
-        ...(input.membershipNumber !== undefined
-          ? { membershipNumber: input.membershipNumber }
-          : {}),
         ...(input.firstName !== undefined ? { firstName: input.firstName } : {}),
         ...(input.lastName !== undefined ? { lastName: input.lastName } : {}),
         ...(input.displayName !== undefined
@@ -147,7 +224,9 @@ export const prismaAdminMemberRepository: AdminMemberRepository = {
           : {}),
         ...(input.email !== undefined ? { email: input.email } : {}),
         ...(input.phone !== undefined ? { phone: input.phone } : {}),
-        ...(input.status !== undefined ? { status: input.status } : {}),
+        ...(input.dateOfBirth !== undefined
+          ? { dateOfBirth: input.dateOfBirth }
+          : {}),
         ...(input.joinedOn !== undefined ? { joinedOn: input.joinedOn } : {}),
         ...(input.addressLine1 !== undefined
           ? { addressLine1: input.addressLine1 }
@@ -161,10 +240,23 @@ export const prismaAdminMemberRepository: AdminMemberRepository = {
           ? { postalCode: input.postalCode }
           : {}),
         ...(input.country !== undefined ? { country: input.country } : {}),
+        ...(input.emergencyContactName !== undefined
+          ? { emergencyContactName: input.emergencyContactName }
+          : {}),
+        ...(input.emergencyContactPhone !== undefined
+          ? { emergencyContactPhone: input.emergencyContactPhone }
+          : {}),
         ...(input.internalNotes !== undefined
           ? { internalNotes: input.internalNotes }
           : {}),
+        ...(input.reviewNotes !== undefined
+          ? { reviewNotes: input.reviewNotes }
+          : {}),
         ...(input.userId !== undefined ? { userId: input.userId } : {}),
+        ...(input.portraitAssetId !== undefined
+          ? { portraitAssetId: input.portraitAssetId }
+          : {}),
+        ...(input.planId === undefined ? {} : {}),
         updatedById: actorUserId,
       },
     });
@@ -210,26 +302,30 @@ export const prismaAdminMemberRepository: AdminMemberRepository = {
       data: {
         deletedAt: new Date(),
         updatedById: actorUserId,
-        status: "INACTIVE",
+        status: "ARCHIVED",
+        statusReason: "Soft-deleted / archived",
       },
-      select: { userId: true },
+      select: { userId: true, email: true },
     });
 
-    // Soft-deleted MEMBER logins lose access. Staff accounts keep login.
-    if (member.userId) {
-      await prisma.user.updateMany({
-        where: {
-          id: member.userId,
-          role: { in: ["MEMBER", "PUBLIC"] },
-        },
-        data: { active: false, updatedById: actorUserId },
-      });
-    }
+    // Disable the portal login for the linked account (and same-email MEMBER users
+    // if the link was already cleared) so soft-delete cannot leave a redirect loop.
+    await prisma.user.updateMany({
+      where: {
+        role: { in: ["MEMBER", "PUBLIC"] },
+        OR: [
+          ...(member.userId ? [{ id: member.userId }] : []),
+          { email: member.email },
+        ],
+      },
+      data: { active: false, updatedById: actorUserId },
+    });
 
     await writeAudit({
       actorUserId,
       action: AuditActions.MEMBER_DELETED,
       entityId: id,
+      metadata: { retainedFinancialHistory: true, status: "ARCHIVED" },
     });
   },
 
@@ -250,7 +346,7 @@ export const prismaAdminMemberRepository: AdminMemberRepository = {
       prisma.member.findMany({
         where,
         include: memberInclude,
-        orderBy: [{ updatedAt: "desc" }, { membershipNumber: "asc" }],
+        orderBy: buildOrderBy(params),
         skip,
         take: params.pageSize,
       }),
@@ -264,37 +360,63 @@ export const prismaAdminMemberRepository: AdminMemberRepository = {
     };
   },
 
-  async setStatus(id, status, actorUserId, reason) {
+  async setStatus(id, status, actorUserId, reason, reviewNotes) {
     const member = await prisma.member.update({
       where: { id },
       data: {
         status,
+        statusReason: reason ?? null,
+        ...(reviewNotes !== undefined ? { reviewNotes } : {}),
+        ...(status === "ACTIVE" && { joinedOn: undefined }),
         updatedById: actorUserId,
       },
       include: memberInclude,
     });
 
-    // Only MEMBER/PUBLIC portal logins follow membership status.
-    // Staff roles are not auto-disabled by membership changes.
+    // Set joinedOn on first activation if missing
+    if (status === "ACTIVE" && !member.joinedOn) {
+      await prisma.member.update({
+        where: { id },
+        data: { joinedOn: new Date() },
+      });
+    }
+
     if (member.userId) {
-      const portalAllowed = status === "ACTIVE";
       await prisma.user.updateMany({
         where: {
           id: member.userId,
           role: { in: ["MEMBER", "PUBLIC"] },
         },
-        data: { active: portalAllowed, updatedById: actorUserId },
+        data: {
+          active: portalLoginAllowed(status),
+          updatedById: actorUserId,
+        },
       });
     }
 
+    const statusAction =
+      status === "APPROVED" || status === "ACTIVE"
+        ? AuditActions.MEMBER_APPROVED
+        : status === "SUSPENDED"
+          ? AuditActions.MEMBER_SUSPENDED
+          : AuditActions.MEMBER_STATUS_CHANGED;
+
     await writeAudit({
       actorUserId,
-      action: AuditActions.MEMBER_STATUS_CHANGED,
+      action: statusAction,
       entityId: id,
-      metadata: { status, reason: reason ?? null },
+      metadata: {
+        status,
+        reason: reason ?? null,
+        reviewNotes: reviewNotes ?? null,
+      },
     });
 
-    return toAdminMemberRecord(member);
+    const refreshed = await prisma.member.findUniqueOrThrow({
+      where: { id },
+      include: memberInclude,
+    });
+    return toAdminMemberRecord(refreshed);
   },
 
   async listForExport(params) {

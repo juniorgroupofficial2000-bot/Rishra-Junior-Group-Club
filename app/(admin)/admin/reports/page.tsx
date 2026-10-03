@@ -1,12 +1,14 @@
 import { AdminSectionPage } from "@/components/admin/admin-section-page";
 import { SimpleBarChart } from "@/components/admin/simple-bar-chart";
 import { DashboardPanel } from "@/components/club/dashboard";
+import { RecordCard, ResponsiveRecords } from "@/components/ui/record-card";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { Permissions } from "@/server/domain/permissions";
 import { requirePermission } from "@/server/auth/session";
 import { loadAdminReportsSummary } from "@/server/services/admin-catalog-service";
 import { ReportTypes } from "@/server/reports/report-service";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Reports",
@@ -33,7 +35,7 @@ export default async function AdminReportsPage() {
     >
       <DashboardPanel
         title="CSV exports"
-        description="Download full report tables for offline review"
+        description="Authorization-checked downloads. For filtered payment/mandate extracts use the Payments and Mandates screens."
       >
         <ul className="grid gap-2 sm:grid-cols-2">
           {ReportTypes.map((type) => (
@@ -46,6 +48,24 @@ export default async function AdminReportsPage() {
               </a>
             </li>
           ))}
+          <li>
+            <Link
+              href="/api/admin/export/payments"
+              prefetch={false}
+              className="flex min-h-11 items-center rounded-md border border-border-default px-3 text-sm font-medium text-ink-800 hover:bg-ink-50"
+            >
+              Payments ledger export (CSV)
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/api/admin/export/mandates"
+              prefetch={false}
+              className="flex min-h-11 items-center rounded-md border border-border-default px-3 text-sm font-medium text-ink-800 hover:bg-ink-50"
+            >
+              Mandates export (CSV)
+            </Link>
+          </li>
         </ul>
       </DashboardPanel>
 
@@ -72,24 +92,38 @@ export default async function AdminReportsPage() {
         title="Payments by status"
         description="Counts and recorded totals — not live settlement data"
       >
-        <Table>
-          <THead>
-            <TR>
-              <TH>Status</TH>
-              <TH>Count</TH>
-              <TH>Amount</TH>
-            </TR>
-          </THead>
-          <TBody>
-            {reports.paymentsByStatus.map((row) => (
-              <TR key={row.status}>
-                <TD>{row.status.replaceAll("_", " ")}</TD>
-                <TD>{row.count}</TD>
-                <TD>{row.amountLabel}</TD>
-              </TR>
-            ))}
-          </TBody>
-        </Table>
+        <ResponsiveRecords
+          mobile={reports.paymentsByStatus.map((row) => (
+            <RecordCard
+              key={row.status}
+              title={row.status.replaceAll("_", " ")}
+              fields={[
+                { label: "Count", value: row.count },
+                { label: "Amount", value: row.amountLabel },
+              ]}
+            />
+          ))}
+          desktop={
+            <Table>
+              <THead>
+                <TR>
+                  <TH>Status</TH>
+                  <TH>Count</TH>
+                  <TH>Amount</TH>
+                </TR>
+              </THead>
+              <TBody>
+                {reports.paymentsByStatus.map((row) => (
+                  <TR key={row.status}>
+                    <TD>{row.status.replaceAll("_", " ")}</TD>
+                    <TD>{row.count}</TD>
+                    <TD>{row.amountLabel}</TD>
+                  </TR>
+                ))}
+              </TBody>
+            </Table>
+          }
+        />
       </DashboardPanel>
     </AdminSectionPage>
   );

@@ -2,14 +2,28 @@
 
 import { ClipImageReveal, Reveal, SlideIn } from "@/components/motion";
 import { SiteContainer } from "@/components/public/site-container";
-import { homeContent } from "@/content/home";
+import { homeContent, type HomeContent } from "@/content/home";
 import { HomeImage } from "./home-image";
 import { HomeLink } from "./home-link";
 import { HomeSectionHeading } from "./home-section-heading";
 
-const content = homeContent.location;
+function isConfigured(value: string): boolean {
+  const v = value.trim();
+  if (!v) return false;
+  if (v.startsWith("[") && v.endsWith("]")) return false;
+  if (v.toLowerCase().includes("set contact_public")) return false;
+  return true;
+}
 
-export function HomeLocation() {
+export function HomeLocation({
+  content = homeContent.location,
+}: {
+  content?: HomeContent["location"];
+} = {}) {
+  const hasEmail = isConfigured(content.email);
+  const hasPhone = isConfigured(content.phone);
+  const hasHours = isConfigured(content.hours);
+
   return (
     <section
       aria-labelledby="home-location-heading"
@@ -36,20 +50,33 @@ export function HomeLocation() {
                 ))}
               </p>
             </address>
-            <dl className="mt-6 space-y-3 text-sm">
-              <div>
-                <dt className="font-medium text-ink-800">Email</dt>
-                <dd className="text-ink-600">{content.email}</dd>
-              </div>
-              <div>
-                <dt className="font-medium text-ink-800">Phone</dt>
-                <dd className="text-ink-600">{content.phone}</dd>
-              </div>
-              <div>
-                <dt className="font-medium text-ink-800">Hours</dt>
-                <dd className="text-ink-600">{content.hours}</dd>
-              </div>
-            </dl>
+            {hasEmail || hasPhone || hasHours ? (
+              <dl className="mt-6 space-y-3 text-sm">
+                {hasEmail ? (
+                  <div>
+                    <dt className="font-medium text-ink-800">Email</dt>
+                    <dd className="text-ink-600">{content.email}</dd>
+                  </div>
+                ) : null}
+                {hasPhone ? (
+                  <div>
+                    <dt className="font-medium text-ink-800">Phone</dt>
+                    <dd className="text-ink-600">{content.phone}</dd>
+                  </div>
+                ) : null}
+                {hasHours ? (
+                  <div>
+                    <dt className="font-medium text-ink-800">Hours</dt>
+                    <dd className="text-ink-600">{content.hours}</dd>
+                  </div>
+                ) : null}
+              </dl>
+            ) : (
+              <p className="mt-6 text-sm leading-relaxed text-ink-500">
+                Public email and phone will be published when confirmed by the
+                committee.
+              </p>
+            )}
             <div className="mt-8">
               <HomeLink {...content.cta} appearance="solid" className="group" />
             </div>

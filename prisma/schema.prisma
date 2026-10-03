@@ -27,11 +27,16 @@ enum AppRole {
   SUPER_ADMIN
 }
 
+/// Person lifecycle (not plan MembershipStatus).
+/// Application → Pending review → Approved → Active → Suspended/Inactive → Archived
 enum MemberStatus {
-  ACTIVE
+  APPLICATION
   PENDING
-  INACTIVE
+  APPROVED
+  ACTIVE
   SUSPENDED
+  INACTIVE
+  ARCHIVED
 }
 
 enum MembershipStatus {
@@ -128,7 +133,39 @@ enum MediaType {
   OTHER
 }
 
+/// Intended use for uploaded image assets (binaries live in object storage).
+enum MediaPurpose {
+  COMMITTEE_PORTRAIT
+  MEMBER_PORTRAIT
+  GALLERY
+  EVENT
+  PUJA
+  HERO
+  GENERAL
+}
+
+enum MediaAssetStatus {
+  PROCESSING
+  READY
+  FAILED
+  ARCHIVED
+}
+
 enum AnnouncementStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum AnnouncementPriority {
+  NORMAL
+  HIGH
+  URGENT
+}
+
+/// Public CMS visibility for editable club content.
+enum ContentStatus {
   DRAFT
   PUBLISHED
   ARCHIVED
@@ -152,6 +189,10 @@ model User {
   role           AppRole   @default(PUBLIC)
   active         Boolean   @default(true)
   emailVerifiedAt DateTime?
+  /** AES-GCM ciphertext of TOTP secret (base64); never log. */
+  mfaTotpSecretEnc String?
+  mfaEnabled       Boolean   @default(false)
+  mfaVerifiedAt    DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   deletedAt      DateTime?
@@ -180,6 +221,7 @@ model User {
   attendanceRecorded   EventAttendance[]     @relation("AttendanceRecordedBy")
   announcementsCreated Announcement[]        @relation("AnnouncementCreatedBy")
   albumsCreated        GalleryAlbum[]        @relation("AlbumCreatedBy")
+  mediaAssetsCreated   MediaAsset[]          @relation("MediaAssetCreatedBy")
 
   @@index([role])
   @@index([active])
@@ -189,12 +231,14 @@ model User {
 model Member {
   id               String       @id @default(cuid())
   userId           String?      @unique
+  /// Human-readable immutable membership ID (e.g. RJGC-2026-0042). Never the cuid.
   membershipNumber String       @unique
   firstName        String
   lastName         String
   displayName      String
   email            String
   phone            String?
+  dateOfBirth      DateTime?
   status           MemberStatus @default(PENDING)
   joinedOn         DateTime?
   addressLine1     String?
@@ -203,6 +247,13 @@ model Member {
   state            String?
   postalCode       String?
   country          String?      @default("IN")
+  emergencyContactName  String?
+  emergencyContactPhone String?
+  /// Opaque public token for digital card QR verification — not the cuid.
+  cardPublicId     String       @unique @default(cuid())
+  reviewNotes      String?
+  statusReason     String?
+  portraitAssetId  String?
   internalNotes    String?
   isSample         Boolean      @default(false)
   createdAt        DateTime     @default(now())
@@ -211,9 +262,10 @@ model Member {
   createdById      String?
   updatedById      String?
 
-  user      User?  @relation(fields: [userId], references: [id])
-  createdBy User?  @relation("MemberCreatedBy", fields: [createdById], references: [id])
-  updatedBy User?  @relation("MemberUpdatedBy", fields: [updatedById], references: [id])
+  user          User?       @relation(fields: [userId], references: [id])
+  createdBy     User?       @relation("MemberCreatedBy", fields: [createdById], references: [id])
+  updatedBy     User?       @relation("MemberUpdatedBy", fields: [updatedById], references: [id])
+  portraitAsset MediaAsset? @relation("MemberPortraitAsset", fields: [portraitAssetId], references: [id], onDelete: SetNull)
 
   memberships          Membership[]
   committeeAssignments CommitteeAssignment[]
@@ -230,6 +282,8 @@ model Member {
   @@index([isSample])
   @@index([joinedOn])
   @@index([status, deletedAt])
+  @@index([portraitAssetId])
+  @@index([cardPublicId])
 }
 
 // ─── Membership ──────────────────────────────────────────────────────────────
@@ -240,7 +294,7 @@ model MembershipPlan {
   name         String
   description  String?
   billingCycle BillingCycle
-  /// Amount in smallest currency unit (paise). Never a live checkout quote.
+  /// Amount in smallest currency unit (paise). Enforced > 0 at DB. Not a live checkout quote.
   amountPaise  Int
   currency     String       @default("INR")
   active       Boolean      @default(true)
@@ -271,10 +325,10 @@ model Membership {
   createdById String?
   updatedById String?
 
-  member    Member         @relation(fields: [memberId], references: [id])
-  plan      MembershipPlan @relation(fields: [planId], references: [id])
-  createdBy User?          @relation("MembershipCreatedBy", fields: [createdById], references: [id])
-  updatedBy User?          @relation("MembershipUpdatedBy", fields: [updatedById], references: [id])
+  member    Member         @relation(fields: [memberId], references: [id], onDelete: Restrict)
+  plan      MembershipPlan @relation(fields: [planId], references: [id], onDelete: Restrict)
+  createdBy User?          @relation("MembershipCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy User?          @relation("MembershipUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
   invoices  Invoice[]
 
   @@index([memberId])
@@ -283,22 +337,25 @@ model Membership {
   @@index([isCurrent])
   @@index([deletedAt])
   @@index([memberId, isCurrent])
+  /// Partial unique: at most one current membership per member — see SQL migration.
 }
 
 // ─── Committee ───────────────────────────────────────────────────────────────
 
 model CommitteePosition {
-  id          String    @id @default(cuid())
-  code        String    @unique
-  title       String
-  description String?
-  sortOrder   Int       @default(0)
-  active      Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
+  id                    String    @id @default(cuid())
+  code                  String    @unique
+  title                 String
+  description           String?
+  sortOrder             Int       @default(0)
+  active                Boolean   @default(true)
+  historicallyImportant Boolean   @default(false)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  deletedAt             DateTime?
 
-  assignments CommitteeAssignment[]
+  assignments           CommitteeAssignment[]
+  publicRosterMembers   PublicCommitteeMember[]
 
   @@index([active])
   @@index([sortOrder])
@@ -331,11 +388,13 @@ model CommitteeAssignment {
 
 // ─── Billing (no payment credentials stored) ─────────────────────────────────
 
+/// Billing document. Soft-delete only; hard delete blocked at DB (see migration).
 model Invoice {
   id           String        @id @default(cuid())
   memberId     String
   membershipId String?
   number       String        @unique
+  /// Amount in paise; enforced > 0 at DB.
   amountPaise  Int
   currency     String        @default("INR")
   status       InvoiceStatus @default(DRAFT)
@@ -345,12 +404,13 @@ model Invoice {
   isSample     Boolean       @default(false)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+  /// Soft-delete only. Never cascade-remove because a member becomes inactive.
   deletedAt    DateTime?
   createdById  String?
 
-  member     Member      @relation(fields: [memberId], references: [id])
-  membership Membership? @relation(fields: [membershipId], references: [id])
-  createdBy  User?       @relation("InvoiceCreatedBy", fields: [createdById], references: [id])
+  member     Member      @relation(fields: [memberId], references: [id], onDelete: Restrict)
+  membership Membership? @relation(fields: [membershipId], references: [id], onDelete: SetNull)
+  createdBy  User?       @relation("InvoiceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   payments   Payment[]
 
   @@index([memberId])
@@ -358,13 +418,17 @@ model Invoice {
   @@index([status])
   @@index([dueOn])
   @@index([deletedAt])
+  @@index([memberId, status])
 }
 
+/// Financial ledger row. Retained when members go inactive. Hard delete blocked at DB.
+/// After SUCCESS/REFUNDED, amount/member/currency are immutable (DB trigger).
 model Payment {
   id                 String        @id @default(cuid())
   memberId           String
   invoiceId          String?
   mandateId          String?
+  /// Amount in paise; enforced > 0 at DB.
   amountPaise        Int
   currency           String        @default("INR")
   status             PaymentStatus @default(CREATED)
@@ -380,13 +444,14 @@ model Payment {
   isSample           Boolean       @default(false)
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
+  /// Soft-delete only for rare compliance redaction — not used for member inactivity.
   deletedAt          DateTime?
   createdById        String?
 
-  member    Member           @relation(fields: [memberId], references: [id])
-  invoice   Invoice?         @relation(fields: [invoiceId], references: [id])
-  mandate   PaymentMandate?  @relation(fields: [mandateId], references: [id])
-  createdBy User?            @relation("PaymentCreatedBy", fields: [createdById], references: [id])
+  member    Member          @relation(fields: [memberId], references: [id], onDelete: Restrict)
+  invoice   Invoice?        @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  mandate   PaymentMandate? @relation(fields: [mandateId], references: [id], onDelete: Restrict)
+  createdBy User?           @relation("PaymentCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   attempts  PaymentAttempt[]
   receipt   Receipt?
 
@@ -399,8 +464,11 @@ model Payment {
   @@index([providerPaymentRef])
   @@index([deletedAt])
   @@index([isSample])
+  @@index([memberId, status, paidAt])
+  /// Partial uniques on (provider, providerPaymentRef|providerOrderRef) are in SQL migration.
 }
 
+/// Attempt history is retained with the payment (RESTRICT — never CASCADE-delete with payment).
 model PaymentAttempt {
   id                 String               @id @default(cuid())
   paymentId          String
@@ -413,13 +481,14 @@ model PaymentAttempt {
   attemptedAt        DateTime             @default(now())
   createdAt          DateTime             @default(now())
 
-  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Restrict)
 
   @@index([paymentId])
   @@index([status])
   @@index([providerAttemptRef])
 }
 
+/// Issued after verified SUCCESS. Immutable except soft-delete for compliance.
 model Receipt {
   id        String    @id @default(cuid())
   paymentId String    @unique
@@ -430,12 +499,13 @@ model Receipt {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  payment Payment @relation(fields: [paymentId], references: [id])
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Restrict)
 
   @@index([issuedOn])
   @@index([deletedAt])
 }
 
+/// Auto-debit authorization. Soft-cancel via status; payments keep mandateId (RESTRICT).
 model PaymentMandate {
   id                       String        @id @default(cuid())
   memberId                 String
@@ -456,7 +526,7 @@ model PaymentMandate {
   updatedAt                DateTime      @updatedAt
   deletedAt                DateTime?
 
-  member   Member    @relation(fields: [memberId], references: [id])
+  member   Member    @relation(fields: [memberId], references: [id], onDelete: Restrict)
   payments Payment[]
 
   @@index([memberId])
@@ -466,56 +536,73 @@ model PaymentMandate {
   @@index([nextDebitAt])
   @@index([deletedAt])
   @@index([memberId, status])
+  /// Partial unique: at most one open mandate per member — see SQL migration.
 }
 
 /// Persisted provider webhooks for idempotency and auditability.
 model ProviderWebhookEvent {
-  id               String                  @id @default(cuid())
-  provider         String
-  providerEventId  String
-  eventType        String
+  id                   String                  @id @default(cuid())
+  provider             String
+  providerEventId      String
+  eventType            String
   /// Raw verified payload JSON — never contains card/CVV/UPI PIN/passwords by design.
-  payload          Json
-  signatureValid   Boolean
-  processingStatus WebhookProcessingStatus @default(RECEIVED)
-  errorMessage     String?
-  processedAt      DateTime?
-  createdAt        DateTime                @default(now())
-  updatedAt        DateTime                @updatedAt
+  payload              Json
+  signatureValid       Boolean
+  processingStatus     WebhookProcessingStatus @default(RECEIVED)
+  errorMessage         String?
+  processingStartedAt  DateTime?
+  processedAt          DateTime?
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
 
   @@unique([provider, providerEventId])
   @@index([eventType])
   @@index([processingStatus])
   @@index([createdAt])
+  @@index([processingStatus, processingStartedAt])
 }
 
 // ─── Events ──────────────────────────────────────────────────────────────────
 
 model Event {
-  id          String      @id @default(cuid())
-  slug        String      @unique
-  title       String
-  description String?
-  startsAt    DateTime
-  endsAt      DateTime?
-  venueLabel  String?
-  status      EventStatus @default(DRAFT)
-  published   Boolean     @default(false)
-  isSample    Boolean     @default(false)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  deletedAt   DateTime?
-  createdById String?
-  updatedById String?
+  id                    String        @id @default(cuid())
+  slug                  String        @unique
+  title                 String
+  description           String?
+  startsAt              DateTime
+  endsAt                DateTime?
+  venueLabel            String?
+  /// Operational category for calendar grouping (event | meeting).
+  category              String        @default("event")
+  status                EventStatus   @default(DRAFT)
+  /// Operational schedule flag (legacy); keep in sync with contentStatus for public listing.
+  published             Boolean       @default(false)
+  contentStatus         ContentStatus @default(DRAFT)
+  historicallyImportant Boolean       @default(false)
+  /// When true, active members may register via the member portal.
+  registrationRequired  Boolean       @default(false)
+  /// Optional registration cap (null = unlimited).
+  capacity              Int?
+  coverAssetId          String?
+  isSample              Boolean       @default(false)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  deletedAt             DateTime?
+  createdById           String?
+  updatedById           String?
 
   createdBy     User?              @relation("EventCreatedBy", fields: [createdById], references: [id])
   updatedBy     User?              @relation("EventUpdatedBy", fields: [updatedById], references: [id])
+  coverAsset    MediaAsset?        @relation("EventCoverAsset", fields: [coverAssetId], references: [id], onDelete: SetNull)
   registrations EventRegistration[]
   attendances   EventAttendance[]
 
   @@index([startsAt])
   @@index([status])
   @@index([published])
+  @@index([contentStatus])
+  @@index([category])
+  @@index([coverAssetId])
   @@index([deletedAt])
 }
 
@@ -561,66 +648,306 @@ model EventAttendance {
 
 // ─── Media ───────────────────────────────────────────────────────────────────
 
+/// Image metadata only — binary objects live in object storage (local or S3).
+model MediaAsset {
+  id                    String           @id @default(cuid())
+  purpose               MediaPurpose     @default(GENERAL)
+  status                MediaAssetStatus @default(PROCESSING)
+  /// Stable slot for site heroes (e.g. home.hero, puja.hero). Unique when set.
+  slotKey               String?
+  originalFilename      String
+  storageKey            String           @unique
+  mimeType              String
+  byteSize              Int
+  width                 Int?
+  height                Int?
+  alt                   String
+  caption               String?
+  /// Responsive/thumbnail variants: { thumb|sm|md|lg|original: { key, width, height, byteSize, mimeType } }
+  variants              Json?
+  checksumSha256        String?
+  historicallyImportant Boolean          @default(false)
+  isSample              Boolean          @default(false)
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  deletedAt             DateTime?
+  createdById           String?
+
+  createdBy          User?                   @relation("MediaAssetCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  galleryItems       GalleryMedia[]
+  eventCovers        Event[]                 @relation("EventCoverAsset")
+  announcementCovers Announcement[]          @relation("AnnouncementCoverAsset")
+  committeePortraits PublicCommitteeMember[] @relation("CommitteePortraitAsset")
+  memberPortraits    Member[]                @relation("MemberPortraitAsset")
+  pujaCovers         PujaYear[]              @relation("PujaCoverAsset")
+
+  @@unique([slotKey])
+  @@index([purpose])
+  @@index([status])
+  @@index([deletedAt])
+  @@index([createdAt])
+}
+
 model GalleryAlbum {
-  id          String    @id @default(cuid())
-  slug        String    @unique
-  title       String
-  description String?
-  published   Boolean   @default(false)
-  isSample    Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
-  createdById String?
+  id                    String        @id @default(cuid())
+  slug                  String        @unique
+  title                 String
+  description           String?
+  published             Boolean       @default(false)
+  contentStatus         ContentStatus @default(DRAFT)
+  historicallyImportant Boolean       @default(false)
+  year                  Int?
+  coverUrl              String?
+  coverAlt              String?
+  sortOrder             Int           @default(0)
+  isSample              Boolean       @default(false)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  deletedAt             DateTime?
+  createdById           String?
 
   createdBy User?          @relation("AlbumCreatedBy", fields: [createdById], references: [id])
   media     GalleryMedia[]
 
   @@index([published])
+  @@index([contentStatus])
+  @@index([sortOrder])
   @@index([deletedAt])
 }
 
 model GalleryMedia {
-  id        String    @id @default(cuid())
-  albumId   String
-  type      MediaType @default(IMAGE)
-  /// Public/CDN URL or storage object key — not credentials.
-  url       String
-  caption   String?
-  sortOrder Int       @default(0)
-  isSample  Boolean   @default(false)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  id                    String        @id @default(cuid())
+  albumId               String
+  type                  MediaType     @default(IMAGE)
+  /// Legacy/public URL fallback — prefer mediaAssetId for managed uploads.
+  url                   String
+  mediaAssetId          String?
+  alt                   String?
+  caption               String?
+  sortOrder             Int           @default(0)
+  contentStatus         ContentStatus @default(DRAFT)
+  historicallyImportant Boolean       @default(false)
+  isSample              Boolean       @default(false)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  deletedAt             DateTime?
 
-  album GalleryAlbum @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  /// Restrict hard delete so historically important media is not erased with an album.
+  album      GalleryAlbum @relation(fields: [albumId], references: [id], onDelete: Restrict)
+  mediaAsset MediaAsset?  @relation(fields: [mediaAssetId], references: [id], onDelete: SetNull)
 
   @@index([albumId])
+  @@index([mediaAssetId])
   @@index([sortOrder])
+  @@index([contentStatus])
   @@index([deletedAt])
 }
 
 // ─── Communications ──────────────────────────────────────────────────────────
 
 model Announcement {
-  id          String             @id @default(cuid())
-  slug        String             @unique
-  title       String
-  body        String
-  status      AnnouncementStatus @default(DRAFT)
-  pinned      Boolean            @default(false)
-  publishedAt DateTime?
-  isSample    Boolean            @default(false)
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
-  deletedAt   DateTime?
-  createdById String?
+  id                    String                @id @default(cuid())
+  slug                  String                @unique
+  title                 String
+  summary               String?
+  body                  String
+  status                AnnouncementStatus    @default(DRAFT)
+  priority              AnnouncementPriority  @default(NORMAL)
+  category              String                @default("general")
+  pinned                Boolean               @default(false)
+  publishedAt           DateTime?
+  sortOrder             Int                   @default(0)
+  historicallyImportant Boolean               @default(false)
+  coverAssetId          String?
+  isSample              Boolean               @default(false)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  deletedAt             DateTime?
+  createdById           String?
 
-  createdBy User? @relation("AnnouncementCreatedBy", fields: [createdById], references: [id])
+  createdBy  User?       @relation("AnnouncementCreatedBy", fields: [createdById], references: [id])
+  coverAsset MediaAsset? @relation("AnnouncementCoverAsset", fields: [coverAssetId], references: [id], onDelete: SetNull)
 
   @@index([status])
+  @@index([priority])
   @@index([pinned])
   @@index([publishedAt])
+  @@index([sortOrder])
+  @@index([coverAssetId])
+  @@index([deletedAt])
+}
+
+// ─── Public CMS content ──────────────────────────────────────────────────────
+
+/// Editable homepage / page section payloads (JSON body validated in app layer).
+model SiteContentBlock {
+  id                    String        @id @default(cuid())
+  key                   String        @unique
+  title                 String
+  summary               String?
+  body                  Json
+  status                ContentStatus @default(DRAFT)
+  historicallyImportant Boolean       @default(false)
+  sortOrder             Int           @default(0)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  deletedAt             DateTime?
+  createdById           String?
+  updatedById           String?
+
+  @@index([status])
+  @@index([sortOrder])
+  @@index([deletedAt])
+}
+
+model TimelineEntry {
+  id                    String        @id @default(cuid())
+  yearLabel             String
+  date                  String?
+  title                 String
+  description           String
+  imageJson             Json?
+  galleryJson           Json?
+  milestone             Boolean       @default(false)
+  sortOrder             Int           @default(0)
+  status                ContentStatus @default(DRAFT)
+  provenance            String        @default("placeholder")
+  historicallyImportant Boolean       @default(false)
+  isSample              Boolean       @default(false)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  deletedAt             DateTime?
+  createdById           String?
+  updatedById           String?
+
+  @@index([status])
+  @@index([sortOrder])
+  @@index([deletedAt])
+}
+
+model FaqItem {
+  id                    String        @id @default(cuid())
+  question              String
+  answer                String
+  sortOrder             Int           @default(0)
+  status                ContentStatus @default(DRAFT)
+  historicallyImportant Boolean       @default(false)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  deletedAt             DateTime?
+  createdById           String?
+  updatedById           String?
+
+  @@index([status])
+  @@index([sortOrder])
+  @@index([deletedAt])
+}
+
+/// Programme stage for a Saraswati Puja celebration year.
+enum PujaScheduleStage {
+  PREPARATION
+  DECORATION
+  PUJA
+  PUSHPANJALI
+  CULTURAL
+  PRASAD
+  IMMERSION
+  OTHER
+}
+
+model PujaYear {
+  id                    String        @id @default(cuid())
+  year                  Int           @unique
+  title                 String
+  summary               String
+  theme                 String?
+  startsOn              DateTime?
+  endsOn                DateTime?
+  locationLabel         String?
+  locationDetail        String?
+  committeeNote         String?
+  highlights            Json?
+  coverJson             Json?
+  coverAssetId          String?
+  galleryJson           Json?
+  videosJson            Json?
+  documentsJson         Json?
+  href                  String?
+  sortOrder             Int           @default(0)
+  status                ContentStatus @default(DRAFT)
+  provenance            String        @default("placeholder")
+  historicallyImportant Boolean       @default(false)
+  isSample              Boolean       @default(false)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  deletedAt             DateTime?
+  createdById           String?
+  updatedById           String?
+
+  coverAsset    MediaAsset?         @relation("PujaCoverAsset", fields: [coverAssetId], references: [id], onDelete: SetNull)
+  scheduleItems PujaScheduleItem[]
+
+  @@index([status])
+  @@index([sortOrder])
+  @@index([year])
+  @@index([startsOn])
+  @@index([coverAssetId])
+  @@index([deletedAt])
+}
+
+model PujaScheduleItem {
+  id          String            @id @default(cuid())
+  pujaYearId  String
+  stage       PujaScheduleStage @default(OTHER)
+  title       String
+  description String?
+  startsAt    DateTime?
+  endsAt      DateTime?
+  sortOrder   Int               @default(0)
+  status      ContentStatus     @default(DRAFT)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  deletedAt   DateTime?
+
+  pujaYear PujaYear @relation(fields: [pujaYearId], references: [id], onDelete: Cascade)
+
+  @@index([pujaYearId])
+  @@index([stage])
+  @@index([startsAt])
+  @@index([status])
+  @@index([sortOrder])
+  @@index([deletedAt])
+}
+
+/// Public-facing committee roster (names + roles only; no personal contact data).
+model PublicCommitteeMember {
+  id                    String        @id @default(cuid())
+  roleKey               String
+  roleTitle             String
+  name                  String
+  familiarName          String?
+  displayName           String
+  biography             String?
+  termYear              Int?
+  sortOrder             Int           @default(0)
+  status                ContentStatus @default(DRAFT)
+  historicallyImportant Boolean       @default(false)
+  positionId            String?
+  portraitAssetId       String?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  deletedAt             DateTime?
+  createdById           String?
+  updatedById           String?
+
+  position      CommitteePosition? @relation(fields: [positionId], references: [id], onDelete: SetNull)
+  portraitAsset MediaAsset?        @relation("CommitteePortraitAsset", fields: [portraitAssetId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([sortOrder])
+  @@index([roleKey])
+  @@index([termYear])
+  @@index([portraitAssetId])
   @@index([deletedAt])
 }
 
@@ -647,17 +974,19 @@ model Notification {
 
 // ─── Audit ───────────────────────────────────────────────────────────────────
 
+/// Append-only at the application layer; UPDATE/DELETE blocked by DB trigger
+/// unless session setting app.allow_financial_delete = on (seed/tests only).
 model AuditLog {
-  id         String   @id @default(cuid())
+  id          String   @id @default(cuid())
   actorUserId String?
-  action     String
-  entityType String
-  entityId   String?
-  metadata   Json?
-  ipAddress  String?
-  createdAt  DateTime @default(now())
+  action      String
+  entityType  String
+  entityId    String?
+  metadata    Json?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
 
-  actor User? @relation("AuditActor", fields: [actorUserId], references: [id])
+  actor User? @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
 
   @@index([actorUserId])
   @@index([entityType, entityId])

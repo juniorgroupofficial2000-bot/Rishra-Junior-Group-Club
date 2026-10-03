@@ -6,6 +6,7 @@ import {
   ConsoleSmsChannel,
   ConsoleWhatsAppChannel,
 } from "@/server/notifications/channels/console-channels";
+import { ResendEmailChannel } from "@/server/notifications/channels/resend-email-channel";
 import { buildNotificationPayload } from "@/server/notifications/templates";
 import type {
   NotificationChannel,
@@ -16,6 +17,7 @@ import type {
   NotificationRecipient,
 } from "@/server/notifications/types";
 import type { NotificationType } from "@prisma/client";
+import { isProductionRuntime } from "@/server/security/env";
 
 /**
  * NotificationService abstraction.
@@ -109,13 +111,49 @@ function mapEventToType(event: NotificationEventName): NotificationType {
 
 let singleton: NotificationService | null = null;
 
-export function getNotificationService(): NotificationService {
-  if (!singleton) {
-    singleton = new NotificationService([
+function buildDefaultChannels(): NotificationChannel[] {
+  const emailProvider = process.env.EMAIL_PROVIDER?.trim().toLowerCase();
+  const appEnv = (process.env.APP_ENV ?? process.env.NEXT_PUBLIC_APP_ENV ?? "")
+    .trim()
+    .toLowerCase();
+
+  // LOCAL: prefer console logging — never accidental Resend to members.
+  if (appEnv === "local" && emailProvider !== "resend") {
+    return [
       new ConsoleEmailChannel(),
       new ConsoleSmsChannel(),
       new ConsoleWhatsAppChannel(),
-    ]);
+    ];
+  }
+
+  const hasResend =
+    emailProvider === "resend" ||
+    Boolean(process.env.RESEND_API_KEY?.trim() && process.env.EMAIL_FROM?.trim());
+
+  if (hasResend) {
+    // ResendEmailChannel enforces allowlist/redirect outside production.
+    return [
+      new ResendEmailChannel(),
+      new ConsoleSmsChannel(),
+      new ConsoleWhatsAppChannel(),
+    ];
+  }
+
+  if (isProductionRuntime()) {
+    // Fail closed: no silent console "success" for payment emails.
+    return [new ConsoleSmsChannel(), new ConsoleWhatsAppChannel()];
+  }
+
+  return [
+    new ConsoleEmailChannel(),
+    new ConsoleSmsChannel(),
+    new ConsoleWhatsAppChannel(),
+  ];
+}
+
+export function getNotificationService(): NotificationService {
+  if (!singleton) {
+    singleton = new NotificationService(buildDefaultChannels());
   }
   return singleton;
 }

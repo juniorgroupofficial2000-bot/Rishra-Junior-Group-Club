@@ -1,254 +1,256 @@
 # Security model — Rishra Junior Group Club
 
-This document describes the threat model, trust boundaries, controls, remaining risks, and production checklist for the club platform.
+Application security review (2026-10-03). This document is the living threat model, control map, finding log, and production checklist.
 
-**This application is not “secure because it compiles.”** Security depends on correct configuration, operational hygiene, and ongoing review. Controls below reduce risk; they do not eliminate it.
+**Security is not “secure because it compiles.”** Correct configuration, least privilege, and ongoing review are required.
 
 ---
 
-## 1. Threat model
+## 1. Executive summary
+
+| Severity | Count | Status |
+| --- | --- | --- |
+| CRITICAL | 0 | — |
+| HIGH | 3 addressed / 1 open | CSV formula injection **fixed**; Auth.js brute-force path **fixed**; draft media IDOR **fixed**; **staff MFA still open** |
+| MEDIUM | several | Documented; partial fixes (cookies, refunds, webhook errors, purpose authz) |
+
+**Member privacy:** No classic cross-member IDOR was found. Member portal pages and actions use `requireMemberId()` (session + ACTIVE DB check). Clients never supply `memberId` / payment / mandate ids for private reads.
+
+**Financial integrity:** Payment SUCCESS / mandate ACTIVE settle only after verified webhooks. Admin financial writes require `PAYMENTS_WRITE` / `MANDATES_WRITE`. Refund amounts are capped to the ledger payment.
+
+---
+
+## 2. Threat model
 
 ### Assets
 
-| Asset | Sensitivity | Notes |
-| --- | --- | --- |
-| Member PII (name, email, phone, address) | High | Admin + member portal |
-| Payment / mandate / receipt records | High | Financial integrity + privacy |
-| Admin capabilities (RBAC) | Critical | Privilege escalation target |
-| Auth sessions (JWT cookies) | Critical | Impersonation if forged/stolen |
-| Webhook signing secrets | Critical | Forged SUCCESS payments if leaked |
-| Provider API keys (Razorpay) | Critical | Real-money impact |
-| Audit logs | Medium–High | Integrity / forensics |
-| CSV exports / reports | High | Bulk PII + spreadsheet injection surface |
+| Asset | Sensitivity |
+| --- | --- |
+| Member PII (name, email, phone, address) | High |
+| Payments, mandates, receipts | High |
+| Admin RBAC / sessions | Critical |
+| Webhook signing secrets / Razorpay keys | Critical |
+| Draft media before publish | Medium–High |
+| CSV / report exports | High (PII + spreadsheet injection) |
+| Audit logs | Medium–High |
 
 ### Adversaries
 
-1. **Unauthenticated internet attacker** — brute force login, forge webhooks, probe admin APIs, inject via public forms.
-2. **Authenticated member** — IDOR against another member’s payments/receipts/profile; escalate to admin.
-3. **Low-privilege staff** — mass assignment, unauthorized reports, privilege escalation via role tampering.
-4. **Compromised admin** — data exfiltration, destructive soft-deletes (insider / stolen session).
-5. **Malicious spreadsheet consumer** — CSV formula injection from exported member fields.
-6. **Payment provider / MITM** — webhook replay, signature bypass if secrets weak.
+1. Unauthenticated internet attacker (brute force, webhook forgery, probe APIs)
+2. Authenticated member (IDOR / privilege escalation)
+3. Low-privilege staff (mass assignment, unauthorized exports)
+4. Compromised admin / insider
+5. Malicious spreadsheet consumer (CSV formula injection)
 
 ### Priority abuse cases
 
-- Member A reading Member B payments / receipts / mandate
-- Unauthorized admin report download
-- Manipulated `memberId` in forms/query to pivot data
-- Webhook forgery / replay marking payments SUCCESS
-- Mock payment provider accepted in production with known secret
-- Soft-deleted / suspended member retaining portal access via stale JWT
-- Demo credentials shown on staging
-- Malicious unrestricted file uploads (intentionally not exposed today)
+- Member A reading Member B payments / receipts / mandate → **mitigated** (session-scoped loaders)
+- Manipulated URL/API ids for private member data → **mitigated** (no client member ids on member routes)
+- Unauthorized financial write / oversized refund → **mitigated** (RBAC + refund cap)
+- Webhook forgery → **mitigated** (HMAC + idempotency; mock blocked in prod)
+- Draft media fetch via leaked `/api/media/{id}` → **mitigated** (publish/slot gate)
+- CSV formula injection on payment/mandate export → **mitigated** (`toCsvLine`)
+- Staff password theft without MFA → **open HIGH**
 
 ---
 
-## 2. Trust boundaries
+## 3. Trust boundaries
 
 ```
 [ Browser / public internet ]
-          |
           | HTTPS (required in production)
           v
-[ Next.js edge proxy (`proxy.ts`) ]  -- session cookie gate for /member /admin
+[ Next.js proxy (`proxy.ts`) ]  — session gate for /member /admin /api/admin
           |
-          +--> Public routes (no auth)
-          +--> Auth.js credentials login (/api/auth, server actions)
-          +--> Member portal (session.user.memberId only)
-          +--> Admin portal + /api/admin/* (RBAC permissions)
+          +--> Public routes + /api/media (published/slotted READY only)
+          +--> Auth.js credentials (/api/auth + loginAction) — rate limited
+          +--> Member portal (session.memberId only)
+          +--> Admin portal + /api/admin/* (RBAC)
           +--> /api/webhooks/payments/:provider (signature + idempotency)
-          |
           v
-[ Application services / repositories ]
-          |
-          +--> PostgreSQL (Prisma)
-          +--> Payment provider (Razorpay or mock)
-          +--> Notification channels (console today)
+[ Services / Prisma / object storage / Razorpay ]
 ```
 
-**Untrusted:** all HTTP input (query, body, headers, cookies, uploaded text), webhook payloads until signature verification succeeds, JWT claims until revalidated against the database.
-
-**Trusted after verification:** Auth.js session bound to `user.id`, RBAC permission checks, Prisma parameterized queries, verified webhook events with unique `(provider, providerEventId)`.
+**Untrusted:** all HTTP input until validated; webhook bodies until signature verification; JWT claims until DB revalidation.
 
 ---
 
-## 3. Protected resources
+## 4. OWASP Top 10 mapping
 
-| Resource | Who may access | Enforcement |
-| --- | --- | --- |
-| `/member/*` pages & actions | Roles with member portal access + linked ACTIVE member | `proxy.ts`, `requireMemberSession`, `requireMemberId` (session memberId only; DB ACTIVE check) |
-| Payments / receipts / mandate | Owning member (session memberId) | Repository queries scoped by session memberId; never from client-supplied ids |
-| `/admin/*` | Roles with `ADMIN_ACCESS` + permission | `proxy.ts`, `requirePermission` / `hasPermission` |
-| `/api/admin/reports/[type]` | `REPORTS_VIEW` | Session + permission; 401/403 JSON |
-| `/api/webhooks/payments/[provider]` | Payment provider with valid HMAC | Configured provider path only; signature verify; idempotent store |
-| Member CSV import | Admin write paths (text only) | No multipart upload endpoint; Zod validation; size limits |
-| Soft-deleted members | Admin with includeDeleted where allowed | Default queries exclude `deletedAt` |
+| OWASP | Control in this app |
+| --- | --- |
+| A01 Broken Access Control | RBAC (`permissions.ts`); `requireMemberId`; proxy gates; admin API permission checks; media publish gate |
+| A02 Cryptographic Failures | bcrypt passwords; HTTPS/`SITE_URL` assert; secure cookies when HTTPS; HMAC webhooks |
+| A03 Injection | Prisma parameterized queries; Zod validation; CSV formula neutralization; no raw HTML CMS |
+| A04 Insecure Design | Plan amount authoritative for dues; webhook-only SUCCESS; production fail-closed config |
+| A05 Security Misconfiguration | Security headers; `poweredByHeader: false`; design-system blocked in prod |
+| A06 Vulnerable Components | Lockfile; run `npm audit` in ops checklist |
+| A07 Auth Failures | Rate limits on loginAction + Credentials `authorize`; generic errors; JWT revalidation |
+| A08 Data Integrity | Webhook idempotency; audit log on admin/financial mutations |
+| A09 Logging/Monitoring | Audit actions; payment logs without secrets; remaining gap: centralized SIEM |
+| A10 SSRF | No user-controlled server-side fetch URLs for media; storage keys validated |
 
 ---
 
-## 4. Security controls
+## 5. Control details
 
 ### Authentication & session
 
-- Auth.js Credentials provider; passwords hashed with bcrypt (cost 12).
-- JWT session: 8h max age, 30m update age.
-- `AUTH_SECRET` required in production (≥32 chars); no production fallback to a known default.
-- Login failures return a generic message (no user enumeration via distinct errors).
-- In-process rate limits on login (per IP and per email).
-- Post-login `callbackUrl` restricted via `safeInternalPath` (blocks `//`, schemes, non-portal paths).
-- JWT revalidation against DB every 5 minutes (active flag, role, memberId, member status for `MEMBER`).
-- Soft-delete / suspend / inactive member status deactivates linked `User.active`.
+- Auth.js Credentials; bcrypt cost 12
+- JWT: 8h max age; DB revalidation every 5 minutes
+- Cookies: `httpOnly`, `sameSite=lax`, `secure` when `SITE_URL`/`AUTH_URL` is https
+- Login rate limits: server action **and** Credentials `authorize` (IP + email)
+- `callbackUrl` allowlisted via `safeInternalPath`
+- Production: `AUTH_SECRET` ≥ 32 chars required
 
-### Authorization / RBAC
+### Authorization / member privacy (IDOR)
 
-- Central permission map in `server/domain/permissions.ts`.
-- Edge proxy blocks unauthenticated `/member` and `/admin`.
-- Layouts, pages, server actions, and admin APIs re-check permissions server-side.
-- Member data access uses **session `memberId` only** (`requireMemberId`) — not request parameters.
+- Member routes **never** take another member’s id from the URL/body for private data
+- `requireMemberId()` binds session → ACTIVE member row (`userId` match)
+- Repositories filter by that session `memberId`
+- `assertMemberOwnsResource` available for any future client-supplied id paths
+- Financial admin actions use `assertCanWritePayments` / `assertCanWriteMandates`
+- User role changes require **SUPER_ADMIN** in service layer
 
 ### CSRF
 
-- Server Actions and Auth.js cookie sessions rely on same-site cookies + Next.js action origin checks.
-- Mutations are not exposed as open CORS JSON APIs.
+- Server Actions + same-site session cookies; mutations not exposed as open CORS APIs
 
 ### XSS
 
-- React escapes text by default.
-- No `dangerouslySetInnerHTML` on untrusted CMS HTML in current surfaces.
-- CSP headers shipped (still allows `'unsafe-inline'` / `'unsafe-eval'` for Next.js — see remaining risks).
+- React text escaping; no untrusted `dangerouslySetInnerHTML` on public CMS surfaces
+- CSP present but still allows `'unsafe-inline'` / `'unsafe-eval'` (Next.js constraint)
 
 ### SQL injection
 
-- Prisma parameterized queries only; no raw string-concat SQL for user input.
+- Prisma only; no string-concat SQL for user input
 
-### Input validation
+### File uploads
 
-- Zod schemas for login, member create/update/status, CSV rows.
-- Mandate amount bounded (100–10_000_000 paise).
-- Webhook body size capped (256 KB).
+- Admin upload API: purpose RBAC, magic-byte MIME sniff, size limits, path-safe storage keys
+- Public delivery: READY **and** (site `slotKey` **or** linked published content)
+- Staff draft preview: `GET /api/admin/media/[id]` (authenticated)
 
-### File / image uploads
+### Rate limiting / brute force
 
-- **No general file-upload API is exposed.**
-- Admin documents UI states unrestricted uploads are disabled until a signed, typed pipeline exists.
-- Gallery uses controlled/static media paths with `next/image`.
-- CSV import accepts **in-memory UTF-8 text** only (not multipart arbitrary files).
+- Login action + Auth.js authorize buckets (in-process)
+- Webhooks: 120/min/IP
+- Reports/exports: additional limits + audit
+- **Ops:** add edge/WAF limits (process-local buckets reset per instance)
 
-### Webhooks & payments
+### Payment webhooks
 
-- Signature verification (HMAC-SHA256) with `timingSafeEqual`.
-- Idempotency via unique `(provider, providerEventId)`.
-- Payment/mandate SUCCESS/ACTIVE applied only after verified webhook processing.
-- **No silent Razorpay → mock fallback.**
-- Mock provider blocked in production unless `ALLOW_MOCK_PAYMENTS=true`.
-- Webhook route accepts **only** the configured provider path (no always-on `/mock` bypass).
-- Webhook route rate-limited per client IP.
-- Failed processing does not return raw internal errors to clients.
+- Configured provider path only
+- HMAC verify (`timingSafeEqual`)
+- Idempotent `(provider, providerEventId)`
+- Amount mismatch → non-retryable reject; client gets generic error
+- Mock provider blocked in production unless explicitly allowed
 
 ### Secrets & environment
 
-- Secrets only via environment variables (see `.env.example`).
-- Audit metadata sanitized (`server/audit/sanitize.ts`) to redact password/token/PAN/CVV-like keys.
-- Payment logs avoid credential fields; prefer ids/refs.
-- Demo credentials on login UI only when `REPOSITORY_DRIVER=mock`.
+- Secrets via env only (see `.env.example`)
+- `assertProductionConfig()` fail-closed for prisma driver, HTTPS origin, payment provider
+- Audit metadata sanitization redacts password/token-like keys
 
-### CSV / reports
+### CSV / sensitive exports
 
-- Exports neutralize formula injection (`=`, `+`, `-`, `@`, tab, CR) via leading `'`.
-- Report API: `Cache-Control: no-store`, permission-gated.
+- All admin CSV builders use `toCsvLine` → `neutralizeCsvFormula`
+- Report API: `Cache-Control: no-store`, permission-gated
 
-### HTTP security headers
+### Security headers
 
-Set in `next.config.ts` for all routes:
+`next.config.ts`: nosniff, DENY framing, referrer policy, Permissions-Policy, COOP, CSP, conditional HSTS
 
-- `X-Content-Type-Options: nosniff`
-- `X-Frame-Options: DENY`
-- `Referrer-Policy: strict-origin-when-cross-origin`
-- `Permissions-Policy` (camera/mic/geo/payment disabled)
-- `Cross-Origin-Opener-Policy: same-origin`
-- `Content-Security-Policy` (baseline)
-- `Strict-Transport-Security` when `SITE_URL` is `https://`
-- `poweredByHeader: false`
+### Error responses
 
-### Logging & errors
-
-- Generic auth and webhook client errors.
-- Audit trail for admin member mutations and payment mandate lifecycle.
-- Do not log password hashes, raw card data, or webhook secrets.
+- Auth / public / webhook clients get generic errors
+- Permanent webhook failures logged server-side; client sees `Webhook rejected.`
+- Admin error UI may show `error.message` to authenticated staff (accepted residual)
 
 ---
 
-## 5. Remaining risks
+## 6. Findings log (this review)
 
-| Risk | Severity | Mitigation / follow-up |
+### Fixed (HIGH / important MEDIUM)
+
+| ID | Issue | Fix |
 | --- | --- | --- |
-| In-process rate limits reset on deploy and are not cluster-wide | Medium | Put WAF / reverse-proxy limits (e.g. Cloudflare, nginx) in front of `/login` and webhooks |
-| CSP still allows `'unsafe-inline'` and `'unsafe-eval'` | Medium | Introduce nonce-based CSP when App Router tooling allows |
-| JWT may remain valid up to ~5 minutes after revoke/suspend | Medium | Acceptable tradeoff today; shorten window or use server sessions if needed |
-| Staff with linked member: status change toggles `User.active` | Medium | Operational discipline; consider separating portal login flags from membership status |
-| Credentials provider has no MFA / phishing resistance | High (prod) | Add MFA / passkeys before broad production use |
-| No account lockout beyond soft rate limit | Medium | Add durable lockout + alerting |
-| Mock payments if `ALLOW_MOCK_PAYMENTS=true` in prod | High | Never enable against real members / real money |
-| Console notification channel may print PII in logs | Medium | Replace with provider adapters; scrub logs |
-| No virus scanning / typed blob store for future uploads | High (when enabled) | Design signed uploads, MIME sniffing, size limits, malware scan before enabling |
-| Dependency / supply-chain risk | Medium | Regular `npm audit`, lockfile commits, minimal deps |
-| Insider admin abuse | High | Least privilege RBAC, audit review, break-glass SUPER_ADMIN |
-| Hosting misconfig (HTTP, open DB, leaked `.env`) | Critical | Follow production checklist |
+| H1 | Payment/mandate CSV skipped formula neutralization | `toCsvLine` via `buildAdminPaymentsCsv` / `buildAdminMandatesCsv` |
+| H2 | Credentials `/api/auth` bypassed loginAction rate limits | Rate limit inside Credentials `authorize` |
+| M1 | Draft READY media world-readable at `/api/media/{id}` | Publish/slot gate + admin GET preview |
+| M2 | `MEDIA_WRITE` widened purpose uploads | Purpose-specific permission only |
+| M3 | Session cookie flags implicit | Explicit `httpOnly` / `sameSite` / `secure` |
+| M4 | Refund amount uncapped vs ledger | Cap `amountPaise` to payment amount |
+| M5 | Webhook permanent failures leaked internal text | Generic client error + server log |
+
+### Open
+
+| ID | Severity | Issue | Follow-up |
+| --- | --- | --- | --- |
+| H3 | **HIGH** | No MFA / passkeys for SUPER_ADMIN, PRESIDENT, TREASURER | Block go-live of real money until MFA |
+| M6 | Medium | In-process rate limits not cluster-wide | Edge WAF / Redis limiter |
+| M7 | Medium | CSP `unsafe-inline` / `unsafe-eval` | Nonce CSP when feasible |
+| M8 | Medium | JWT revoke lag ≤ 5 minutes | Accept or shorten / server sessions |
+| M9 | Medium | Admin upload without Content-Length → memory pressure | Enforce streamed size limit |
+| M10 | Medium | S3 `MEDIA_PUBLIC_BASE_URL` can bypass app gate if bucket is public | Keep bucket private; deliver via app/CDN signed URLs |
 
 ---
 
-## 6. Production checklist
+## 7. Member privacy checklist
+
+- [x] No member dynamic route accepts foreign `memberId`
+- [x] Payments / receipts / mandate loaders scoped to session member
+- [x] Mandate setup/cancel uses session member only
+- [x] Suspended / non-ACTIVE members fail `requireMemberId`
+- [x] Public media does not expose unpublished drafts
+- [ ] MFA for staff with financial privileges (open)
+- [ ] Edge rate limits in production (ops)
+
+---
+
+## 8. Production checklist
 
 ### Before go-live
 
-- [ ] Set strong unique `AUTH_SECRET` (≥32 chars, from a CSPRNG).
-- [ ] Set real `SITE_URL` to the HTTPS origin (do not invent/guess a domain in code).
-- [ ] `REPOSITORY_DRIVER=prisma` with managed Postgres; restrict network to the app.
-- [ ] `PAYMENT_PROVIDER=razorpay` with live/test keys as intended; **never** rely on mock for real dues.
-- [ ] Set `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`.
-- [ ] Configure Razorpay webhook URL to `/api/webhooks/payments/razorpay` only over TLS.
-- [ ] Ensure `ALLOW_MOCK_PAYMENTS` is **unset/false**.
-- [ ] Rotate/remove seed demo users (`member@rjgc.local`, `admin@rjgc.local`) or disable them.
-- [ ] Confirm login page does **not** show demo credentials (`REPOSITORY_DRIVER` must not be `mock`).
-- [ ] Disable public indexing of `/login`, `/admin`, `/member` (robots already disallows admin/member/login).
-- [ ] Enable platform HTTPS + HSTS at the edge; verify `SITE_URL` starts with `https://`.
-- [ ] Configure edge rate limiting / bot protection for `/login` and webhooks.
-- [ ] Backups + restore drill for Postgres.
-- [ ] Secret storage via host secret manager (not plaintext in git).
-- [ ] Review RBAC assignments for least privilege.
-- [ ] Run `npm run lint`, `npm run typecheck`, `npm run build`, `npm test`.
-- [ ] Smoke-test: member cannot access another member’s receipts; suspended member loses access; forged webhook returns 401.
+- [ ] Strong unique `AUTH_SECRET` (≥32 chars)
+- [ ] `SITE_URL=https://…` (never invent domain in code)
+- [ ] `REPOSITORY_DRIVER=prisma`; DB network restricted
+- [ ] `PAYMENT_PROVIDER=razorpay` + live/test keys as intended
+- [ ] `RAZORPAY_*` secrets set; webhook URL over TLS only
+- [ ] `ALLOW_MOCK_PAYMENTS` unset/false
+- [ ] Remove/disable seed demo users
+- [ ] Edge rate limiting on `/login`, `/api/auth/*`, webhooks
+- [ ] **MFA for financial admin roles**
+- [ ] Private object storage (no world-readable draft prefixes)
+- [ ] Backups + restore drill
+- [ ] `npm run lint && npm run typecheck && npm test && npm run build`
+- [ ] Smoke: member isolation; forged webhook 401; draft media 404 publicly
 
 ### Ongoing
 
-- [ ] Monitor auth failures, webhook 401s, and admin audit logs.
-- [ ] Patch dependencies regularly.
-- [ ] Re-review this document when adding uploads, new APIs, or payment features.
-- [ ] Periodic access review for `SUPER_ADMIN` / treasurer roles.
+- [ ] Monitor auth failures, webhook 401s, audit log
+- [ ] Dependency updates / `npm audit`
+- [ ] Re-review on new uploads, APIs, or payment flows
+- [ ] Periodic SUPER_ADMIN / treasurer access review
 
 ---
 
-## 7. Recent hardening (audit fixes)
+## 9. Tests
 
-Implemented during the security audit:
+| Suite | Coverage |
+| --- | --- |
+| `tests/auth/*` | Permissions, authorize helpers, member isolation, admin financial authz |
+| `tests/security/csv-safe.test.ts` | Formula neutralization |
+| `tests/security/admin-export-csv.test.ts` | Payment/mandate export neutralization |
+| `tests/security/media-upload.test.ts` | MIME / path / reject dangerous types |
+| `tests/security/rate-limit.test.ts` | Bucket helper |
+| `tests/security/safe-path.test.ts` | Open-redirect hardening |
+| `tests/payments/webhook*.test.ts` | Signature, idempotency, amount mismatch |
 
-1. Fail closed on missing/invalid Razorpay config (no silent mock fallback).
-2. Production block for mock payments unless explicitly allowed.
-3. Remove known default mock webhook secret in production; ephemeral secret in local/dev when unset.
-4. Webhook route accepts only the configured provider (no `/mock` bypass).
-5. `AUTH_SECRET` production enforcement.
-6. Soft-delete / non-ACTIVE member status deactivates linked users.
-7. JWT periodic DB revalidation; member portal re-checks ACTIVE member rows.
-8. CSV formula neutralization on export.
-9. Demo credentials gated to mock repository driver only.
-10. Hardened post-login redirect allowlist.
-11. Login + webhook rate limiting (in-process).
-12. HTTP security headers + conditional HSTS.
-13. Admin reports API returns 401/403 JSON (no redirect-based auth for APIs).
-14. Mandate amount bounds; webhook payload size limit; timing-safe mock signature compare.
+Run: `npm test -- tests/auth tests/security tests/payments`
 
 ---
 
-## 8. Reporting issues
+## 10. Reporting issues
 
 Treat suspected vulnerabilities as confidential. Prefer private disclosure to club technical administrators. Do not test payment forgery or brute force against production without authorization.

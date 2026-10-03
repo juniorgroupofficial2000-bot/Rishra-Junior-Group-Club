@@ -2,14 +2,16 @@
 
 import { ClipImageReveal, Reveal, SlideIn } from "@/components/motion";
 import { SiteContainer } from "@/components/public/site-container";
-import { homeContent } from "@/content/home";
+import { homeContent, type HomeContent } from "@/content/home";
 import { HomeImage } from "./home-image";
 import { HomeLink } from "./home-link";
 import { HomeSectionHeading } from "./home-section-heading";
 
-const content = homeContent.intro;
-
-export function HomeIntro() {
+export function HomeIntro({
+  content = homeContent.intro,
+}: {
+  content?: HomeContent["intro"];
+} = {}) {
   return (
     <section
       aria-labelledby="home-intro-heading"

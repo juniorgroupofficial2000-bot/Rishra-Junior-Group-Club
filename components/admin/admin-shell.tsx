@@ -1,27 +1,49 @@
 "use client";
 
 import { logoutAction } from "@/app/(auth)/actions";
+import { PortalNavDrawer } from "@/components/portal/portal-nav-drawer";
 import type { AdminNavItem } from "@/content/admin-nav";
 import { siteConfig } from "@/content/site";
 import { cn } from "@/lib/cn";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export function AdminShell({
   userName,
   roleLabel,
   navItems,
+  environmentLabel,
+  brandName,
   children,
 }: {
   userName: string;
   roleLabel: string;
   navItems: AdminNavItem[];
+  /** Uppercase LOCAL / DEVELOPMENT / STAGING — omit in production. */
+  environmentLabel?: string | null;
+  brandName?: string;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [menuPathname, setMenuPathname] = useState(pathname);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+
+  if (pathname !== menuPathname) {
+    setMenuPathname(pathname);
+    setOpen(false);
+  }
+
+  useEffect(() => {
+    if (!open) return;
+    const onResize = () => {
+      if (window.matchMedia("(min-width: 1024px)").matches) setOpen(false);
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [open]);
 
   return (
     <div className="min-h-dvh bg-surface-canvas bg-heritage-grain">
@@ -32,13 +54,16 @@ export function AdminShell({
               href="/admin/dashboard"
               className="block truncate font-display text-base font-semibold text-ink-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              {siteConfig.shortName} Admin
+              {environmentLabel
+                ? `${environmentLabel} · ${(brandName ?? siteConfig.name).toUpperCase()}`
+                : `${siteConfig.shortName} Admin`}
             </Link>
             <p className="truncate text-xs text-ink-500">
+              {environmentLabel ? "Admin · " : null}
               {userName} · {roleLabel}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             <Link
               href="/member/dashboard"
               className="hidden min-h-11 items-center rounded-md px-3 text-sm text-ink-600 hover:bg-ink-50 sm:inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -54,6 +79,7 @@ export function AdminShell({
               </button>
             </form>
             <button
+              ref={menuButtonRef}
               type="button"
               className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-border-default lg:hidden"
               aria-expanded={open}
@@ -67,14 +93,21 @@ export function AdminShell({
         </div>
       </header>
 
+      <PortalNavDrawer
+        id="admin-nav"
+        open={open}
+        onClose={() => setOpen(false)}
+        label="Admin menu"
+        items={navItems}
+        pathname={pathname}
+        menuButtonRef={menuButtonRef}
+      />
+
       <div className="mx-auto grid max-w-7xl gap-0 lg:grid-cols-[16rem_1fr]">
         <nav
-          id="admin-nav"
+          id="admin-nav-desktop"
           aria-label="Admin"
-          className={cn(
-            "border-b border-border-subtle bg-surface-raised lg:border-b-0 lg:border-r",
-            open ? "block" : "hidden lg:block",
-          )}
+          className="hidden border-r border-border-subtle bg-surface-raised lg:block"
         >
           <ul className="flex flex-col gap-1 p-3">
             {navItems.map((item) => {
@@ -84,7 +117,6 @@ export function AdminShell({
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    onClick={() => setOpen(false)}
                     aria-current={active ? "page" : undefined}
                     className={cn(
                       "flex min-h-11 items-center rounded-md px-3 text-sm font-medium transition-colors",

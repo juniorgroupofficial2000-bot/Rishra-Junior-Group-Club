@@ -3,15 +3,19 @@
 import { AlbumCard } from "@/components/gallery";
 import { Reveal, StaggerChildren, StaggerItem } from "@/components/motion";
 import { SiteContainer } from "@/components/public/site-container";
-import { getPublishedAlbums } from "@/content/gallery";
-import { homeContent } from "@/content/home";
+import type { GalleryAlbum } from "@/content/gallery";
+import { homeContent, type HomeContent } from "@/content/home";
 import { HomeLink } from "./home-link";
 import { HomeSectionHeading } from "./home-section-heading";
 
-const content = homeContent.gallery;
-
-export function HomeGallery() {
-  const albums = getPublishedAlbums().slice(0, content.previewLimit);
+export function HomeGallery({
+  albums = [],
+  content = homeContent.gallery,
+}: {
+  albums?: GalleryAlbum[];
+  content?: HomeContent["gallery"];
+} = {}) {
+  if (albums.length === 0) return null;
 
   return (
     <section
@@ -31,7 +35,7 @@ export function HomeGallery() {
         <StaggerChildren className="mx-auto mt-10 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {albums.map((album, index) => (
             <StaggerItem key={album.id}>
-              <AlbumCard album={album} priority={index < 2} index={index} />
+              <AlbumCard album={album} index={index} />
             </StaggerItem>
           ))}
         </StaggerChildren>

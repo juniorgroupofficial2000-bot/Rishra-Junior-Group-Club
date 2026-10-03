@@ -23,9 +23,11 @@ export function AnimatedCounter({
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.6 });
   const reduce = Boolean(useReducedMotion());
-  const count = useMotionValue(0);
-  const [display, setDisplay] = useState(0);
+  const count = useMotionValue(value);
+  // SSR / no-JS / reduced-motion: show the final value (never flash "0").
+  const [display, setDisplay] = useState(value);
   const started = useRef(false);
+  const label = `${prefix}${value}${suffix}`;
 
   useEffect(() => {
     const unsub = count.on("change", (latest) => {
@@ -43,6 +45,7 @@ export function AnimatedCounter({
       return;
     }
 
+    count.set(0);
     const controls = animate(count, value, {
       duration: durationMs / 1000,
       ease: [0.22, 1, 0.36, 1],
@@ -51,10 +54,16 @@ export function AnimatedCounter({
   }, [inView, reduce, value, durationMs, count]);
 
   return (
-    <span ref={ref} className={cn("tabular-nums", className)}>
-      {prefix}
-      {display}
-      {suffix}
+    <span
+      ref={ref}
+      className={cn("tabular-nums", className)}
+      aria-label={label}
+    >
+      <span aria-hidden="true">
+        {prefix}
+        {display}
+        {suffix}
+      </span>
     </span>
   );
 }

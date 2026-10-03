@@ -32,6 +32,7 @@ import {
   TH,
   THead,
   TR,
+  ToastProvider,
 } from "@/components/ui";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
@@ -80,6 +81,7 @@ function Section({
 
 export default function DesignSystemPage() {
   return (
+    <ToastProvider>
     <main className="bg-heritage-grain">
       <div className="border-b border-border-subtle bg-surface-raised">
         <div className="container-page py-10 sm:py-14">
@@ -355,5 +357,6 @@ export default function DesignSystemPage() {
         </Section>
       </div>
     </main>
+    </ToastProvider>
   );
 }

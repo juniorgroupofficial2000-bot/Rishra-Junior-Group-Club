@@ -2,14 +2,18 @@ import { AlbumMediaGrid } from "@/components/gallery";
 import { ProvenanceBadge } from "@/components/heritage/provenance-badge";
 import { SiteContainer } from "@/components/public";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
-import {
-  getAlbumBySlug,
-  getPublishedAlbums,
-  galleryPageCopy,
-} from "@/content/gallery";
+import { galleryPageCopy } from "@/content/gallery";
 import { JsonLd } from "@/lib/json-ld";
-import { buildMetadata } from "@/lib/seo/metadata";
-import { breadcrumbJsonLd, organizationJsonLd } from "@/lib/seo/structured-data";
+import { buildMetadata, notFoundMetadata } from "@/lib/seo/metadata";
+import {
+  breadcrumbJsonLd,
+  organizationJsonLd,
+  webPageJsonLd,
+} from "@/lib/seo/structured-data";
+import {
+  loadPublishedAlbumBySlug,
+  loadPublishedAlbums,
+} from "@/server/content/public-loaders";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -18,48 +22,60 @@ type PageProps = {
   params: Promise<{ slug: string }>;
 };
 
-export function generateStaticParams() {
-  return getPublishedAlbums().map((album) => ({ slug: album.slug }));
+export async function generateStaticParams() {
+  const albums = await loadPublishedAlbums();
+  return albums.map((album) => ({ slug: album.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const album = getAlbumBySlug(slug);
-  if (!album) return { title: "Album not found", robots: { index: false } };
+  const album = await loadPublishedAlbumBySlug(slug);
+  if (!album) return notFoundMetadata("Album not found");
 
   return buildMetadata({
-    title: album.title,
+    title: album.title.replace(/^\[SAMPLE\]\s*/i, ""),
     description: album.description,
     path: `/gallery/${album.slug}`,
     noIndex: album.provenance === "sample",
-    image: {
-      url: album.coverImage.src,
-      width: album.coverImage.width,
-      height: album.coverImage.height,
-      alt: album.coverImage.alt,
-    },
+    image: album.coverImage
+      ? {
+          url: album.coverImage.src,
+          width: album.coverImage.width,
+          height: album.coverImage.height,
+          alt: album.coverImage.alt,
+        }
+      : undefined,
   });
 }
 
 export default async function GalleryAlbumPage({ params }: PageProps) {
   const { slug } = await params;
-  const album = getAlbumBySlug(slug);
+  const album = await loadPublishedAlbumBySlug(slug);
   if (!album) notFound();
+
+  const title = album.title.replace(/^\[SAMPLE\]\s*/i, "");
 
   return (
     <>
       <JsonLd
         data={[
           organizationJsonLd(),
+          webPageJsonLd({
+            path: `/gallery/${album.slug}`,
+            name: `${title} · Rishra Junior Group Club`,
+            description: album.description,
+            breadcrumbs: [
+              { name: "Home", path: "/" },
+              { name: galleryPageCopy.title, path: "/gallery" },
+              { name: title, path: `/gallery/${album.slug}` },
+            ],
+          }),
           breadcrumbJsonLd([
             { name: "Home", path: "/" },
             { name: galleryPageCopy.title, path: "/gallery" },
-            {
-              name: album.title.replace(/^\[SAMPLE\]\s*/i, ""),
-              path: `/gallery/${album.slug}`,
-            },
+            { name: title, path: `/gallery/${album.slug}` },
           ]),
         ]}
       />
@@ -69,7 +85,7 @@ export default async function GalleryAlbumPage({ params }: PageProps) {
           items={[
             { label: "Home", href: "/" },
             { label: galleryPageCopy.title, href: "/gallery" },
-            { label: album.title },
+            { label: title },
           ]}
         />
         <div className="flex flex-wrap items-center gap-2">
@@ -84,7 +100,7 @@ export default async function GalleryAlbumPage({ params }: PageProps) {
           ) : null}
         </div>
         <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight text-ink-900 sm:text-4xl">
-          {album.title}
+          {title}
         </h1>
         <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-500">
           {album.description}

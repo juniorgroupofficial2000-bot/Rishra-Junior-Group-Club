@@ -1,0 +1,151 @@
+# Required checks for pull requests into develop / main.
+# Configure GitHub branch protection to require this workflow's jobs before merge.
+name: CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "22"
+  APP_ENV: local
+  NEXT_PUBLIC_APP_ENV: local
+  APP_URL: http://localhost:3000
+  NEXT_PUBLIC_APP_URL: http://localhost:3000
+  SITE_URL: http://localhost:3000
+  AUTH_URL: http://localhost:3000
+  AUTH_SECRET: ci-build-secret-at-least-32-chars-long
+  CRON_SECRET: ci-cron-secret-at-least-32-chars-long
+  REPOSITORY_DRIVER: prisma
+  PAYMENT_PROVIDER: mock
+  PAYMENT_MODE: test
+  ALLOW_MOCK_PAYMENTS: "true"
+  MOCK_PAYMENTS_CONFIRM: I_UNDERSTAND_NO_REAL_MONEY
+  PAYMENT_WEBHOOK_SECRET: ci-mock-webhook-secret
+  MEDIA_STORAGE_DRIVER: local
+  CONTENT_INCLUDE_SAMPLE: "false"
+  ALLOW_DEMO_SEED: "false"
+  E2E_TEST: "0"
+
+jobs:
+  quality:
+    name: Lint · typecheck · unit · security · schema
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate
+
+      - name: Validate Prisma schema
+        run: npm run db:validate
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Security / auth unit tests
+        run: npm run test:security
+
+      - name: Dependency audit (high+)
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+  integration:
+    name: Integration · payments
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: rjgc_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d rjgc_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/rjgc_ci?schema=public
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate
+
+      - name: Apply migrations (CI database only)
+        run: npx prisma migrate deploy
+
+      - name: Integration tests
+        run: npm run test:integration
+
+      - name: Ops / config tests
+        run: npx vitest run tests/ops
+
+  build:
+    name: Production build
+    runs-on: ubuntu-latest
+    needs: [quality]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate
+
+      - name: Build
+        run: npm run build
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/rjgc
+          NEXT_PHASE: phase-production-build
+
+  ci-success:
+    name: CI passed
+    runs-on: ubuntu-latest
+    needs: [quality, integration, build]
+    steps:
+      - name: All required checks green
+        run: echo "CI OK for ${{ github.ref }}"

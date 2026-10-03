@@ -1,11 +1,18 @@
 /**
  * Runtime env helpers shared by Edge proxy and Node Auth.js handlers.
- * Keep this module free of Node-only / server-only imports.
+ * Keep this module free of Node-only / server-only imports and Zod.
  */
 
-/** True when running a production Node/Edge environment. */
+import { resolveAppEnv } from "@/config/app-env";
+
+/** True when NODE_ENV is production (includes staging builds). */
 export function isProductionRuntime(): boolean {
   return process.env.NODE_ENV === "production";
+}
+
+/** True when the logical APP_ENV lane is production. */
+export function isProductionAppRuntime(): boolean {
+  return resolveAppEnv() === "production";
 }
 
 function isNextBuildPhase(): boolean {
@@ -16,8 +23,8 @@ function isNextBuildPhase(): boolean {
 }
 
 /**
- * Auth.js signing secret. Fails closed in production when unset/weak.
- * A hardcoded fallback is allowed only outside production for local bootstrapping.
+ * Auth.js signing secret. Fails closed in production APP_ENV when unset/weak.
+ * A hardcoded fallback is allowed only for local bootstrapping.
  */
 export function getAuthSecret(): string {
   const secret = process.env.AUTH_SECRET?.trim();
@@ -25,7 +32,10 @@ export function getAuthSecret(): string {
     return secret;
   }
 
-  if (isProductionRuntime() && !isNextBuildPhase()) {
+  if (
+    (isProductionAppRuntime() || isProductionRuntime()) &&
+    !isNextBuildPhase()
+  ) {
     throw new Error(
       "AUTH_SECRET must be set to a strong value (min 32 characters) in production.",
     );

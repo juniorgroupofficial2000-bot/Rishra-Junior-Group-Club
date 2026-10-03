@@ -1,6 +1,6 @@
 import "server-only";
 
-import { isProductionRuntime } from "@/server/security/env";
+import { getServerEnv, isProductionAppEnv } from "@/config";
 import { MockPaymentProvider } from "@/server/payments/mock-provider";
 import type { PaymentProvider } from "@/server/payments/provider";
 import { createRazorpayProviderFromEnv } from "@/server/payments/razorpay-provider";
@@ -11,16 +11,15 @@ let cached: PaymentProvider | null = null;
 let ephemeralMockSecret: string | null = null;
 
 export function getPaymentProviderName(): ProviderName {
-  const value = process.env.PAYMENT_PROVIDER?.toLowerCase();
-  if (value === "razorpay") return "razorpay";
-  return "mock";
+  return getServerEnv().paymentProvider;
 }
 
 function resolveMockWebhookSecret(): string {
-  const configured = process.env.PAYMENT_WEBHOOK_SECRET?.trim();
+  const env = getServerEnv();
+  const configured = env.PAYMENT_WEBHOOK_SECRET;
   if (configured) return configured;
 
-  if (isProductionRuntime()) {
+  if (isProductionAppEnv(env.appEnv) || env.NODE_ENV === "production") {
     throw new Error(
       "PAYMENT_WEBHOOK_SECRET is required when using the mock payment provider.",
     );
@@ -40,7 +39,8 @@ function resolveMockWebhookSecret(): string {
 export function getPaymentProvider(): PaymentProvider {
   if (cached) return cached;
 
-  const name = getPaymentProviderName();
+  const env = getServerEnv();
+  const name = env.paymentProvider;
   if (name === "razorpay") {
     try {
       const razorpay = createRazorpayProviderFromEnv();
@@ -54,13 +54,19 @@ export function getPaymentProvider(): PaymentProvider {
     }
   }
 
-  if (isProductionRuntime()) {
-    const allowMock = process.env.ALLOW_MOCK_PAYMENTS === "true";
+  if (isProductionAppEnv(env.appEnv)) {
+    throw new Error(
+      "Mock payment provider is blocked when APP_ENV=production. Use staging for sandbox payments.",
+    );
+  }
+
+  if (env.NODE_ENV === "production" && env.appEnv === "staging") {
+    const allowMock = env.ALLOW_MOCK_PAYMENTS;
     const confirmed =
-      process.env.MOCK_PAYMENTS_CONFIRM === "I_UNDERSTAND_NO_REAL_MONEY";
+      env.MOCK_PAYMENTS_CONFIRM === "I_UNDERSTAND_NO_REAL_MONEY";
     if (!allowMock || !confirmed) {
       throw new Error(
-        "Mock payment provider is blocked in production. Use PAYMENT_PROVIDER=razorpay, or set ALLOW_MOCK_PAYMENTS=true and MOCK_PAYMENTS_CONFIRM=I_UNDERSTAND_NO_REAL_MONEY for a controlled sandbox only.",
+        "Mock payment provider on staging requires ALLOW_MOCK_PAYMENTS=true and MOCK_PAYMENTS_CONFIRM=I_UNDERSTAND_NO_REAL_MONEY, or PAYMENT_PROVIDER=razorpay with test keys.",
       );
     }
   }

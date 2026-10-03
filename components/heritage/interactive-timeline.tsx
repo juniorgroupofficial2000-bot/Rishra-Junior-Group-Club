@@ -46,9 +46,15 @@ export function InteractiveTimeline({
 
   if (entries.length === 0) {
     return (
-      <p className="rounded-xl border border-dashed border-border-strong bg-surface-raised px-5 py-8 text-sm text-ink-500">
-        No published timeline entries yet.
-      </p>
+      <div className="rounded-2xl border border-dashed border-border-strong bg-surface-muted/40 px-6 py-12 text-center sm:px-10">
+        <p className="font-display text-xl font-semibold text-ink-900">
+          History will appear here
+        </p>
+        <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-ink-500">
+          Verified milestones are published by the committee. We do not invent
+          dates or stories to fill this page.
+        </p>
+      </div>
     );
   }
 

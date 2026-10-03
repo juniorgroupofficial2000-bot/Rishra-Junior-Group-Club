@@ -7,12 +7,14 @@ declare module "next-auth" {
       id: string;
       role: AppRole;
       memberId: string | null;
+      mfaEnabled: boolean;
     } & DefaultSession["user"];
   }
 
   interface User {
     role: AppRole;
     memberId: string | null;
+    mfaEnabled?: boolean;
   }
 }
 
@@ -20,6 +22,7 @@ declare module "next-auth/jwt" {
   interface JWT {
     role?: AppRole;
     memberId?: string | null;
+    mfaEnabled?: boolean;
     lastValidated?: number;
     error?: "SessionInactive";
   }

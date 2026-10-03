@@ -1,6 +1,7 @@
 "use client";
 
 import { siteConfig } from "@/content/site";
+import { useIsMobileViewport } from "@/lib/hooks/use-media-query";
 import { premiumEase } from "@/lib/motion";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { usePathname } from "next/navigation";
@@ -28,17 +29,19 @@ function getIntroSeenSnapshot() {
 
 /**
  * Short cinematic intro on first homepage visit per session (~1.6s).
- * Skipped under reduced motion and on interior routes.
+ * Skipped under reduced motion, on mobile/narrow viewports, and interior routes.
  */
 export function IntroOverlay() {
   const pathname = usePathname();
   const reduce = Boolean(useReducedMotion());
+  const isMobile = useIsMobileViewport();
   const alreadySeen = useSyncExternalStore(
     subscribeIntroSeen,
     getIntroSeenSnapshot,
     () => false,
   );
-  const shouldPlay = pathname === "/" && !reduce && !alreadySeen;
+  const shouldPlay =
+    pathname === "/" && !reduce && !isMobile && !alreadySeen;
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {

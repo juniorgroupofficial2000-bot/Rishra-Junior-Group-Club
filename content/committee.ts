@@ -1,8 +1,9 @@
 /**
- * Public committee roster — CMS-ready.
+ * Committee types + seed fixture for local CMS bootstrap.
  *
- * Privacy: only role + display name are public.
- * Never store or render personal phone, email, address, ID docs, or dues data here.
+ * Runtime public pages MUST load from `PublicCommitteeMember` via
+ * `loadPublishedCommitteeMembers()` — never import the array below as a
+ * fallback. Privacy: only role + display name are public.
  */
 
 export type CommitteeRoleKey =
@@ -23,8 +24,13 @@ export type CommitteeMember = {
   familiarName?: string;
   /** Precomputed public label, e.g. "Satrudhan Burman (Monu)" */
   displayName: string;
+  biography?: string;
+  termYear?: number;
   sortOrder: number;
   published: boolean;
+  /** Managed media delivery URL when a portrait asset is linked. */
+  portraitSrc?: string;
+  portraitAlt?: string;
 };
 
 export const committeePageCopy = {

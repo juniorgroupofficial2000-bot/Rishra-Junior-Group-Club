@@ -7,6 +7,7 @@ export const memberNav: MemberNavItem[] = [
   { href: "/member/dashboard", label: "Dashboard" },
   { href: "/member/profile", label: "Profile" },
   { href: "/member/membership", label: "Membership" },
+  { href: "/member/card", label: "Membership card" },
   { href: "/member/payments", label: "Payments" },
   { href: "/member/mandate", label: "Mandate" },
   { href: "/member/receipts", label: "Receipts" },

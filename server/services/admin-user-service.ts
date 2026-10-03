@@ -4,11 +4,12 @@ import { AuditActions } from "@/server/audit/actions";
 import { prisma } from "@/server/db/prisma";
 import type { AppRole } from "@/server/domain/roles";
 import { writeAuditEvent } from "@/server/services/audit-service";
+import { emailSchema } from "@/server/validation/email";
 import { hash } from "bcryptjs";
 import { z } from "zod";
 
 const createAdminSchema = z.object({
-  email: z.email().trim().toLowerCase(),
+  email: emailSchema,
   name: z.string().trim().min(1).max(120),
   role: z.enum([
     "SUPER_ADMIN",

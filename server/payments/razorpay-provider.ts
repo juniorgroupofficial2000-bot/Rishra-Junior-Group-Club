@@ -298,35 +298,48 @@ export class RazorpayPaymentProvider implements PaymentProvider {
       created_at?: number;
     };
 
-    const entity =
-      (body.payload?.payment as { entity?: Record<string, unknown> } | undefined)
-        ?.entity ??
-      (body.payload?.subscription as
-        | { entity?: Record<string, unknown> }
-        | undefined)?.entity ??
-      {};
+    // Razorpay may nest payment + subscription entities in the same event
+    // (e.g. subscription.charged). Prefer the payment entity for ledger refs.
+    const paymentEntity =
+      (
+        body.payload?.payment as
+          | { entity?: Record<string, unknown> }
+          | undefined
+      )?.entity ?? null;
+    const subscriptionEntity =
+      (
+        body.payload?.subscription as
+          | { entity?: Record<string, unknown> }
+          | undefined
+      )?.entity ?? null;
+    const orderEntity =
+      (body.payload?.order as { entity?: Record<string, unknown> } | undefined)
+        ?.entity ?? null;
 
-    const providerEventId =
-      typeof entity.id === "string"
-        ? `${body.event}:${entity.id}:${body.created_at ?? "0"}`
-        : `${body.event}:${createHmac("sha256", input.rawBody).digest("hex").slice(0, 24)}`;
+    const idForEvent =
+      (typeof paymentEntity?.id === "string" && paymentEntity.id) ||
+      (typeof subscriptionEntity?.id === "string" && subscriptionEntity.id) ||
+      (typeof orderEntity?.id === "string" && orderEntity.id) ||
+      null;
 
+    const providerEventId = idForEvent
+      ? `${body.event}:${idForEvent}:${body.created_at ?? "0"}`
+      : `${body.event}:${createHmac("sha256", input.rawBody).digest("hex").slice(0, 24)}`;
+
+    // Prefer payload.payment.entity whenever present (including subscription.charged).
     const paymentRef =
-      typeof entity.id === "string" && body.event.startsWith("payment.")
-        ? entity.id
-        : null;
+      typeof paymentEntity?.id === "string" ? paymentEntity.id : null;
+
     const orderRef =
-      typeof entity.order_id === "string"
-        ? entity.order_id
-        : typeof entity.id === "string" && body.event.startsWith("order.")
-          ? entity.id
-          : null;
+      (typeof paymentEntity?.order_id === "string" && paymentEntity.order_id) ||
+      (typeof orderEntity?.id === "string" && orderEntity.id) ||
+      null;
+
     const subscriptionRef =
-      typeof entity.id === "string" && body.event.includes("subscription")
-        ? entity.id
-        : typeof entity.subscription_id === "string"
-          ? entity.subscription_id
-          : null;
+      (typeof subscriptionEntity?.id === "string" && subscriptionEntity.id) ||
+      (typeof paymentEntity?.subscription_id === "string" &&
+        paymentEntity.subscription_id) ||
+      null;
 
     return {
       providerEventId,
@@ -337,19 +350,26 @@ export class RazorpayPaymentProvider implements PaymentProvider {
       mandateRef: subscriptionRef,
       subscriptionRef,
       paymentStatus:
-        typeof entity.status === "string"
-          ? mapRazorpayPaymentStatus(entity.status)
+        typeof paymentEntity?.status === "string"
+          ? mapRazorpayPaymentStatus(String(paymentEntity.status))
           : null,
       mandateStatus:
-        typeof entity.status === "string" && body.event.includes("subscription")
-          ? mapRazorpaySubscriptionStatus(entity.status)
+        typeof subscriptionEntity?.status === "string"
+          ? mapRazorpaySubscriptionStatus(String(subscriptionEntity.status))
           : null,
-      amountPaise: typeof entity.amount === "number" ? entity.amount : null,
+      amountPaise:
+        typeof paymentEntity?.amount === "number"
+          ? paymentEntity.amount
+          : typeof subscriptionEntity?.amount === "number"
+            ? subscriptionEntity.amount
+            : null,
       failureCode:
-        typeof entity.error_code === "string" ? entity.error_code : null,
+        typeof paymentEntity?.error_code === "string"
+          ? paymentEntity.error_code
+          : null,
       failureMessage:
-        typeof entity.error_description === "string"
-          ? entity.error_description
+        typeof paymentEntity?.error_description === "string"
+          ? paymentEntity.error_description
           : null,
       nextDebitAt: null,
       occurredAt: body.created_at

@@ -1,6 +1,10 @@
 /**
- * Central media slots for the public site.
- * Replace `src` paths with real photographs when available.
+ * Central media configuration for the public site.
+ *
+ * Replace `src` paths here (and files under /public/images/) when real
+ * club photographs are ready. Components should import from this module
+ * instead of hardcoding image URLs.
+ *
  * English alt text only. Do not invent unverified scenes in alt copy.
  */
 
@@ -14,15 +18,20 @@ export type SiteMediaSlot = {
   height: number;
   /** CSS object-position for portraits / hero crops */
   objectPosition?: string;
+  /** Editor note — how to replace this slot */
   note?: string;
 };
 
+/**
+ * Named site-wide image slots.
+ * Prefer these over scattering paths through components.
+ */
 export const siteMedia = {
   hero: {
     id: "hero",
     src: "/images/home/hero.svg",
     srcMobile: "/images/home/hero.svg",
-    alt: "Placeholder community photograph for Rishra Junior Group Club",
+    alt: "Community atmosphere at Rishra Junior Group Club",
     width: 2400,
     height: 1600,
     objectPosition: "center",
@@ -31,36 +40,89 @@ export const siteMedia = {
   intro: {
     id: "intro",
     src: "/images/home/intro.svg",
-    alt: "Placeholder photograph introducing club life",
+    alt: "Club life in Rishra",
     width: 1600,
     height: 1200,
     objectPosition: "center",
+    note: "Replace with a candid club gathering photograph.",
+  },
+  about: {
+    id: "about",
+    src: "/images/home/intro.svg",
+    alt: "Rishra Junior Group Club community",
+    width: 1600,
+    height: 1200,
+    objectPosition: "center",
+    note: "Dedicated about-page photograph when available.",
   },
   puja: {
     id: "puja",
     src: "/images/home/puja.svg",
-    alt: "Placeholder photograph for Saraswati Puja",
+    alt: "Saraswati Puja at Rishra Junior Group Club",
     width: 1800,
     height: 1200,
     objectPosition: "center 40%",
+    note: "Replace with a verified Saraswati Puja photograph.",
   },
   pujaHero: {
     id: "puja-hero",
     src: "/images/heritage/puja-hero.svg",
-    alt: "Placeholder Saraswati Puja hero photograph",
+    alt: "Saraswati Puja hero photograph",
     width: 2400,
     height: 1600,
     objectPosition: "center",
+    note: "Flagship heritage hero — prefer a verified archive image.",
   },
   location: {
     id: "location",
     src: "/images/home/location.svg",
-    alt: "Placeholder image for the club neighbourhood in Rishra",
+    alt: "Morepukur, Natun Gram, Rishra neighbourhood",
+    width: 1600,
+    height: 1000,
+    objectPosition: "center",
+    note: "Replace with premises or locality photograph.",
+  },
+  membership: {
+    id: "membership",
+    src: "/images/home/intro.svg",
+    alt: "Members of Rishra Junior Group Club",
+    width: 1600,
+    height: 1200,
+    objectPosition: "center",
+    note: "Membership page atmosphere image.",
+  },
+  contact: {
+    id: "contact",
+    src: "/images/home/location.svg",
+    alt: "Club neighbourhood in Rishra",
+    width: 1600,
+    height: 1000,
+    objectPosition: "center",
+    note: "Contact page location image.",
+  },
+  galleryCoverFallback: {
+    id: "gallery-cover-fallback",
+    src: "/images/gallery/cover-01.svg",
+    alt: "Gallery album cover placeholder",
+    width: 1600,
+    height: 1200,
+    objectPosition: "center",
+  },
+  eventCoverFallback: {
+    id: "event-cover-fallback",
+    src: "/images/events/cover-01.svg",
+    alt: "Event cover placeholder",
     width: 1600,
     height: 1000,
     objectPosition: "center",
   },
 } as const satisfies Record<string, SiteMediaSlot>;
+
+export type SiteMediaKey = keyof typeof siteMedia;
+
+export function getSiteMedia(key: SiteMediaKey): SiteMediaSlot {
+  return siteMedia[key];
+}
 
 /**
  * Committee portrait slots keyed by committee member id from content/committee.ts.
@@ -76,11 +138,10 @@ export const committeePortraits: Record<
     objectPosition: "center 18%",
   },
   "cm-vp-1": {
-    // Portrait file not provided yet.
     src: "/images/committee/portrait-placeholder.svg",
     alt: "Portrait placeholder for Suraj Kumar Burman, Vice President",
     objectPosition: "center 20%",
-    note: "Add a portrait named to match Suraj Kumar Burman when available.",
+    note: "Add a portrait for Suraj Kumar Burman when available.",
   },
   "cm-vp-2": {
     src: "/images/committee/Gopal.png",

@@ -1,10 +1,13 @@
 import type { AppRole } from "@/server/domain/roles";
 
 export type AuthMemberStatus =
-  | "ACTIVE"
+  | "APPLICATION"
   | "PENDING"
+  | "APPROVED"
+  | "ACTIVE"
   | "INACTIVE"
   | "SUSPENDED"
+  | "ARCHIVED"
   | null;
 
 /** Auth identity — never expose password hashes to the client. */
@@ -19,6 +22,9 @@ export type AuthUserRecord = {
   /** bcrypt hash — server-only */
   passwordHash: string;
   active: boolean;
+  mfaEnabled: boolean;
+  /** Encrypted TOTP secret — server-only; never send to clients. */
+  mfaTotpSecretEnc: string | null;
 };
 
 export type UserRepository = {

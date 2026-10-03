@@ -2,19 +2,17 @@ import { HistoryTimelineLazy } from "@/components/heritage/history-timeline-lazy
 import { SiteContainer } from "@/components/public";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { SectionHeader } from "@/components/ui/section-header";
-import {
-  getPublishedTimelineEntries,
-  historyPageCopy,
-} from "@/content/heritage";
+import { historyPageCopy } from "@/content/heritage";
 import { breadcrumbsForPage } from "@/content/pages";
 import { historyPageJsonLd } from "@/lib/heritage-structured-data";
 import { JsonLd } from "@/lib/json-ld";
 import { metadataForPublicPage } from "@/lib/seo/metadata";
+import { loadPublishedTimelineEntries } from "@/server/content/public-loaders";
 
 export const metadata = metadataForPublicPage("history");
 
-export default function HistoryPage() {
-  const entries = getPublishedTimelineEntries();
+export default async function HistoryPage() {
+  const entries = await loadPublishedTimelineEntries();
   const crumbs = breadcrumbsForPage("history");
 
   return (
@@ -32,8 +30,7 @@ export default function HistoryPage() {
       <SiteContainer className="min-w-0 pb-16 sm:pb-24">
         <HistoryTimelineLazy entries={entries} />
         <p className="mt-12 max-w-2xl text-sm text-ink-500">
-          {historyPageCopy.emptyNote} SAMPLE entries are labelled and exist only
-          to demonstrate the CMS-ready timeline layout.
+          {historyPageCopy.emptyNote}
         </p>
       </SiteContainer>
     </>

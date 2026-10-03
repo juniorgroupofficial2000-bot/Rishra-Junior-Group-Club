@@ -1,7 +1,7 @@
 import { setupMandateAction } from "@/app/(member)/actions/mandate";
 import { CancelMandateButton } from "@/components/member/cancel-mandate-button";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { PendingSubmitButton } from "@/components/ui/pending-submit-button";
 import { MemberPageHeader } from "@/components/member/member-page-header";
 import { requireMemberId } from "@/server/auth/member-context";
 import { getPaymentProviderName } from "@/server/payments/factory";
@@ -169,7 +169,9 @@ export default async function MemberMandatePage({
               based on your assigned membership plan. The mandate is not active
               until a verified webhook confirms it.
             </p>
-            <Button type="submit">Start mandate setup</Button>
+            <PendingSubmitButton pendingLabel="Starting…">
+              Start mandate setup
+            </PendingSubmitButton>
           </form>
         ) : null}
 

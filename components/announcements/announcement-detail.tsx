@@ -14,6 +14,8 @@ export function AnnouncementDetail({
 }: {
   announcement: Announcement;
 }) {
+  const title = announcement.title.replace(/^\[SAMPLE\]\s*/i, "");
+
   return (
     <article className="mx-auto max-w-3xl">
       <FadeIn>
@@ -30,7 +32,7 @@ export function AnnouncementDetail({
           <ProvenanceBadge provenance={announcement.provenance} />
         </div>
         <h1 className="mt-4 font-display text-3xl font-semibold tracking-tight text-ink-900 sm:text-4xl">
-          {announcement.title}
+          {title}
         </h1>
         <p className="mt-3 text-base leading-relaxed text-ink-500">
           {announcement.summary}

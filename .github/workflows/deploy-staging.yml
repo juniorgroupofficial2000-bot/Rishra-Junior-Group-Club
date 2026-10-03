@@ -1,0 +1,169 @@
+# Explicit staging release — never automatic from feature branches.
+# Trigger: Actions → Deploy Staging → Run workflow (select ref, usually main or a release tag).
+name: Deploy Staging
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref to deploy (branch or tag)
+        required: true
+        default: main
+      confirm:
+        description: Type staging to confirm
+        required: true
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+jobs:
+  confirm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require confirmation
+        if: ${{ github.event.inputs.confirm != 'staging' }}
+        run: |
+          echo "Confirmation failed — type staging exactly"
+          exit 1
+
+  verify:
+    name: Verify selected ref
+    needs: [confirm]
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: rjgc_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d rjgc_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      NODE_VERSION: "22"
+      APP_ENV: staging
+      NEXT_PUBLIC_APP_ENV: staging
+      APP_URL: https://staging.example.invalid
+      NEXT_PUBLIC_APP_URL: https://staging.example.invalid
+      SITE_URL: https://staging.example.invalid
+      AUTH_URL: https://staging.example.invalid
+      AUTH_SECRET: ci-build-secret-at-least-32-chars-long
+      CRON_SECRET: ci-cron-secret-at-least-32-chars-long
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/rjgc_ci?schema=public
+      REPOSITORY_DRIVER: prisma
+      PAYMENT_PROVIDER: mock
+      PAYMENT_MODE: test
+      ALLOW_MOCK_PAYMENTS: "true"
+      MOCK_PAYMENTS_CONFIRM: I_UNDERSTAND_NO_REAL_MONEY
+      PAYMENT_WEBHOOK_SECRET: ci-mock-webhook-secret
+      CONTENT_INCLUDE_SAMPLE: "false"
+      ALLOW_DEMO_SEED: "false"
+      E2E_TEST: "0"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm run db:validate
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:unit
+      - run: npm run test:security
+      - run: npx prisma migrate deploy
+      - run: npm run test:integration
+      - run: npm run build
+        env:
+          NEXT_PHASE: phase-production-build
+
+  deploy:
+    name: Deploy to staging
+    needs: [verify]
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: ${{ vars.APP_URL }}
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+      - run: npx prisma generate
+
+      - name: Build (APP_ENV=staging)
+        run: npm run build
+        env:
+          APP_ENV: staging
+          NEXT_PUBLIC_APP_ENV: staging
+          APP_URL: ${{ vars.APP_URL }}
+          NEXT_PUBLIC_APP_URL: ${{ vars.APP_URL }}
+          SITE_URL: ${{ vars.APP_URL }}
+          AUTH_URL: ${{ vars.APP_URL }}
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          REPOSITORY_DRIVER: prisma
+          PAYMENT_PROVIDER: ${{ vars.PAYMENT_PROVIDER }}
+          PAYMENT_MODE: test
+          RAZORPAY_KEY_ID: ${{ secrets.RAZORPAY_KEY_ID }}
+          RAZORPAY_KEY_SECRET: ${{ secrets.RAZORPAY_KEY_SECRET }}
+          RAZORPAY_WEBHOOK_SECRET: ${{ secrets.RAZORPAY_WEBHOOK_SECRET }}
+          MEDIA_STORAGE_DRIVER: ${{ vars.MEDIA_STORAGE_DRIVER }}
+          REQUIRE_STAFF_MFA: ${{ vars.REQUIRE_STAFF_MFA }}
+          NEXT_PHASE: phase-production-build
+
+      - name: Migrate staging database (non-destructive)
+        run: |
+          if [ -z "${DATABASE_URL:-}" ]; then
+            echo "DATABASE_URL not set — skipping migrate deploy"
+            exit 0
+          fi
+          npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          APP_ENV: staging
+
+      - name: Deploy to Vercel staging project
+        run: |
+          if [ -z "${VERCEL_TOKEN:-}" ]; then
+            echo "Vercel not configured — skipping"
+            exit 0
+          fi
+          # Use a dedicated Vercel project for staging (separate from production).
+          npx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          npx vercel build --prod --token="$VERCEL_TOKEN"
+          npx vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Deploy hook
+        run: |
+          if [ -z "${DEPLOY_HOOK_URL:-}" ]; then
+            exit 0
+          fi
+          curl -fsS -X POST "$DEPLOY_HOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "{\"ref\":\"${{ github.event.inputs.ref }}\",\"environment\":\"staging\",\"appEnv\":\"staging\"}"
+        env:
+          DEPLOY_HOOK_URL: ${{ secrets.DEPLOY_HOOK_URL }}

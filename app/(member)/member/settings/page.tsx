@@ -1,8 +1,9 @@
 import { logoutAction } from "@/app/(auth)/actions";
-import { Button } from "@/components/ui/button";
+import { PendingSubmitButton } from "@/components/ui/pending-submit-button";
 import { MemberPageHeader } from "@/components/member/member-page-header";
-import { requireMemberSession } from "@/server/auth/session";
+import { requireMemberId } from "@/server/auth/member-context";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Settings",
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function MemberSettingsPage() {
-  const session = await requireMemberSession();
+  const { session } = await requireMemberId();
 
   return (
     <>
@@ -27,7 +28,14 @@ export default async function MemberSettingsPage() {
           <p className="mt-1 text-xs uppercase tracking-wide text-ink-400">
             Role: {session.user.role}
           </p>
+          <Link
+            href="/member/profile"
+            className="mt-4 inline-flex min-h-11 items-center text-sm font-medium text-ink-800 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            View profile
+          </Link>
         </section>
+
         <section className="max-w-xl rounded-xl border border-border-subtle bg-surface-raised p-5 shadow-xs">
           <h2 className="font-display text-lg font-semibold text-ink-900">
             Session
@@ -36,15 +44,28 @@ export default async function MemberSettingsPage() {
             Sign out clears your secure session cookie on this device.
           </p>
           <form action={logoutAction} className="mt-4">
-            <Button type="submit" variant="accent">
+            <PendingSubmitButton variant="accent" pendingLabel="Signing out…">
               Sign out securely
-            </Button>
+            </PendingSubmitButton>
           </form>
         </section>
-        <p className="max-w-xl text-sm text-ink-500">
-          Password change and notification preferences will connect to the
-          production identity service when Prisma auth is enabled.
-        </p>
+
+        <section className="max-w-xl rounded-xl border border-dashed border-border-strong bg-surface-muted/50 p-5">
+          <h2 className="font-display text-lg font-semibold text-ink-900">
+            Password and preferences
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-ink-600">
+            Password changes and notification preferences are managed by the
+            committee. Contact the club if you need your sign-in details
+            updated.
+          </p>
+          <Link
+            href="/contact"
+            className="mt-4 inline-flex min-h-11 items-center text-sm font-medium text-ink-800 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Contact the club
+          </Link>
+        </section>
       </div>
     </>
   );

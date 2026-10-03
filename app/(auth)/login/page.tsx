@@ -16,7 +16,10 @@ type PageProps = {
 
 export default async function LoginPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const callbackUrl = safeInternalPath(params.callbackUrl);
+  // Empty callback lets loginAction choose admin vs member home by role.
+  const callbackUrl = params.callbackUrl
+    ? safeInternalPath(params.callbackUrl, "/")
+    : "";
   // Demo credentials are only shown for the intentional mock repository driver.
   const showDemoHint = isMockRepositoryDriver();
 

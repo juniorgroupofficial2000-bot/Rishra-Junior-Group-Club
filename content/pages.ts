@@ -12,6 +12,7 @@ export type PublicPageKey =
   | "membership"
   | "contact"
   | "faq"
+  | "search"
   | "privacy"
   | "terms";
 
@@ -40,7 +41,7 @@ export const publicPages: Record<PublicPageKey, PublicPageDefinition> = {
     path: "/about",
     title: "About",
     description:
-      "[PLACEHOLDER: Short introduction to the club’s purpose and community role.]",
+      "Learn about Rishra Junior Group Club — community, tradition, and togetherness in Morepukur, Natun Gram since 2000.",
     eyebrow: "The club",
   },
   history: {
@@ -72,7 +73,7 @@ export const publicPages: Record<PublicPageKey, PublicPageDefinition> = {
     path: "/events",
     title: "Events",
     description:
-      "Upcoming and past events at Rishra Junior Group Club. SAMPLE listings are labelled.",
+      "Upcoming and past events at Rishra Junior Group Club.",
     eyebrow: "Calendar",
   },
   gallery: {
@@ -80,7 +81,7 @@ export const publicPages: Record<PublicPageKey, PublicPageDefinition> = {
     path: "/gallery",
     title: "Gallery",
     description:
-      "Photo and video albums from club celebrations and gatherings. SAMPLE albums are labelled.",
+      "Photo and video albums from club celebrations and gatherings.",
     eyebrow: "Moments",
   },
   announcements: {
@@ -88,7 +89,7 @@ export const publicPages: Record<PublicPageKey, PublicPageDefinition> = {
     path: "/announcements",
     title: "Announcements",
     description:
-      "Official club announcements with categories and pinned notices. SAMPLE items are labelled.",
+      "Official club announcements with categories and pinned notices.",
     eyebrow: "Updates",
   },
   membership: {
@@ -110,21 +111,32 @@ export const publicPages: Record<PublicPageKey, PublicPageDefinition> = {
     key: "faq",
     path: "/faq",
     title: "FAQ",
-    description: "[PLACEHOLDER: Frequently asked questions — content pending.]",
+    description:
+      "Frequently asked questions about Rishra Junior Group Club, Saraswati Puja, membership, and contact.",
     eyebrow: "Help",
+  },
+  search: {
+    key: "search",
+    path: "/search",
+    title: "Search",
+    description:
+      "Search announcements, events, gallery albums, committee members, and club pages.",
+    eyebrow: "Find",
   },
   privacy: {
     key: "privacy",
     path: "/privacy",
     title: "Privacy Policy",
-    description: "[PLACEHOLDER: Privacy policy body.]",
+    description:
+      "How Rishra Junior Group Club handles personal information on this website and member portal.",
     eyebrow: "Legal",
   },
   terms: {
     key: "terms",
     path: "/terms",
     title: "Terms of Use",
-    description: "[PLACEHOLDER: Terms of use body.]",
+    description:
+      "Terms of use for the Rishra Junior Group Club website and related digital services.",
     eyebrow: "Legal",
   },
 };

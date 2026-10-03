@@ -89,14 +89,54 @@ export async function notifyAnnouncementPublished(input: {
     metadata: { slug: announcement.slug, title: announcement.title },
   });
 
+  return deliverAnnouncementNotifications({
+    announcementTitle: announcement.title,
+    userIds: input.userIds ?? [],
+  });
+}
+
+/** Fan-out in-app notifications to active members when an announcement is published. */
+export async function fanOutAnnouncementPublished(input: {
+  announcementId: string;
+  actorUserId?: string | null;
+}) {
+  const announcement = await prisma.announcement.findFirst({
+    where: { id: input.announcementId, deletedAt: null },
+  });
+  if (!announcement) return [];
+
+  const members = await prisma.member.findMany({
+    where: {
+      deletedAt: null,
+      status: "ACTIVE",
+      userId: { not: null },
+    },
+    select: { userId: true },
+    take: 500,
+  });
+
+  const userIds = members
+    .map((row) => row.userId)
+    .filter((id): id is string => Boolean(id));
+
+  return deliverAnnouncementNotifications({
+    announcementTitle: announcement.title,
+    userIds,
+  });
+}
+
+async function deliverAnnouncementNotifications(input: {
+  announcementTitle: string;
+  userIds: string[];
+}) {
   const results = [];
-  for (const userId of input.userIds ?? []) {
+  for (const userId of input.userIds) {
     results.push(
       ...(await getNotificationService().notifyEvent({
         event: NotificationEvents.ANNOUNCEMENT_PUBLISHED,
         recipient: { userId },
-        data: { announcementTitle: announcement.title },
-        channels: ["in_app", "email"],
+        data: { announcementTitle: input.announcementTitle },
+        channels: ["in_app"],
       })),
     );
   }

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { emailSchema } from "@/server/validation/email";
 import { memberStatusSchema } from "@/server/validation/member";
 
 /**
@@ -16,7 +17,7 @@ export const memberCsvRowSchema = z.object({
   firstName: z.string().trim().min(1).max(80),
   lastName: z.string().trim().min(1).max(80),
   displayName: z.string().trim().min(1).max(120),
-  email: z.email().trim().toLowerCase(),
+  email: emailSchema,
   phone: z.string().trim().max(40).optional().or(z.literal("")),
   status: memberStatusSchema.optional().default("PENDING"),
   joinedOn: z

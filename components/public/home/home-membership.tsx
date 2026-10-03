@@ -1,7 +1,8 @@
 "use client";
 
 import { SiteContainer } from "@/components/public/site-container";
-import { homeContent } from "@/content/home";
+import { homeContent, type HomeContent } from "@/content/home";
+import { usePrefersStaticMotion } from "@/lib/hooks/use-media-query";
 import { lineRevealVariants, transitionSlow } from "@/lib/motion";
 import {
   motion,
@@ -13,10 +14,14 @@ import { useRef } from "react";
 import { HomeLink } from "./home-link";
 import { HomeSectionHeading } from "./home-section-heading";
 
-const content = homeContent.membership;
-
-export function HomeMembership() {
+export function HomeMembership({
+  content = homeContent.membership,
+}: {
+  content?: HomeContent["membership"];
+} = {}) {
   const reduce = Boolean(useReducedMotion());
+  const staticMotion = usePrefersStaticMotion();
+  const scrollFx = !reduce && !staticMotion;
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -33,7 +38,7 @@ export function HomeMembership() {
       <motion.div
         aria-hidden
         className="pointer-events-none absolute -inset-x-20 -inset-y-10 bg-[radial-gradient(ellipse_at_30%_40%,rgba(194,58,34,0.12),transparent_55%),radial-gradient(ellipse_at_80%_60%,rgba(196,154,26,0.16),transparent_50%)]"
-        style={reduce ? undefined : { x: bgX }}
+        style={scrollFx ? { x: bgX } : undefined}
       />
 
       <SiteContainer className="relative">

@@ -1,11 +1,50 @@
 import { FadeIn, Stagger, StaggerItem } from "@/components/motion/fade-in";
 import { SiteContainer } from "@/components/public/site-container";
-import { saraswatiPujaContent } from "@/content/heritage";
+import {
+  getPublishedPujaGalleryImages,
+  saraswatiPujaContent,
+} from "@/content/heritage";
 import Image from "next/image";
+import Link from "next/link";
 import { ProvenanceBadge } from "./provenance-badge";
 
 export function PujaGalleries() {
-  const { title, description, images } = saraswatiPujaContent.photoGalleries;
+  const { title, description } = saraswatiPujaContent.photoGalleries;
+  const images = getPublishedPujaGalleryImages();
+
+  if (images.length === 0) {
+    return (
+      <section
+        id="photo-galleries"
+        aria-labelledby="puja-galleries-heading"
+        className="border-b border-border-subtle py-16 sm:py-20"
+      >
+        <SiteContainer>
+          <FadeIn>
+            <h2
+              id="puja-galleries-heading"
+              className="font-display text-3xl font-semibold tracking-tight text-ink-900 sm:text-4xl"
+            >
+              {title}
+            </h2>
+            <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-500">
+              {description}
+            </p>
+            <p className="mt-8 rounded-xl border border-dashed border-border-strong px-5 py-8 text-sm text-ink-500">
+              Photographs will be published here when available. Browse the{" "}
+              <Link
+                href="/gallery"
+                className="font-medium text-ink-800 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                gallery
+              </Link>{" "}
+              for albums.
+            </p>
+          </FadeIn>
+        </SiteContainer>
+      </section>
+    );
+  }
 
   return (
     <section

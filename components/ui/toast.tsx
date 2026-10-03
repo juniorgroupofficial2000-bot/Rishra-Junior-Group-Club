@@ -93,7 +93,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 shrink-0"
+                  className="shrink-0"
                   aria-label="Dismiss notification"
                   onClick={() => dismiss(item.id)}
                 >

@@ -21,6 +21,8 @@ const MOCK_USERS: AuthUserRecord[] = [
     passwordHash:
       "$2b$12$yxYnTxWqMKkj6iLzsPN4ouSgiZBYfi04aekWTfEm3QbCW2bLngYsi",
     active: true,
+    mfaEnabled: false,
+    mfaTotpSecretEnc: null,
   },
 ];
 

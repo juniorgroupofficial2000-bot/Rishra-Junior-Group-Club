@@ -4,6 +4,7 @@ import {
   exportMembersToCsv,
   parseMemberCsvImport,
 } from "@/server/csv/member-csv";
+import { allocateMembershipNumber } from "@/server/domain/membership-number";
 import { getAdminMemberRepository } from "@/server/repositories";
 import {
   getNotificationService,
@@ -47,9 +48,13 @@ export async function createMember(
     );
   }
 
+  const membershipNumber =
+    parsed.data.membershipNumber?.trim() ||
+    (await allocateMembershipNumber());
+
   try {
     return await getAdminMemberRepository().create(
-      parsed.data,
+      { ...parsed.data, membershipNumber },
       getActorId(actorUserId),
     );
   } catch (error) {
@@ -97,7 +102,7 @@ export async function updateMember(
       (error as { code?: string }).code === "P2002"
     ) {
       throw new MemberAdminServiceError(
-        "Membership number or linked user already exists.",
+        "Linked user already exists.",
         "CONFLICT",
       );
     }
@@ -160,11 +165,13 @@ export async function updateMemberStatus(
     parsed.data.status,
     getActorId(actorUserId),
     parsed.data.reason,
+    parsed.data.reviewNotes,
   );
 
   if (
-    parsed.data.status === "ACTIVE" &&
-    existing.status !== "ACTIVE"
+    (parsed.data.status === "ACTIVE" || parsed.data.status === "APPROVED") &&
+    existing.status !== "ACTIVE" &&
+    existing.status !== "APPROVED"
   ) {
     const recipient = await resolveMemberRecipient(id);
     if (recipient) {

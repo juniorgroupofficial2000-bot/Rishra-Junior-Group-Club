@@ -68,7 +68,7 @@ export function Modal({
             aria-labelledby={titleId}
             aria-describedby={description ? descId : undefined}
             className={cn(
-              "relative z-10 flex max-h-[90dvh] w-full max-w-lg flex-col rounded-t-2xl border border-border-subtle bg-surface-raised shadow-lg sm:rounded-2xl",
+              "relative z-10 flex max-h-[90dvh] w-full max-w-lg flex-col rounded-t-2xl border border-border-subtle bg-surface-raised pb-[env(safe-area-inset-bottom)] shadow-lg sm:rounded-2xl",
               className,
             )}
             variants={reduceMotion ? undefined : scaleInVariants}

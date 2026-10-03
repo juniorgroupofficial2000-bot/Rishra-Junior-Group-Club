@@ -1,4 +1,26 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import type { NextConfig } from "next";
+
+const mediaCdnOrigin = process.env.MEDIA_PUBLIC_BASE_URL?.replace(/\/$/, "");
+
+function readPackageVersion(): string {
+  try {
+    const raw = readFileSync(join(__dirname, "package.json"), "utf8");
+    return (JSON.parse(raw) as { version?: string }).version?.trim() || "0.0.0";
+  } catch {
+    return "0.0.0";
+  }
+}
+
+const buildVersion = process.env.APP_VERSION || readPackageVersion();
+const buildCommit =
+  process.env.GIT_COMMIT_SHA ||
+  process.env.VERCEL_GIT_COMMIT_SHA ||
+  process.env.GITHUB_SHA ||
+  "";
+const buildTimestamp =
+  process.env.BUILD_TIMESTAMP || new Date().toISOString();
 
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -18,7 +40,7 @@ const securityHeaders = [
       "form-action 'self'",
       "frame-ancestors 'none'",
       "object-src 'none'",
-      "img-src 'self' data: blob:",
+      `img-src 'self' data: blob:${mediaCdnOrigin ? ` ${mediaCdnOrigin}` : ""}`,
       "font-src 'self' data:",
       // Next.js requires inline styles; tighten further when a nonce pipeline exists.
       "style-src 'self' 'unsafe-inline'",
@@ -37,14 +59,28 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  env: {
+    APP_VERSION: buildVersion,
+    NEXT_PUBLIC_APP_VERSION: buildVersion,
+    GIT_COMMIT_SHA: buildCommit,
+    NEXT_PUBLIC_GIT_COMMIT_SHA: buildCommit,
+    BUILD_TIMESTAMP: buildTimestamp,
+    NEXT_PUBLIC_BUILD_TIMESTAMP: buildTimestamp,
+    API_VERSION: process.env.API_VERSION || "v1",
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [320, 375, 390, 430, 640, 750, 768, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60 * 60 * 24 * 30,
+    qualities: [75, 80],
   },
   // Prefer modern compression for production responses.
   compress: true,
   poweredByHeader: false,
+  experimental: {
+    optimizePackageImports: ["lucide-react", "motion"],
+  },
   async headers() {
     return [
       {
