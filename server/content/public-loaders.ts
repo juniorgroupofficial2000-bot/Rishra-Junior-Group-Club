@@ -43,7 +43,16 @@ function allowSample() {
 }
 
 /** Return fallback when Postgres is unset/unreachable (Vercel misconfig, cold boot). */
-async function withDbFallback<T>(label: string, run: () => Promise<T>, fallback: T): Promise<T> {
+async function withDbFallback<T>(
+  label: string,
+  run: () => Promise<T>,
+  fallback: T,
+): Promise<T> {
+  // Skip Prisma entirely when DATABASE_URL is empty — avoids build-time
+  // "Validation Error Count: 1" crashes on Vercel prerender.
+  if (!process.env.DATABASE_URL?.trim()) {
+    return fallback;
+  }
   try {
     return await run();
   } catch (error) {
@@ -291,110 +300,123 @@ export async function loadPublishedHomeContent() {
 }
 
 export async function loadPublishedTimelineEntries(): Promise<TimelineEntry[]> {
-  const rows = await prisma.timelineEntry.findMany({
-    where: { deletedAt: null, status: "PUBLISHED" },
-    orderBy: [{ sortOrder: "asc" }, { yearLabel: "asc" }],
-  });
+  return withDbFallback("loadPublishedTimelineEntries", async () => {
+    const rows = await prisma.timelineEntry.findMany({
+      where: { deletedAt: null, status: "PUBLISHED" },
+      orderBy: [{ sortOrder: "asc" }, { yearLabel: "asc" }],
+    });
 
-  return rows
-    .filter((row) => allowSample() || !isSampleProvenance(asProvenance(row.provenance)))
-    .map((row) => ({
-      id: row.id,
-      year: row.yearLabel,
-      date: row.date ?? undefined,
-      title: row.title,
-      description: row.description,
-      image: asMedia(row.imageJson),
-      gallery: asMediaList(row.galleryJson),
-      milestone: row.milestone,
-      sortOrder: row.sortOrder,
-      published: true,
-      provenance: asProvenance(row.provenance),
-    }));
+    return rows
+      .filter(
+        (row) =>
+          allowSample() || !isSampleProvenance(asProvenance(row.provenance)),
+      )
+      .map((row) => ({
+        id: row.id,
+        year: row.yearLabel,
+        date: row.date ?? undefined,
+        title: row.title,
+        description: row.description,
+        image: asMedia(row.imageJson),
+        gallery: asMediaList(row.galleryJson),
+        milestone: row.milestone,
+        sortOrder: row.sortOrder,
+        published: true,
+        provenance: asProvenance(row.provenance),
+      }));
+  }, []);
 }
 
 export async function loadPublishedFaqItems(): Promise<
   Array<{ id: string; question: string; answer: string; sortOrder: number }>
 > {
-  return prisma.faqItem.findMany({
-    where: { deletedAt: null, status: "PUBLISHED" },
-    orderBy: [{ sortOrder: "asc" }, { question: "asc" }],
-    select: { id: true, question: true, answer: true, sortOrder: true },
-  });
+  return withDbFallback(
+    "loadPublishedFaqItems",
+    () =>
+      prisma.faqItem.findMany({
+        where: { deletedAt: null, status: "PUBLISHED" },
+        orderBy: [{ sortOrder: "asc" }, { question: "asc" }],
+        select: { id: true, question: true, answer: true, sortOrder: true },
+      }),
+    [],
+  );
 }
 
 export async function loadPublishedPujaYears(): Promise<PujaArchiveYear[]> {
-  const now = new Date();
-  const rows = await prisma.pujaYear.findMany({
-    where: { deletedAt: null, status: "PUBLISHED" },
-    include: {
-      coverAsset: true,
-      scheduleItems: {
-        where: { deletedAt: null, status: "PUBLISHED" },
-        orderBy: [{ sortOrder: "asc" }, { startsAt: "asc" }],
+  return withDbFallback("loadPublishedPujaYears", async () => {
+    const now = new Date();
+    const rows = await prisma.pujaYear.findMany({
+      where: { deletedAt: null, status: "PUBLISHED" },
+      include: {
+        coverAsset: true,
+        scheduleItems: {
+          where: { deletedAt: null, status: "PUBLISHED" },
+          orderBy: [{ sortOrder: "asc" }, { startsAt: "asc" }],
+        },
       },
-    },
-    orderBy: [{ year: "desc" }, { sortOrder: "asc" }],
-  });
+      orderBy: [{ year: "desc" }, { sortOrder: "asc" }],
+    });
 
-  return rows
-    .filter(
-      (row) =>
-        allowSample() || !isSampleProvenance(asProvenance(row.provenance)),
-    )
-    .map((row) => mapPujaYearRow(row, now));
+    return rows
+      .filter(
+        (row) =>
+          allowSample() || !isSampleProvenance(asProvenance(row.provenance)),
+      )
+      .map((row) => mapPujaYearRow(row, now));
+  }, []);
 }
 
 export async function loadPublishedPujaYearByYear(
   year: number,
 ): Promise<PujaArchiveYear | null> {
-  const now = new Date();
-  const row = await prisma.pujaYear.findFirst({
-    where: {
-      year,
-      deletedAt: null,
-      status: "PUBLISHED",
-      ...(allowSample() ? {} : { isSample: false }),
-    },
-    include: {
-      coverAsset: true,
-      scheduleItems: {
-        where: { deletedAt: null, status: "PUBLISHED" },
-        orderBy: [{ sortOrder: "asc" }, { startsAt: "asc" }],
+  return withDbFallback("loadPublishedPujaYearByYear", async () => {
+    const now = new Date();
+    const row = await prisma.pujaYear.findFirst({
+      where: {
+        year,
+        deletedAt: null,
+        status: "PUBLISHED",
+        ...(allowSample() ? {} : { isSample: false }),
       },
-    },
-  });
+      include: {
+        coverAsset: true,
+        scheduleItems: {
+          where: { deletedAt: null, status: "PUBLISHED" },
+          orderBy: [{ sortOrder: "asc" }, { startsAt: "asc" }],
+        },
+      },
+    });
 
-  if (!row) return null;
-  if (
-    !allowSample() &&
-    isSampleProvenance(asProvenance(row.provenance))
-  ) {
-    return null;
-  }
-  return mapPujaYearRow(row, now);
+    if (!row) return null;
+    if (!allowSample() && isSampleProvenance(asProvenance(row.provenance))) {
+      return null;
+    }
+    return mapPujaYearRow(row, now);
+  }, null);
 }
 
 /** Published hero image for a site slot (e.g. home.hero). */
 export async function loadHeroMediaBySlot(slotKey: string) {
-  const asset = await prisma.mediaAsset.findFirst({
-    where: {
-      slotKey,
-      purpose: "HERO",
-      status: "READY",
-      deletedAt: null,
-    },
-  });
-  if (!asset) return null;
-  return {
-    id: asset.id,
-    src: `/api/media/${asset.id}?v=lg`,
-    srcMobile: `/api/media/${asset.id}?v=md`,
-    alt: asset.alt,
-    width: asset.width ?? 2400,
-    height: asset.height ?? 1600,
-    caption: asset.caption,
-  };
+  return withDbFallback("loadHeroMediaBySlot", async () => {
+    const asset = await prisma.mediaAsset.findFirst({
+      where: {
+        slotKey,
+        purpose: "HERO",
+        status: "READY",
+        deletedAt: null,
+      },
+    });
+    if (!asset) return null;
+    return {
+      id: asset.id,
+      src: `/api/media/${asset.id}?v=lg`,
+      srcMobile: `/api/media/${asset.id}?v=md`,
+      alt: asset.alt,
+      width: asset.width ?? 2400,
+      height: asset.height ?? 1600,
+      caption: asset.caption,
+    };
+  }, null);
 }
 
 export const loadPublishedCommitteeMembers = cache(async (): Promise<
@@ -629,57 +651,59 @@ export const loadPublishedAlbums = cache(async (): Promise<GalleryAlbum[]> => {
 
 export const loadPublishedAlbumBySlug = cache(
   async (slug: string): Promise<GalleryAlbum | null> => {
-    const row = await prisma.galleryAlbum.findFirst({
-      where: {
-        slug,
-        deletedAt: null,
-        contentStatus: "PUBLISHED",
-        ...(allowSample() ? {} : { isSample: false }),
-      },
-      include: {
-        media: {
-          where: {
-            deletedAt: null,
-            contentStatus: "PUBLISHED",
-          },
-          include: { mediaAsset: true },
-          orderBy: { sortOrder: "asc" },
+    return withDbFallback("loadPublishedAlbumBySlug", async () => {
+      const row = await prisma.galleryAlbum.findFirst({
+        where: {
+          slug,
+          deletedAt: null,
+          contentStatus: "PUBLISHED",
+          ...(allowSample() ? {} : { isSample: false }),
         },
-      },
-    });
-
-    if (!row) return null;
-
-    const media = row.media.map((m) => {
-      const asset =
-        m.mediaAsset &&
-        m.mediaAsset.deletedAt == null &&
-        m.mediaAsset.status === "READY"
-          ? m.mediaAsset
-          : null;
-      return mediaFromAlbum({
-        id: m.id,
-        // Album grids use sm; lightbox/detail can request larger via UI.
-        url: asset ? `/api/media/${asset.id}?v=sm` : m.url,
-        alt: asset?.alt ?? m.alt,
-        caption: asset?.caption ?? m.caption,
-        type: m.type,
+        include: {
+          media: {
+            where: {
+              deletedAt: null,
+              contentStatus: "PUBLISHED",
+            },
+            include: { mediaAsset: true },
+            orderBy: { sortOrder: "asc" },
+          },
+        },
       });
-    });
 
-    return {
-      id: row.id,
-      slug: row.slug,
-      title: row.title,
-      description: row.description ?? "",
-      year: row.year ?? undefined,
-      coverImage: albumCoverFromRow(row) ?? undefined,
-      media,
-      mediaCount: media.length,
-      sortOrder: row.sortOrder,
-      published: true,
-      provenance: (row.isSample ? "sample" : "verified") as ContentProvenance,
-    };
+      if (!row) return null;
+
+      const media = row.media.map((m) => {
+        const asset =
+          m.mediaAsset &&
+          m.mediaAsset.deletedAt == null &&
+          m.mediaAsset.status === "READY"
+            ? m.mediaAsset
+            : null;
+        return mediaFromAlbum({
+          id: m.id,
+          // Album grids use sm; lightbox/detail can request larger via UI.
+          url: asset ? `/api/media/${asset.id}?v=sm` : m.url,
+          alt: asset?.alt ?? m.alt,
+          caption: asset?.caption ?? m.caption,
+          type: m.type,
+        });
+      });
+
+      return {
+        id: row.id,
+        slug: row.slug,
+        title: row.title,
+        description: row.description ?? "",
+        year: row.year ?? undefined,
+        coverImage: albumCoverFromRow(row) ?? undefined,
+        media,
+        mediaCount: media.length,
+        sortOrder: row.sortOrder,
+        published: true,
+        provenance: (row.isSample ? "sample" : "verified") as ContentProvenance,
+      };
+    }, null);
   },
 );
 
@@ -723,18 +747,20 @@ export const loadPastEvents = cache(async (): Promise<ClubEvent[]> => {
 
 export const loadPublishedEventBySlug = cache(
   async (slug: string): Promise<ClubEvent | null> => {
-    const row = await prisma.event.findFirst({
-      where: {
-        slug,
-        deletedAt: null,
-        contentStatus: "PUBLISHED",
-        ...(allowSample() ? {} : { isSample: false }),
-      },
-      include: { coverAsset: true },
-    });
+    return withDbFallback("loadPublishedEventBySlug", async () => {
+      const row = await prisma.event.findFirst({
+        where: {
+          slug,
+          deletedAt: null,
+          contentStatus: "PUBLISHED",
+          ...(allowSample() ? {} : { isSample: false }),
+        },
+        include: { coverAsset: true },
+      });
 
-    if (!row) return null;
-    return mapEventRow(row);
+      if (!row) return null;
+      return mapEventRow(row);
+    }, null);
   },
 );
 
@@ -820,15 +846,17 @@ export const loadPublishedAnnouncements = cache(
 
 export const loadPublishedAnnouncementBySlug = cache(
   async (slug: string): Promise<Announcement | null> => {
-    const now = new Date();
-    const row = await prisma.announcement.findFirst({
-      where: {
-        slug,
-        ...announcementPublicWhere(now),
-      },
-    });
+    return withDbFallback("loadPublishedAnnouncementBySlug", async () => {
+      const now = new Date();
+      const row = await prisma.announcement.findFirst({
+        where: {
+          slug,
+          ...announcementPublicWhere(now),
+        },
+      });
 
-    if (!row) return null;
-    return mapAnnouncementRow(row);
+      if (!row) return null;
+      return mapAnnouncementRow(row);
+    }, null);
   },
 );
