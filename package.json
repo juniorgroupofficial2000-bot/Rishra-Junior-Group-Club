@@ -23,6 +23,7 @@
     "db:migrate:status": "prisma migrate status",
     "db:reset": "tsx scripts/assert-safe-db.ts --reset && prisma migrate reset",
     "db:seed": "tsx scripts/assert-safe-db.ts && tsx prisma/seed.ts",
+    "db:bootstrap-cms": "tsx scripts/bootstrap-cms.ts",
     "db:studio": "prisma studio"
   },
   "prisma": {
