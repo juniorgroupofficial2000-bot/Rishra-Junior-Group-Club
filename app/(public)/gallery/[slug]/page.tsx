@@ -23,8 +23,13 @@ type PageProps = {
 };
 
 export async function generateStaticParams() {
-  const albums = await loadPublishedAlbums();
-  return albums.map((album) => ({ slug: album.slug }));
+  try {
+    const albums = await loadPublishedAlbums();
+    return albums.map((album) => ({ slug: album.slug }));
+  } catch {
+    // Build hosts may lack DB access; pages still render on demand.
+    return [];
+  }
 }
 
 export async function generateMetadata({

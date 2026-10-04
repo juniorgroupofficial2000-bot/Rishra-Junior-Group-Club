@@ -21,8 +21,13 @@ type PageProps = {
 };
 
 export async function generateStaticParams() {
-  const items = await loadPublishedAnnouncements();
-  return items.map((item) => ({ slug: item.slug }));
+  try {
+    const items = await loadPublishedAnnouncements();
+    return items.map((item) => ({ slug: item.slug }));
+  } catch {
+    // Build hosts may lack DB access; pages still render on demand.
+    return [];
+  }
 }
 
 export async function generateMetadata({

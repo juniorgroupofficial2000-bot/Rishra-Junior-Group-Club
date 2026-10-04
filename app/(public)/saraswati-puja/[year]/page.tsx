@@ -20,8 +20,13 @@ type PageProps = {
 };
 
 export async function generateStaticParams() {
-  const years = await loadPublishedPujaYears();
-  return years.map((year) => ({ year: String(year.year) }));
+  try {
+    const years = await loadPublishedPujaYears();
+    return years.map((year) => ({ year: String(year.year) }));
+  } catch {
+    // Build hosts may lack DB access; pages still render on demand.
+    return [];
+  }
 }
 
 export async function generateMetadata({

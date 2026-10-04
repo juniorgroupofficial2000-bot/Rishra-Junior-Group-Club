@@ -22,8 +22,13 @@ type PageProps = {
 };
 
 export async function generateStaticParams() {
-  const events = await loadPublishedEvents();
-  return events.map((event) => ({ slug: event.slug }));
+  try {
+    const events = await loadPublishedEvents();
+    return events.map((event) => ({ slug: event.slug }));
+  } catch {
+    // Build hosts may lack DB access; pages still render on demand.
+    return [];
+  }
 }
 
 export async function generateMetadata({
