@@ -45,11 +45,18 @@ export function loadPublicEnv(
   }
 
   const data = parsed.data;
+  const vercelUrl = source.VERCEL_URL?.trim();
   const rawUrl =
     data.APP_URL ||
     data.NEXT_PUBLIC_APP_URL ||
     data.SITE_URL ||
-    data.NEXT_PUBLIC_SITE_URL;
+    data.NEXT_PUBLIC_SITE_URL ||
+    // Vercel provides the deployment host without a scheme.
+    (vercelUrl
+      ? vercelUrl.startsWith("http://") || vercelUrl.startsWith("https://")
+        ? vercelUrl
+        : `https://${vercelUrl}`
+      : undefined);
 
   return {
     ...data,

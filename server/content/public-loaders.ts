@@ -42,6 +42,16 @@ function allowSample() {
   return includeSampleContent();
 }
 
+/** Return fallback when Postgres is unset/unreachable (Vercel misconfig, cold boot). */
+async function withDbFallback<T>(label: string, run: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await run();
+  } catch (error) {
+    console.error(`[public-loaders] ${label} failed; using fallback.`, error);
+    return fallback;
+  }
+}
+
 function asProvenance(value: string): ContentProvenance {
   if (value === "verified" || value === "sample" || value === "placeholder") {
     return value;
@@ -227,55 +237,57 @@ function mapPujaYearRow(
  * once an admin publishes them.
  */
 export async function loadPublishedHomeContent() {
-  const [blocks, heroAsset] = await Promise.all([
-    prisma.siteContentBlock.findMany({
-      where: { deletedAt: null, status: "PUBLISHED" },
-      orderBy: { sortOrder: "asc" },
-    }),
-    loadHeroMediaBySlot("home.hero"),
-  ]);
+  return withDbFallback("loadPublishedHomeContent", async () => {
+    const [blocks, heroAsset] = await Promise.all([
+      prisma.siteContentBlock.findMany({
+        where: { deletedAt: null, status: "PUBLISHED" },
+        orderBy: { sortOrder: "asc" },
+      }),
+      loadHeroMediaBySlot("home.hero"),
+    ]);
 
-  const base = brandHomeShell as unknown as Record<
-    string,
-    Record<string, unknown>
-  >;
-  const overlay: Record<string, unknown> = { ...base };
+    const base = brandHomeShell as unknown as Record<
+      string,
+      Record<string, unknown>
+    >;
+    const overlay: Record<string, unknown> = { ...base };
 
-  for (const block of blocks) {
-    const sectionKey = block.key.replace(/^home\./, "");
-    const existing = base[sectionKey];
-    if (
-      existing &&
-      block.body &&
-      typeof block.body === "object" &&
-      !Array.isArray(block.body)
-    ) {
-      overlay[sectionKey] = {
-        ...existing,
-        ...(block.body as Record<string, unknown>),
+    for (const block of blocks) {
+      const sectionKey = block.key.replace(/^home\./, "");
+      const existing = base[sectionKey];
+      if (
+        existing &&
+        block.body &&
+        typeof block.body === "object" &&
+        !Array.isArray(block.body)
+      ) {
+        overlay[sectionKey] = {
+          ...existing,
+          ...(block.body as Record<string, unknown>),
+        };
+      }
+    }
+
+    // Prefer a READY HERO asset assigned to slot `home.hero` over brand placeholders.
+    if (heroAsset) {
+      const hero = (overlay.hero ?? base.hero ?? {}) as Record<string, unknown>;
+      const image = (hero.image ?? {}) as Record<string, unknown>;
+      overlay.hero = {
+        ...hero,
+        image: {
+          ...image,
+          id: heroAsset.id,
+          src: heroAsset.src,
+          srcMobile: heroAsset.srcMobile ?? heroAsset.src,
+          alt: heroAsset.alt || String(image.alt ?? "Club hero photograph"),
+          width: heroAsset.width,
+          height: heroAsset.height,
+        },
       };
     }
-  }
 
-  // Prefer a READY HERO asset assigned to slot `home.hero` over brand placeholders.
-  if (heroAsset) {
-    const hero = (overlay.hero ?? base.hero ?? {}) as Record<string, unknown>;
-    const image = (hero.image ?? {}) as Record<string, unknown>;
-    overlay.hero = {
-      ...hero,
-      image: {
-        ...image,
-        id: heroAsset.id,
-        src: heroAsset.src,
-        srcMobile: heroAsset.srcMobile ?? heroAsset.src,
-        alt: heroAsset.alt || String(image.alt ?? "Club hero photograph"),
-        width: heroAsset.width,
-        height: heroAsset.height,
-      },
-    };
-  }
-
-  return overlay as unknown as typeof brandHomeShell;
+    return overlay as unknown as typeof brandHomeShell;
+  }, brandHomeShell);
 }
 
 export async function loadPublishedTimelineEntries(): Promise<TimelineEntry[]> {
@@ -388,34 +400,36 @@ export async function loadHeroMediaBySlot(slotKey: string) {
 export const loadPublishedCommitteeMembers = cache(async (): Promise<
   CommitteeMember[]
 > => {
-  const rows = await prisma.publicCommitteeMember.findMany({
-    where: { deletedAt: null, status: "PUBLISHED" },
-    include: { portraitAsset: true },
-    orderBy: [{ sortOrder: "asc" }, { displayName: "asc" }],
-  });
+  return withDbFallback("loadPublishedCommitteeMembers", async () => {
+    const rows = await prisma.publicCommitteeMember.findMany({
+      where: { deletedAt: null, status: "PUBLISHED" },
+      include: { portraitAsset: true },
+      orderBy: [{ sortOrder: "asc" }, { displayName: "asc" }],
+    });
 
-  return rows.map((row) => {
-    const portrait =
-      row.portraitAsset &&
-      row.portraitAsset.deletedAt == null &&
-      row.portraitAsset.status === "READY"
-        ? row.portraitAsset
-        : null;
-    return {
-      id: row.id,
-      roleKey: row.roleKey as CommitteeRoleKey,
-      role: row.roleTitle,
-      name: row.name,
-      familiarName: row.familiarName ?? undefined,
-      displayName: row.displayName,
-      biography: row.biography ?? undefined,
-      termYear: row.termYear ?? undefined,
-      sortOrder: row.sortOrder,
-      published: true,
-      portraitSrc: portrait ? `/api/media/${portrait.id}?v=sm` : undefined,
-      portraitAlt: portrait?.alt,
-    };
-  });
+    return rows.map((row) => {
+      const portrait =
+        row.portraitAsset &&
+        row.portraitAsset.deletedAt == null &&
+        row.portraitAsset.status === "READY"
+          ? row.portraitAsset
+          : null;
+      return {
+        id: row.id,
+        roleKey: row.roleKey as CommitteeRoleKey,
+        role: row.roleTitle,
+        name: row.name,
+        familiarName: row.familiarName ?? undefined,
+        displayName: row.displayName,
+        biography: row.biography ?? undefined,
+        termYear: row.termYear ?? undefined,
+        sortOrder: row.sortOrder,
+        published: true,
+        portraitSrc: portrait ? `/api/media/${portrait.id}?v=sm` : undefined,
+        portraitAlt: portrait?.alt,
+      };
+    });
+  }, []);
 });
 
 function mediaFromAlbum(input: {
@@ -569,6 +583,7 @@ function albumCoverFromRow(row: {
  * Use `loadPublishedAlbumBySlug` for detail pages.
  */
 export const loadPublishedAlbums = cache(async (): Promise<GalleryAlbum[]> => {
+  return withDbFallback("loadPublishedAlbums", async () => {
   const rows = await prisma.galleryAlbum.findMany({
     where: {
       deletedAt: null,
@@ -609,6 +624,7 @@ export const loadPublishedAlbums = cache(async (): Promise<GalleryAlbum[]> => {
     published: true,
     provenance: (row.isSample ? "sample" : "verified") as ContentProvenance,
   }));
+  }, []);
 });
 
 export const loadPublishedAlbumBySlug = cache(
@@ -668,17 +684,19 @@ export const loadPublishedAlbumBySlug = cache(
 );
 
 export const loadPublishedEvents = cache(async (): Promise<ClubEvent[]> => {
-  const rows = await prisma.event.findMany({
-    where: {
-      deletedAt: null,
-      contentStatus: "PUBLISHED",
-      ...(allowSample() ? {} : { isSample: false }),
-    },
-    include: { coverAsset: true },
-    orderBy: { startsAt: "asc" },
-  });
+  return withDbFallback("loadPublishedEvents", async () => {
+    const rows = await prisma.event.findMany({
+      where: {
+        deletedAt: null,
+        contentStatus: "PUBLISHED",
+        ...(allowSample() ? {} : { isSample: false }),
+      },
+      include: { coverAsset: true },
+      orderBy: { startsAt: "asc" },
+    });
 
-  return rows.map(mapEventRow);
+    return rows.map(mapEventRow);
+  }, []);
 });
 
 export const loadUpcomingEvents = cache(async (): Promise<ClubEvent[]> => {
@@ -769,32 +787,34 @@ export const loadPublishedAnnouncements = cache(
     category?: string;
     q?: string;
   }): Promise<Announcement[]> => {
-    const now = new Date();
-    const category = filters?.category?.trim();
-    const q = filters?.q?.trim();
-    const rows = await prisma.announcement.findMany({
-      where: {
-        ...announcementPublicWhere(now),
-        ...(category ? { category } : {}),
-        ...(q
-          ? {
-              OR: [
-                { title: { contains: q, mode: "insensitive" } },
-                { summary: { contains: q, mode: "insensitive" } },
-                { body: { contains: q, mode: "insensitive" } },
-              ],
-            }
-          : {}),
-      },
-      orderBy: [
-        { pinned: "desc" },
-        { priority: "desc" },
-        { sortOrder: "asc" },
-        { publishedAt: "desc" },
-      ],
-    });
+    return withDbFallback("loadPublishedAnnouncements", async () => {
+      const now = new Date();
+      const category = filters?.category?.trim();
+      const q = filters?.q?.trim();
+      const rows = await prisma.announcement.findMany({
+        where: {
+          ...announcementPublicWhere(now),
+          ...(category ? { category } : {}),
+          ...(q
+            ? {
+                OR: [
+                  { title: { contains: q, mode: "insensitive" } },
+                  { summary: { contains: q, mode: "insensitive" } },
+                  { body: { contains: q, mode: "insensitive" } },
+                ],
+              }
+            : {}),
+        },
+        orderBy: [
+          { pinned: "desc" },
+          { priority: "desc" },
+          { sortOrder: "asc" },
+          { publishedAt: "desc" },
+        ],
+      });
 
-    return rows.map(mapAnnouncementRow);
+      return rows.map(mapAnnouncementRow);
+    }, []);
   },
 );
 

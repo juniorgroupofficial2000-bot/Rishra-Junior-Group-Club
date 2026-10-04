@@ -56,6 +56,14 @@ export function getSiteUrl(): string {
     return publicEnv.appUrl;
   }
 
+  // Last-resort Vercel host (also wired in loadPublicEnv; kept here for safety).
+  const vercelUrl = process.env.VERCEL_URL?.trim();
+  if (vercelUrl) {
+    return vercelUrl.startsWith("http://") || vercelUrl.startsWith("https://")
+      ? vercelUrl.replace(/\/$/, "")
+      : `https://${vercelUrl.replace(/\/$/, "")}`;
+  }
+
   const appEnv = resolveAppEnv();
   if (
     (appEnv === "production" || process.env.NODE_ENV === "production") &&

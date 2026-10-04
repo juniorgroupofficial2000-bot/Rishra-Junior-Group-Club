@@ -18,7 +18,13 @@ export function isAppEnv(value: unknown): value is AppEnv {
 
 /**
  * Resolve APP_ENV from the process environment.
- * Defaults: production NODE_ENV → production; otherwise local.
+ *
+ * Order: explicit APP_ENV / NEXT_PUBLIC_APP_ENV → Vercel deployment lane →
+ * NODE_ENV=production → local.
+ *
+ * Vercel always sets NODE_ENV=production, including Preview URLs. Without this
+ * mapping, preview deploys incorrectly inherit production fail-closed rules
+ * (no mock payments, strict secrets) and boot with a 500.
  */
 export function resolveAppEnv(
   source: NodeJS.ProcessEnv = process.env,
@@ -28,6 +34,14 @@ export function resolveAppEnv(
     source.NEXT_PUBLIC_APP_ENV?.trim().toLowerCase();
 
   if (isAppEnv(raw)) return raw;
+
+  const vercelEnv = source.VERCEL_ENV?.trim().toLowerCase();
+  if (vercelEnv === "preview" || vercelEnv === "development") {
+    return "development";
+  }
+  if (vercelEnv === "production") {
+    return "production";
+  }
 
   if (source.NODE_ENV === "production") return "production";
   return "local";

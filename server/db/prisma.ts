@@ -1,6 +1,6 @@
 import "server-only";
 
-import { assertEnvironmentConfig, getServerEnv } from "@/config";
+import { getServerEnv } from "@/config";
 import { PrismaClient } from "@prisma/client";
 import { logDatabaseFailure } from "@/server/observability/events";
 
@@ -8,8 +8,11 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-// Fail closed early when the active APP_ENV is misconfigured.
-assertEnvironmentConfig();
+/**
+ * Environment fail-closed checks run from `instrumentation.register()`.
+ * Do not assert at module import — that turns every Prisma import into a hard
+ * 500 before public loaders can degrade gracefully when the DB is unset.
+ */
 
 function createPrismaClient() {
   const env = getServerEnv();

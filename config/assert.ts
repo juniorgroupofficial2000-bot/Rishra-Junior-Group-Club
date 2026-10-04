@@ -73,9 +73,14 @@ function collectErrors(env: ResolvedServerEnv): string[] {
 
   if (isProductionAppEnv(appEnv)) {
     if (env.paymentProvider === "mock") {
-      errors.push(
-        "FAIL FAST: PAYMENT_PROVIDER=mock is forbidden when APP_ENV=production.",
-      );
+      const mockAllowed =
+        env.ALLOW_MOCK_PAYMENTS &&
+        env.MOCK_PAYMENTS_CONFIRM === "I_UNDERSTAND_NO_REAL_MONEY";
+      if (!mockAllowed) {
+        errors.push(
+          "FAIL FAST: PAYMENT_PROVIDER=mock is forbidden when APP_ENV=production (set ALLOW_MOCK_PAYMENTS=true and MOCK_PAYMENTS_CONFIRM=I_UNDERSTAND_NO_REAL_MONEY only for emergency bootstrap, or use APP_ENV=development on Preview).",
+        );
+      }
     }
     if (env.paymentProvider === "razorpay" && env.paymentMode !== "live") {
       errors.push(
