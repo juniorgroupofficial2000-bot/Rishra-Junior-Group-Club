@@ -143,10 +143,9 @@ export const committeePortraits: Record<
     objectPosition: "center 18%",
   },
   "cm-vp-1": {
-    src: "/images/committee/portrait-placeholder.svg",
-    alt: "Portrait placeholder for Suraj Kumar Burman, Vice President",
-    objectPosition: "center 20%",
-    note: "Add a portrait for Suraj Kumar Burman when available.",
+    src: "/images/committee/suraj-kumar-burman.png",
+    alt: "Portrait of Suraj Kumar Burman, Vice President",
+    objectPosition: "center 18%",
   },
   "cm-secretary": {
     src: "/images/committee/Bishal.png",
@@ -181,6 +180,90 @@ const placeholderPortrait = {
   objectPosition: "center 20%",
 } as const;
 
+/**
+ * Static portraits for standing-committee (and other) people keyed by
+ * normalized display/legal name. Used when no MediaAsset is linked yet.
+ */
+export const committeePortraitsByName: Record<
+  string,
+  Pick<SiteMediaSlot, "src" | "alt" | "objectPosition">
+> = {
+  "satrudhan burman": {
+    src: "/images/committee/monu.png",
+    alt: "Portrait of Satrudhan Burman (Monu), President",
+    objectPosition: "center 18%",
+  },
+  "satrudhan burman (monu)": {
+    src: "/images/committee/monu.png",
+    alt: "Portrait of Satrudhan Burman (Monu), President",
+    objectPosition: "center 18%",
+  },
+  "suraj kumar burman": {
+    src: "/images/committee/suraj-kumar-burman.png",
+    alt: "Portrait of Suraj Kumar Burman, Vice President",
+    objectPosition: "center 18%",
+  },
+  "bishal pandey": {
+    src: "/images/committee/Bishal.png",
+    alt: "Portrait of Bishal Pandey, Secretary",
+    objectPosition: "center 18%",
+  },
+  "aalok barma": {
+    src: "/images/committee/Aalok.png",
+    alt: "Portrait of Aalok Barma, Treasurer",
+    objectPosition: "center 18%",
+  },
+  "sashikant tiwari": {
+    src: "/images/committee/sashikant.png",
+    alt: "Portrait of Sashikant Tiwari, Executive Member",
+    objectPosition: "center 18%",
+  },
+  "chandan sharma": {
+    src: "/images/committee/chandan.png",
+    alt: "Portrait of Chandan Sharma, Executive Member",
+    objectPosition: "center 18%",
+  },
+  "gopal burman": {
+    src: "/images/committee/Gopal.png",
+    alt: "Portrait of Gopal Burman, Committee Member",
+    objectPosition: "center 18%",
+  },
+  "rohit barma": {
+    src: "/images/committee/rohit-barma.png",
+    alt: "Portrait of Rohit Barma",
+    objectPosition: "center 18%",
+  },
+  "nayan halder": {
+    src: "/images/committee/nayan-halder.png",
+    alt: "Portrait of Nayan Halder",
+    objectPosition: "center 18%",
+  },
+  "dipak burman": {
+    src: "/images/committee/dipak-burman.png",
+    alt: "Portrait of Dipak Burman",
+    objectPosition: "center 18%",
+  },
+  "vikash dwivedi": {
+    src: "/images/committee/vikash-dwivedi.png",
+    alt: "Portrait of Vikash Dwivedi",
+    objectPosition: "center 18%",
+  },
+  "bittu burman": {
+    src: "/images/committee/bittu-burman.png",
+    alt: "Portrait of Bittu Burman",
+    objectPosition: "center 18%",
+  },
+  "raunak shaw": {
+    src: "/images/committee/raunak-shaw.png",
+    alt: "Portrait of Raunak Shaw",
+    objectPosition: "center 18%",
+  },
+};
+
+function normalizePersonName(value: string) {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
 /** @deprecated Prefer `resolveCommitteePortrait` — DB member ids are not seed ids. */
 export function getCommitteePortrait(memberId: string) {
   return committeePortraits[memberId] ?? placeholderPortrait;
@@ -188,7 +271,7 @@ export function getCommitteePortrait(memberId: string) {
 
 type CommitteePortraitMember = {
   id: string;
-  roleKey: string;
+  roleKey?: string;
   name: string;
   displayName?: string;
   portraitSrc?: string;
@@ -200,6 +283,7 @@ type CommitteePortraitMember = {
  * 1) Linked media asset URL when present
  * 2) Seed content id match
  * 3) roleKey + name match against seed roster
+ * 4) Normalized name match (executive + standing committees)
  */
 export function resolveCommitteePortrait(member: CommitteePortraitMember) {
   if (member.portraitSrc) {
@@ -218,12 +302,23 @@ export function resolveCommitteePortrait(member: CommitteePortraitMember) {
   // Prefer role + legal name; fall back to name alone when a role was corrected.
   const seed =
     committeeMembers.find(
-      (row) => row.roleKey === member.roleKey && row.name === member.name,
+      (row) =>
+        Boolean(member.roleKey) &&
+        row.roleKey === member.roleKey &&
+        row.name === member.name,
     ) ?? committeeMembers.find((row) => row.name === member.name);
   if (seed) {
     const fromSeed = committeePortraits[seed.id];
     if (fromSeed) return fromSeed;
   }
+
+  const byDisplayName = committeePortraitsByName[
+    normalizePersonName(member.displayName ?? "")
+  ];
+  if (byDisplayName) return byDisplayName;
+
+  const byName = committeePortraitsByName[normalizePersonName(member.name)];
+  if (byName) return byName;
 
   return {
     ...placeholderPortrait,

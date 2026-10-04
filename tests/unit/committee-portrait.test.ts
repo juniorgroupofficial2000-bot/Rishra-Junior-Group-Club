@@ -44,4 +44,25 @@ describe("resolveCommitteePortrait", () => {
     expect(portrait.src).toBe("/images/committee/Gopal.png");
     expect(portrait.alt).toContain("Committee Member");
   });
+
+  it("resolves Suraj Kumar Burman vice-president portrait", () => {
+    const portrait = resolveCommitteePortrait({
+      id: "cuid_vp",
+      roleKey: "vice_president",
+      name: "Suraj Kumar Burman",
+      displayName: "Suraj Kumar Burman",
+    });
+    expect(portrait.src).toBe("/images/committee/suraj-kumar-burman.png");
+  });
+
+  it("resolves standing-committee portraits by display name", () => {
+    const portrait = resolveCommitteePortrait({
+      id: "cuid_sub",
+      roleKey: "member",
+      name: "Rohit Barma",
+      displayName: "Rohit Barma",
+    });
+    expect(portrait.src).toBe("/images/committee/rohit-barma.png");
+  });
 });
+

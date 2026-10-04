@@ -1,6 +1,7 @@
 "use client";
 
 import type { PublicCommitteeSeat } from "@/content/org-committees";
+import { resolveCommitteePortrait } from "@/content/site-media";
 import { cn } from "@/lib/cn";
 import { isManagedMediaSrc } from "@/lib/media/variant";
 import { cardRevealVariants, transitionSlow } from "@/lib/motion";
@@ -17,8 +18,16 @@ export function CommitteeSeatCard({
   featured?: boolean;
 }) {
   const reduce = Boolean(useReducedMotion());
-  const src = seat.portraitSrc;
-  const unoptimized = src ? !isManagedMediaSrc(src) : true;
+  const portrait = resolveCommitteePortrait({
+    id: seat.id,
+    roleKey: seat.designation,
+    name: seat.name,
+    displayName: seat.displayName,
+    portraitSrc: seat.portraitSrc,
+    portraitAlt: seat.portraitAlt,
+  });
+  const isSvg = portrait.src.endsWith(".svg");
+  const unoptimized = isSvg || !isManagedMediaSrc(portrait.src);
 
   return (
     <motion.article
@@ -35,22 +44,15 @@ export function CommitteeSeatCard({
           featured ? "aspect-[4/5] sm:aspect-[5/4]" : "aspect-[3/4]",
         )}
       >
-        {src ? (
-          <Image
-            src={src}
-            alt={seat.portraitAlt ?? seat.displayName}
-            fill
-            sizes={featured ? "(max-width: 768px) 90vw, 480px" : "220px"}
-            unoptimized={unoptimized}
-            className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
-            style={{ objectPosition: "center 18%" }}
-          />
-        ) : (
-          <div
-            className="absolute inset-0 bg-[linear-gradient(145deg,#e8dfd2,#cbb89a_45%,#8a7355)]"
-            aria-hidden
-          />
-        )}
+        <Image
+          src={portrait.src}
+          alt={portrait.alt}
+          fill
+          sizes={featured ? "(max-width: 768px) 90vw, 480px" : "220px"}
+          unoptimized={unoptimized}
+          className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
+          style={{ objectPosition: portrait.objectPosition ?? "center 18%" }}
+        />
       </div>
       <div className="mt-3 border-t border-ink-200 pt-3">
         <p className="type-caption text-ink-400">{seat.role}</p>
