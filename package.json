@@ -24,6 +24,7 @@
     "db:reset": "tsx scripts/assert-safe-db.ts --reset && prisma migrate reset",
     "db:seed": "tsx scripts/assert-safe-db.ts && tsx prisma/seed.ts",
     "db:bootstrap-cms": "tsx scripts/bootstrap-cms.ts",
+    "db:bootstrap-puja-photos": "tsx scripts/bootstrap-puja-photos.ts",
     "db:bootstrap-admin": "tsx scripts/bootstrap-admin.ts",
     "db:studio": "prisma studio"
   },

@@ -236,4 +236,8 @@ export async function seedPublicCmsContent(
   // Standing committees + executive memberships (relational, Member-centric).
   const { seedStandingCommittees } = await import("./seed-standing-committees");
   await seedStandingCommittees(prisma, actor);
+
+  // Filesystem puja photos → PujaYear archive + Gallery albums.
+  const { seedPujaFolderPhotos } = await import("./seed-puja-folder-photos");
+  await seedPujaFolderPhotos(prisma, actor);
 }

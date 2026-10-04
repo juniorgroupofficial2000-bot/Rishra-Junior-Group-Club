@@ -60,3 +60,16 @@ export function formatAddressLines(): string[] {
     siteConfig.address.line3,
   ];
 }
+
+/** Shared Google Maps links derived from the published club address. */
+export function getGoogleMapsLinks() {
+  const query = formatAddressLines().join(", ");
+  const encoded = encodeURIComponent(query);
+  return {
+    query,
+    /** Embeddable map (no API key). */
+    embedSrc: `https://www.google.com/maps?q=${encoded}&hl=en&z=16&output=embed`,
+    /** Opens the place in Google Maps. */
+    openHref: `https://www.google.com/maps/search/?api=1&query=${encoded}`,
+  };
+}
