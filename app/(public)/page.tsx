@@ -3,6 +3,7 @@ import {
   HomeIntro,
   HomeHeritage,
 } from "@/components/public/home";
+import { homeContent as brandHomeShell } from "@/content/home";
 import { JsonLd } from "@/lib/json-ld";
 import { buildMetadata } from "@/lib/seo/metadata";
 import { homePageJsonLd } from "@/lib/seo/structured-data";
@@ -60,13 +61,24 @@ export async function generateMetadata() {
 }
 
 export default async function HomePage() {
-  const [content, committee, events, albums, announcements] = await Promise.all([
-    loadPublishedHomeContent(),
-    loadPublishedCommitteeMembers(),
-    loadUpcomingEvents(),
-    loadPublishedAlbums(),
-    loadPublishedAnnouncements(),
-  ]);
+  let content: typeof brandHomeShell = brandHomeShell;
+  let committee: Awaited<ReturnType<typeof loadPublishedCommitteeMembers>> = [];
+  let events: Awaited<ReturnType<typeof loadUpcomingEvents>> = [];
+  let albums: Awaited<ReturnType<typeof loadPublishedAlbums>> = [];
+  let announcements: Awaited<ReturnType<typeof loadPublishedAnnouncements>> =
+    [];
+
+  try {
+    [content, committee, events, albums, announcements] = await Promise.all([
+      loadPublishedHomeContent(),
+      loadPublishedCommitteeMembers(),
+      loadUpcomingEvents(),
+      loadPublishedAlbums(),
+      loadPublishedAnnouncements(),
+    ]);
+  } catch (error) {
+    console.error("[home] public loaders failed; using brand shell.", error);
+  }
 
   const previewAlbums = albums.slice(0, content.gallery.previewLimit);
   const previewAnnouncements = announcements.slice(
