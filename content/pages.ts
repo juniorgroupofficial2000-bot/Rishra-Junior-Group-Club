@@ -55,10 +55,10 @@ export const publicPages: Record<PublicPageKey, PublicPageDefinition> = {
   committee: {
     key: "committee",
     path: "/committee",
-    title: "Committee",
+    title: "Leadership & Committees",
     description:
-      "Meet the committee of Rishra Junior Group Club. Public listings show names and roles only.",
-    eyebrow: "Leadership",
+      "Rishra Junior Group Club is driven by members working together across leadership and standing committees. Public listings show names and roles only.",
+    eyebrow: "Organization",
   },
   "saraswati-puja": {
     key: "saraswati-puja",

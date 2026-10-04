@@ -3,6 +3,7 @@ import { absoluteUrl } from "@/lib/seo/config";
 import {
   loadPublishedAlbums,
   loadPublishedAnnouncements,
+  loadPublishedCommittees,
   loadPublishedEvents,
   loadPublishedPujaYears,
 } from "@/server/content/public-loaders";
@@ -36,14 +37,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let announcements: Awaited<ReturnType<typeof loadPublishedAnnouncements>> =
     [];
   let pujaYears: Awaited<ReturnType<typeof loadPublishedPujaYears>> = [];
+  let committees: Awaited<ReturnType<typeof loadPublishedCommittees>> = [];
 
   try {
-    [publishedEvents, albums, announcements, pujaYears] = await Promise.all([
-      loadPublishedEvents(),
-      loadPublishedAlbums(),
-      loadPublishedAnnouncements(),
-      loadPublishedPujaYears(),
-    ]);
+    [publishedEvents, albums, announcements, pujaYears, committees] =
+      await Promise.all([
+        loadPublishedEvents(),
+        loadPublishedAlbums(),
+        loadPublishedAnnouncements(),
+        loadPublishedPujaYears(),
+        loadPublishedCommittees(),
+      ]);
   } catch {
     // Missing/invalid DATABASE_URL during build or a transient DB outage —
     // still emit the static public routes so the deploy can complete.
@@ -87,11 +91,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }));
 
+  const committeeRoutes: MetadataRoute.Sitemap = committees.map(
+    (committee) => ({
+      url: absoluteUrl(`/committee/${committee.slug}`),
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: committee.kind === "EXECUTIVE" ? 0.7 : 0.6,
+    }),
+  );
+
   return [
     ...staticRoutes,
     ...events,
     ...albumRoutes,
     ...announcementRoutes,
     ...pujaYearRoutes,
+    ...committeeRoutes,
   ];
 }

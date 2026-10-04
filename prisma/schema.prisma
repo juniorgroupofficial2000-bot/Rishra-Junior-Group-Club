@@ -171,6 +171,12 @@ enum ContentStatus {
   ARCHIVED
 }
 
+/// Organizational committee kind — executive leadership vs standing sub-committees.
+enum CommitteeKind {
+  EXECUTIVE
+  SUB
+}
+
 enum NotificationType {
   SYSTEM
   PAYMENT
@@ -267,13 +273,14 @@ model Member {
   updatedBy     User?       @relation("MemberUpdatedBy", fields: [updatedById], references: [id])
   portraitAsset MediaAsset? @relation("MemberPortraitAsset", fields: [portraitAssetId], references: [id], onDelete: SetNull)
 
-  memberships          Membership[]
-  committeeAssignments CommitteeAssignment[]
-  payments             Payment[]
-  invoices             Invoice[]
-  mandates             PaymentMandate[]
-  eventRegistrations   EventRegistration[]
-  eventAttendances     EventAttendance[]
+  memberships            Membership[]
+  committeeAssignments   CommitteeAssignment[]
+  committeeMemberships   CommitteeMembership[]
+  payments               Payment[]
+  invoices               Invoice[]
+  mandates               PaymentMandate[]
+  eventRegistrations     EventRegistration[]
+  eventAttendances       EventAttendance[]
 
   @@index([status])
   @@index([email])
@@ -384,6 +391,82 @@ model CommitteeAssignment {
   @@index([isCurrent])
   @@index([deletedAt])
   @@unique([memberId, positionId, startsOn])
+}
+
+/// Standing organizational body (Executive + unlimited sub-committees).
+/// Public roster rows are derived from memberships — Member stays the person entity.
+model Committee {
+  id                    String        @id @default(cuid())
+  slug                  String        @unique
+  name                  String
+  /// Short public blurb shown on cards and filters.
+  summary               String?
+  /// Longer public description for the detail hero.
+  description           String?
+  /// Editable responsibilities copy (never auto-invented).
+  responsibilities      String?
+  iconKey               String?
+  coverAssetId          String?
+  imageAssetId          String?
+  kind                  CommitteeKind @default(SUB)
+  termStart             DateTime?
+  termEnd               DateTime?
+  termYear              Int?
+  status                ContentStatus @default(DRAFT)
+  displayOrder          Int           @default(0)
+  historicallyImportant Boolean       @default(false)
+  isSample              Boolean       @default(false)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  deletedAt             DateTime?
+  createdById           String?
+  updatedById           String?
+
+  coverAsset   MediaAsset?            @relation("CommitteeCoverAsset", fields: [coverAssetId], references: [id], onDelete: SetNull)
+  imageAsset   MediaAsset?            @relation("CommitteeImageAsset", fields: [imageAssetId], references: [id], onDelete: SetNull)
+  memberships  CommitteeMembership[]
+  events       Event[]
+  announcements Announcement[]
+
+  @@index([kind])
+  @@index([status])
+  @@index([displayOrder])
+  @@index([termYear])
+  @@index([coverAssetId])
+  @@index([imageAssetId])
+  @@index([deletedAt])
+}
+
+/// Links a Member to a Committee with a designation — no duplicated people.
+model CommitteeMembership {
+  id               String        @id @default(cuid())
+  committeeId      String
+  memberId         String
+  /// Stable key e.g. president | chairperson | convenor | member
+  designation      String
+  /// Optional display override; defaults to a humanized designation label.
+  designationLabel String?
+  shortBio         String?
+  displayOrder     Int           @default(0)
+  status           ContentStatus @default(DRAFT)
+  joinedAt         DateTime?
+  leftAt           DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  deletedAt        DateTime?
+  createdById      String?
+  updatedById      String?
+
+  committee Committee @relation(fields: [committeeId], references: [id], onDelete: Cascade)
+  member    Member    @relation(fields: [memberId], references: [id], onDelete: Restrict)
+
+  @@unique([committeeId, memberId])
+  @@index([committeeId])
+  @@index([memberId])
+  @@index([designation])
+  @@index([status])
+  @@index([displayOrder])
+  @@index([deletedAt])
 }
 
 // ─── Billing (no payment credentials stored) ─────────────────────────────────
@@ -584,6 +667,8 @@ model Event {
   /// Optional registration cap (null = unlimited).
   capacity              Int?
   coverAssetId          String?
+  /// Optional link to the organizing standing committee.
+  committeeId           String?
   isSample              Boolean       @default(false)
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt
@@ -594,6 +679,7 @@ model Event {
   createdBy     User?              @relation("EventCreatedBy", fields: [createdById], references: [id])
   updatedBy     User?              @relation("EventUpdatedBy", fields: [updatedById], references: [id])
   coverAsset    MediaAsset?        @relation("EventCoverAsset", fields: [coverAssetId], references: [id], onDelete: SetNull)
+  committee     Committee?         @relation(fields: [committeeId], references: [id], onDelete: SetNull)
   registrations EventRegistration[]
   attendances   EventAttendance[]
 
@@ -603,6 +689,7 @@ model Event {
   @@index([contentStatus])
   @@index([category])
   @@index([coverAssetId])
+  @@index([committeeId])
   @@index([deletedAt])
 }
 
@@ -680,6 +767,8 @@ model MediaAsset {
   committeePortraits PublicCommitteeMember[] @relation("CommitteePortraitAsset")
   memberPortraits    Member[]                @relation("MemberPortraitAsset")
   pujaCovers         PujaYear[]              @relation("PujaCoverAsset")
+  committeeCovers    Committee[]             @relation("CommitteeCoverAsset")
+  committeeImages    Committee[]             @relation("CommitteeImageAsset")
 
   @@unique([slotKey])
   @@index([purpose])
@@ -759,6 +848,8 @@ model Announcement {
   sortOrder             Int                   @default(0)
   historicallyImportant Boolean               @default(false)
   coverAssetId          String?
+  /// Optional link to a standing committee for public activity surfaces.
+  committeeId           String?
   isSample              Boolean               @default(false)
   createdAt             DateTime              @default(now())
   updatedAt             DateTime              @updatedAt
@@ -767,6 +858,7 @@ model Announcement {
 
   createdBy  User?       @relation("AnnouncementCreatedBy", fields: [createdById], references: [id])
   coverAsset MediaAsset? @relation("AnnouncementCoverAsset", fields: [coverAssetId], references: [id], onDelete: SetNull)
+  committee  Committee?  @relation(fields: [committeeId], references: [id], onDelete: SetNull)
 
   @@index([status])
   @@index([priority])
@@ -774,6 +866,7 @@ model Announcement {
   @@index([publishedAt])
   @@index([sortOrder])
   @@index([coverAssetId])
+  @@index([committeeId])
   @@index([deletedAt])
 }
 

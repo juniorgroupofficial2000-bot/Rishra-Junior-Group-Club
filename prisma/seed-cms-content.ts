@@ -232,4 +232,8 @@ export async function seedPublicCmsContent(
     where: { published: true, deletedAt: null },
     data: { contentStatus: "PUBLISHED" },
   });
+
+  // Standing committees + executive memberships (relational, Member-centric).
+  const { seedStandingCommittees } = await import("./seed-standing-committees");
+  await seedStandingCommittees(prisma, actor);
 }

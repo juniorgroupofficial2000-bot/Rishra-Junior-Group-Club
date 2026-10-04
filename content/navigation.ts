@@ -24,7 +24,7 @@ export const publicNav: readonly NavItem[] = [
   },
   {
     href: "/committee",
-    label: "Committee",
+    label: "Committees",
     primary: true,
     footerGroup: "explore",
   },

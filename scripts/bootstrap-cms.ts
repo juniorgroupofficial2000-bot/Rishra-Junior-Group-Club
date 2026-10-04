@@ -88,27 +88,34 @@ async function main() {
     // Fail with a clear next step if migrate deploy was never run.
     try {
       await prisma.$queryRaw`SELECT 1 FROM "PublicCommitteeMember" LIMIT 1`;
+      await prisma.$queryRaw`SELECT 1 FROM "Committee" LIMIT 1`;
     } catch {
       throw new Error(
-        'Table "PublicCommitteeMember" is missing. Run migrations first:\n' +
+        'Required tables are missing. Run migrations first:\n' +
           "  DATABASE_URL='postgresql://…' APP_ENV=development npx prisma migrate deploy\n" +
           "Then re-run: npm run db:bootstrap-cms",
       );
     }
 
-    const before = await prisma.publicCommitteeMember.count({
+    const beforeRoster = await prisma.publicCommitteeMember.count({
+      where: { deletedAt: null },
+    });
+    const beforeCommittees = await prisma.committee.count({
       where: { deletedAt: null },
     });
 
     const { seedPublicCmsContent } = await import("../prisma/seed-cms-content");
     await seedPublicCmsContent(prisma, null);
 
-    const after = await prisma.publicCommitteeMember.count({
+    const afterRoster = await prisma.publicCommitteeMember.count({
+      where: { deletedAt: null, status: "PUBLISHED" },
+    });
+    const afterCommittees = await prisma.committee.count({
       where: { deletedAt: null, status: "PUBLISHED" },
     });
 
     console.log(
-      `CMS bootstrap complete (APP_ENV=${appEnv}). Committee rows: ${before} → ${after} published.`,
+      `CMS bootstrap complete (APP_ENV=${appEnv}). Roster: ${beforeRoster} → ${afterRoster} published. Committees: ${beforeCommittees} → ${afterCommittees} published.`,
     );
   } finally {
     await prisma.$disconnect();

@@ -43,7 +43,15 @@ export default async function AdminMemberDetailPage({
     notFound();
   }
 
-  const { member, payments, attendance, events, activity, card } = detail;
+  const {
+    member,
+    payments,
+    attendance,
+    events,
+    committeeInvolvement,
+    activity,
+    card,
+  } = detail;
   const canWrite = hasPermission(session.user.role, Permissions.MEMBERS_WRITE);
   const canStatus = hasPermission(session.user.role, Permissions.MEMBERS_STATUS);
   const canDelete = hasPermission(session.user.role, Permissions.MEMBERS_DELETE);
@@ -362,6 +370,54 @@ export default async function AdminMemberDetailPage({
                         <p className="text-ink-500">
                           {event.startsAt} · {event.status}
                         </p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            ),
+            Committees: (
+              <section className="rounded-xl border border-border-subtle bg-surface-raised p-5 shadow-xs">
+                <h2 className="font-display text-lg font-semibold text-ink-900">
+                  Committee involvement
+                </h2>
+                <p className="mt-1 text-sm text-ink-500">
+                  One member record can belong to multiple committees.
+                </p>
+                {committeeInvolvement.length === 0 ? (
+                  <p className="mt-4 text-sm text-ink-500">
+                    Not assigned to any committee yet. Manage assignments under
+                    Committees.
+                  </p>
+                ) : (
+                  <ul className="mt-4 divide-y divide-border-subtle text-sm">
+                    {committeeInvolvement.map((row) => (
+                      <li
+                        key={row.id}
+                        className="flex flex-wrap items-start justify-between gap-3 py-3"
+                      >
+                        <div>
+                          <Link
+                            href={`/admin/committees/${row.committeeId}`}
+                            className="font-medium underline-offset-4 hover:underline"
+                          >
+                            {row.committeeName}
+                          </Link>
+                          <p className="text-ink-500">
+                            {row.role}
+                            {row.termLabel ? ` · ${row.termLabel}` : ""}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="outline">{row.status}</Badge>
+                          <Link
+                            href={`/committee/${row.committeeSlug}`}
+                            className="text-xs font-medium underline-offset-4 hover:underline"
+                            target="_blank"
+                          >
+                            Public page
+                          </Link>
+                        </div>
                       </li>
                     ))}
                   </ul>

@@ -17,6 +17,14 @@ import {
   type CommitteeMember,
   type CommitteeRoleKey,
 } from "@/content/committee";
+import type {
+  CommitteeSearchHit,
+  MemberCommitteeInvolvement,
+  PublicCommitteeCard,
+  PublicCommitteeDetail,
+  PublicCommitteeSeat,
+} from "@/content/org-committees";
+import { designationLabel } from "@/server/domain/committee-designations";
 import { type ClubEvent } from "@/content/events";
 import { type GalleryAlbum } from "@/content/gallery";
 import { homeContent as brandHomeShell } from "@/content/home";
@@ -419,10 +427,121 @@ export async function loadHeroMediaBySlot(slotKey: string) {
   }, null);
 }
 
+function readyMediaSrc(
+  asset:
+    | {
+        id: string;
+        alt: string;
+        deletedAt: Date | null;
+        status: string;
+      }
+    | null
+    | undefined,
+  variant: "sm" | "md" | "lg" = "sm",
+) {
+  if (!asset || asset.deletedAt != null || asset.status !== "READY") {
+    return null;
+  }
+  return {
+    src: `/api/media/${asset.id}?v=${variant}`,
+    alt: asset.alt,
+  };
+}
+
+function toExecutiveRoleKey(designation: string): CommitteeRoleKey {
+  const known: CommitteeRoleKey[] = [
+    "president",
+    "vice_president",
+    "secretary",
+    "treasurer",
+    "executive_member",
+  ];
+  return (known as string[]).includes(designation)
+    ? (designation as CommitteeRoleKey)
+    : "executive_member";
+}
+
+function mapSeat(row: {
+  id: string;
+  designation: string;
+  designationLabel: string | null;
+  shortBio: string | null;
+  displayOrder: number;
+  member: {
+    id: string;
+    displayName: string;
+    firstName: string;
+    lastName: string;
+    portraitAsset: {
+      id: string;
+      alt: string;
+      deletedAt: Date | null;
+      status: string;
+    } | null;
+  };
+  committeeTermYear?: number | null;
+}): PublicCommitteeSeat {
+  const portrait = readyMediaSrc(row.member.portraitAsset, "sm");
+  return {
+    id: row.id,
+    memberId: row.member.id,
+    designation: row.designation,
+    role: designationLabel(row.designation, row.designationLabel),
+    displayName: row.member.displayName,
+    name: `${row.member.firstName} ${row.member.lastName}`.trim(),
+    shortBio: row.shortBio ?? undefined,
+    displayOrder: row.displayOrder,
+    portraitSrc: portrait?.src,
+    portraitAlt: portrait?.alt,
+    termYear: row.committeeTermYear ?? undefined,
+  };
+}
+
+/**
+ * Executive roster for homepage / legacy consumers.
+ * Prefers Committee(kind=EXECUTIVE) memberships; falls back to PublicCommitteeMember.
+ */
 export const loadPublishedCommitteeMembers = cache(async (): Promise<
   CommitteeMember[]
 > => {
   return withDbFallback("loadPublishedCommitteeMembers", async () => {
+    const executive = await prisma.committee.findFirst({
+      where: {
+        kind: "EXECUTIVE",
+        deletedAt: null,
+        status: "PUBLISHED",
+      },
+      include: {
+        memberships: {
+          where: { deletedAt: null, status: "PUBLISHED" },
+          include: {
+            member: { include: { portraitAsset: true } },
+          },
+          orderBy: [{ displayOrder: "asc" }],
+        },
+      },
+    });
+
+    if (executive && executive.memberships.length > 0) {
+      return executive.memberships.map((row) => {
+        const portrait = readyMediaSrc(row.member.portraitAsset, "sm");
+        const roleKey = toExecutiveRoleKey(row.designation);
+        return {
+          id: row.id,
+          roleKey,
+          role: designationLabel(row.designation, row.designationLabel),
+          name: `${row.member.firstName} ${row.member.lastName}`.trim(),
+          displayName: row.member.displayName,
+          biography: row.shortBio ?? undefined,
+          termYear: executive.termYear ?? undefined,
+          sortOrder: row.displayOrder,
+          published: true,
+          portraitSrc: portrait?.src,
+          portraitAlt: portrait?.alt,
+        } satisfies CommitteeMember;
+      });
+    }
+
     const rows = await prisma.publicCommitteeMember.findMany({
       where: { deletedAt: null, status: "PUBLISHED" },
       include: { portraitAsset: true },
@@ -430,12 +549,7 @@ export const loadPublishedCommitteeMembers = cache(async (): Promise<
     });
 
     return rows.map((row) => {
-      const portrait =
-        row.portraitAsset &&
-        row.portraitAsset.deletedAt == null &&
-        row.portraitAsset.status === "READY"
-          ? row.portraitAsset
-          : null;
+      const portrait = readyMediaSrc(row.portraitAsset, "sm");
       return {
         id: row.id,
         roleKey: row.roleKey as CommitteeRoleKey,
@@ -447,12 +561,233 @@ export const loadPublishedCommitteeMembers = cache(async (): Promise<
         termYear: row.termYear ?? undefined,
         sortOrder: row.sortOrder,
         published: true,
-        portraitSrc: portrait ? `/api/media/${portrait.id}?v=sm` : undefined,
+        portraitSrc: portrait?.src,
         portraitAlt: portrait?.alt,
       };
     });
   }, []);
 });
+
+export const loadPublishedCommittees = cache(async (): Promise<
+  PublicCommitteeCard[]
+> => {
+  return withDbFallback("loadPublishedCommittees", async () => {
+    const rows = await prisma.committee.findMany({
+      where: { deletedAt: null, status: "PUBLISHED" },
+      include: {
+        coverAsset: true,
+        imageAsset: true,
+        _count: {
+          select: {
+            memberships: {
+              where: { deletedAt: null, status: "PUBLISHED" },
+            },
+          },
+        },
+      },
+      orderBy: [{ displayOrder: "asc" }, { name: "asc" }],
+    });
+
+    return rows.map((row) => {
+      const cover = readyMediaSrc(row.coverAsset, "lg");
+      const image = readyMediaSrc(row.imageAsset, "lg") ?? cover;
+      return {
+        id: row.id,
+        slug: row.slug,
+        name: row.name,
+        summary: row.summary ?? undefined,
+        description: row.description ?? undefined,
+        iconKey: row.iconKey ?? undefined,
+        kind: row.kind,
+        termYear: row.termYear ?? undefined,
+        memberCount: row._count.memberships,
+        displayOrder: row.displayOrder,
+        coverSrc: cover?.src,
+        coverAlt: cover?.alt,
+        imageSrc: image?.src,
+        imageAlt: image?.alt,
+      };
+    });
+  }, []);
+});
+
+export const loadPublishedCommitteeBySlug = cache(
+  async (slug: string): Promise<PublicCommitteeDetail | null> => {
+    return withDbFallback(
+      "loadPublishedCommitteeBySlug",
+      async () => {
+        const row = await prisma.committee.findFirst({
+          where: { slug, deletedAt: null, status: "PUBLISHED" },
+          include: {
+            coverAsset: true,
+            imageAsset: true,
+            memberships: {
+              where: { deletedAt: null, status: "PUBLISHED" },
+              include: {
+                member: { include: { portraitAsset: true } },
+              },
+              orderBy: [{ displayOrder: "asc" }],
+            },
+            events: {
+              where: {
+                deletedAt: null,
+                published: true,
+                contentStatus: "PUBLISHED",
+              },
+              orderBy: { startsAt: "desc" },
+              take: 8,
+              select: {
+                id: true,
+                slug: true,
+                title: true,
+                startsAt: true,
+              },
+            },
+            announcements: {
+              where: {
+                deletedAt: null,
+                status: "PUBLISHED",
+              },
+              orderBy: { publishedAt: "desc" },
+              take: 8,
+              select: {
+                id: true,
+                slug: true,
+                title: true,
+                publishedAt: true,
+              },
+            },
+          },
+        });
+
+        if (!row) return null;
+
+        const seats = row.memberships.map((m) =>
+          mapSeat({ ...m, committeeTermYear: row.termYear }),
+        );
+        const cover = readyMediaSrc(row.coverAsset, "lg");
+        const image = readyMediaSrc(row.imageAsset, "lg") ?? cover;
+
+        return {
+          id: row.id,
+          slug: row.slug,
+          name: row.name,
+          summary: row.summary ?? undefined,
+          description: row.description ?? undefined,
+          responsibilities: row.responsibilities ?? undefined,
+          iconKey: row.iconKey ?? undefined,
+          kind: row.kind,
+          termYear: row.termYear ?? undefined,
+          memberCount: seats.length,
+          displayOrder: row.displayOrder,
+          coverSrc: cover?.src,
+          coverAlt: cover?.alt,
+          imageSrc: image?.src,
+          imageAlt: image?.alt,
+          seats,
+          chairperson: seats.find((s) => s.designation === "chairperson"),
+          convenor: seats.find((s) => s.designation === "convenor"),
+          events: row.events.map((event) => ({
+            id: event.id,
+            slug: event.slug,
+            title: event.title,
+            startsAt: event.startsAt.toISOString(),
+          })),
+          announcements: row.announcements.map((item) => ({
+            id: item.id,
+            slug: item.slug,
+            title: item.title,
+            publishedAt: item.publishedAt?.toISOString(),
+          })),
+        };
+      },
+      null,
+    );
+  },
+);
+
+export const loadCommitteeSearchIndex = cache(
+  async (): Promise<CommitteeSearchHit[]> => {
+    return withDbFallback("loadCommitteeSearchIndex", async () => {
+      const rows = await prisma.committeeMembership.findMany({
+        where: {
+          deletedAt: null,
+          status: "PUBLISHED",
+          committee: { deletedAt: null, status: "PUBLISHED" },
+        },
+        include: {
+          member: { select: { displayName: true } },
+          committee: { select: { name: true, slug: true } },
+        },
+        orderBy: [{ displayOrder: "asc" }],
+      });
+
+      return rows.map((row) => ({
+        id: row.id,
+        displayName: row.member.displayName,
+        role: designationLabel(row.designation, row.designationLabel),
+        committeeName: row.committee.name,
+        committeeSlug: row.committee.slug,
+      }));
+    }, []);
+  },
+);
+
+export const loadMemberCommitteeInvolvement = cache(
+  async (memberId: string): Promise<MemberCommitteeInvolvement[]> => {
+    return withDbFallback(
+      "loadMemberCommitteeInvolvement",
+      async () => {
+        const rows = await prisma.committeeMembership.findMany({
+          where: {
+            memberId,
+            deletedAt: null,
+            status: "PUBLISHED",
+            committee: { deletedAt: null, status: "PUBLISHED" },
+          },
+          include: {
+            committee: {
+              select: {
+                id: true,
+                slug: true,
+                name: true,
+                termYear: true,
+                termStart: true,
+                termEnd: true,
+              },
+            },
+          },
+          orderBy: [{ displayOrder: "asc" }],
+        });
+
+        return rows.map((row) => {
+          let termLabel: string | undefined;
+          if (row.committee.termYear) {
+            termLabel = `Term ${row.committee.termYear}`;
+          } else if (row.committee.termStart || row.committee.termEnd) {
+            const start = row.committee.termStart
+              ? row.committee.termStart.getFullYear()
+              : null;
+            const end = row.committee.termEnd
+              ? row.committee.termEnd.getFullYear()
+              : null;
+            if (start && end) termLabel = `${start}–${end}`;
+            else if (start) termLabel = `From ${start}`;
+          }
+          return {
+            committeeId: row.committee.id,
+            committeeSlug: row.committee.slug,
+            committeeName: row.committee.name,
+            designation: row.designation,
+            role: designationLabel(row.designation, row.designationLabel),
+            termLabel,
+          };
+        });
+      },
+      [],
+    );
+  },
+);
 
 function mediaFromAlbum(input: {
   id: string;

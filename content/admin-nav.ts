@@ -28,8 +28,13 @@ export const adminNav: AdminNavItem[] = [
     permission: Permissions.MEMBERS_READ,
   },
   {
+    href: "/admin/committees",
+    label: "Committees",
+    permission: Permissions.COMMITTEE_READ,
+  },
+  {
     href: "/admin/committee",
-    label: "Committee",
+    label: "Executive roster",
     permission: Permissions.COMMITTEE_READ,
   },
   {

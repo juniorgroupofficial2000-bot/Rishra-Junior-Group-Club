@@ -22,8 +22,10 @@ function termLabel(member: CommitteeMember) {
  */
 export function CommitteeDirectory({
   members,
+  showPrivacyNote = true,
 }: {
   members: CommitteeMember[];
+  showPrivacyNote?: boolean;
 }) {
   if (members.length === 0) {
     return (
@@ -130,12 +132,14 @@ export function CommitteeDirectory({
         </section>
       ) : null}
 
-      <Reveal>
-        <aside className="border-y border-border-subtle py-8 text-sm leading-relaxed text-ink-600">
-          <p className="font-semibold text-ink-800">Privacy</p>
-          <p className="mt-2 max-w-2xl">{committeePageCopy.privacyNote}</p>
-        </aside>
-      </Reveal>
+      {showPrivacyNote ? (
+        <Reveal>
+          <aside className="border-y border-border-subtle py-8 text-sm leading-relaxed text-ink-600">
+            <p className="font-semibold text-ink-800">Privacy</p>
+            <p className="mt-2 max-w-2xl">{committeePageCopy.privacyNote}</p>
+          </aside>
+        </Reveal>
+      ) : null}
     </div>
   );
 }
