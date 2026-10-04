@@ -8,6 +8,9 @@ import {
 } from "@/server/content/public-loaders";
 import type { MetadataRoute } from "next";
 
+/** Always render at request time so builds succeed without DATABASE_URL. */
+export const dynamic = "force-dynamic";
+
 function priorityForPage(key: string): number {
   if (key === "home") return 1;
   if (key === "saraswati-puja") return 0.9;
@@ -28,12 +31,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
   );
 
-  const [publishedEvents, albums, announcements, pujaYears] = await Promise.all([
-    loadPublishedEvents(),
-    loadPublishedAlbums(),
-    loadPublishedAnnouncements(),
-    loadPublishedPujaYears(),
-  ]);
+  let publishedEvents: Awaited<ReturnType<typeof loadPublishedEvents>> = [];
+  let albums: Awaited<ReturnType<typeof loadPublishedAlbums>> = [];
+  let announcements: Awaited<ReturnType<typeof loadPublishedAnnouncements>> =
+    [];
+  let pujaYears: Awaited<ReturnType<typeof loadPublishedPujaYears>> = [];
+
+  try {
+    [publishedEvents, albums, announcements, pujaYears] = await Promise.all([
+      loadPublishedEvents(),
+      loadPublishedAlbums(),
+      loadPublishedAnnouncements(),
+      loadPublishedPujaYears(),
+    ]);
+  } catch {
+    // Missing/invalid DATABASE_URL during build or a transient DB outage —
+    // still emit the static public routes so the deploy can complete.
+    return staticRoutes;
+  }
 
   // SAMPLE / demo content stays out of the sitemap even if published for UI demos.
   const events: MetadataRoute.Sitemap = publishedEvents
