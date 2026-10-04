@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1600" viewBox="0 0 2400 1600" fill="none" role="img">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1600" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1A2433"/>
+      <stop offset="0.45" stop-color="#2C1E18"/>
+      <stop offset="1" stop-color="#141A22"/>
+    </linearGradient>
+    <radialGradient id="lamp" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1200 720) scale(900 520)">
+      <stop stop-color="#C49A1A" stop-opacity="0.55"/>
+      <stop offset="0.55" stop-color="#C23A22" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#141A22" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(620 980) scale(480 280)">
+      <stop stop-color="#D9654C" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#D9654C" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="2400" height="1600" fill="url(#sky)"/>
+  <rect width="2400" height="1600" fill="url(#lamp)"/>
+  <rect width="2400" height="1600" fill="url(#glow2)"/>
+  <!-- soft architectural arches -->
+  <path d="M180 1600V820C180 620 420 460 700 460C980 460 1220 620 1220 820V1600" stroke="#E8DFD0" stroke-opacity="0.08" stroke-width="3"/>
+  <path d="M1180 1600V780C1180 560 1480 380 1800 380C2120 380 2380 560 2380 780V1600" stroke="#E8DFD0" stroke-opacity="0.08" stroke-width="3"/>
+  <!-- marigold dots -->
+  <g fill="#C49A1A" fill-opacity="0.35">
+    <circle cx="360" cy="280" r="4"/><circle cx="420" cy="310" r="3"/><circle cx="1980" cy="260" r="4"/><circle cx="2050" cy="300" r="3"/>
+    <circle cx="1100" cy="220" r="3"/><circle cx="1160" cy="250" r="2.5"/>
+  </g>
+  <text x="1200" y="840" text-anchor="middle" fill="#F7F2E8" fill-opacity="0.18" font-family="Georgia, serif" font-size="54" letter-spacing="10">SARASWATI PUJA</text>
+  <text x="1200" y="910" text-anchor="middle" fill="#F7F2E8" fill-opacity="0.12" font-family="Georgia, serif" font-size="28" letter-spacing="8">SINCE 2000</text>
+</svg>

@@ -1,0 +1,30 @@
+/** Canonical audit action names for sensitive operations. */
+export const AuditActions = {
+  MEMBER_UPDATED: "member.updated",
+  MEMBER_DELETED: "member.deleted",
+  MEMBER_STATUS_CHANGED: "member.status_change",
+  MEMBER_CREATED: "member.create",
+  MEMBER_APPROVED: "member.approved",
+  MEMBER_SUSPENDED: "member.suspended",
+  PAYMENT_UPDATED: "payment.updated",
+  MANDATE_CREATED: "mandate.created",
+  MANDATE_CANCELLED: "mandate.cancelled",
+  COMMITTEE_UPDATED: "committee.updated",
+  ADMIN_CREATED: "admin.created",
+  ADMIN_PERMISSION_CHANGED: "admin.permission_changed",
+  ANNOUNCEMENT_PUBLISHED: "announcement.published",
+  EVENT_REGISTRATION: "event.registration",
+  EVENT_ATTENDANCE_RECORDED: "event.attendance_recorded",
+  EVENT_MODIFIED: "event.modified",
+  REPORT_EXPORTED: "report.exported",
+  CONTENT_CREATED: "content.created",
+  CONTENT_UPDATED: "content.updated",
+  CONTENT_DELETED: "content.deleted",
+  CONTENT_PUBLISHED: "content.published",
+  CONTENT_ARCHIVED: "content.archived",
+  MEDIA_UPLOADED: "media.uploaded",
+  MEDIA_UPDATED: "media.updated",
+  MEDIA_DELETED: "media.deleted",
+} as const;
+
+export type AuditAction = (typeof AuditActions)[keyof typeof AuditActions];

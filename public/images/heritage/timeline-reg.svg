@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#132a3f"/><stop offset="100%" stop-color="#3d5c52"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#g)"/>
+  <rect x="0" y="700" width="1600" height="300" fill="rgba(7,16,24,0.4)"/>
+  <text x="40" y="952" fill="rgba(255,255,255,0.9)" font-family="Georgia,serif" font-size="26">Registration</text>
+  <text x="40" y="978" fill="rgba(255,255,255,0.55)" font-family="sans-serif" font-size="14">SAMPLE / PLACEHOLDER — replace with archive photo</text>
+</svg>

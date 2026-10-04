@@ -1,0 +1,10 @@
+export { HomeAnnouncements } from "./home-announcements";
+export { HomeCommittee } from "./home-committee";
+export { HomeEvents } from "./home-events";
+export { HomeGallery } from "./home-gallery";
+export { HomeHeritage } from "./home-heritage";
+export { HomeHero } from "./home-hero";
+export { HomeIntro } from "./home-intro";
+export { HomeLocation } from "./home-location";
+export { HomeMembership } from "./home-membership";
+export { HomePuja } from "./home-puja";

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0b1c2c"/><stop offset="100%" stop-color="#c9432a"/></linearGradient></defs>
+  <rect width="1600" height="1000" fill="url(#g)"/>
+  <rect x="0" y="720" width="1600" height="280" fill="rgba(7,16,24,0.45)"/>
+  <text x="36" y="956" fill="rgba(255,255,255,0.92)" font-family="Georgia,serif" font-size="24">Saraswati Puja 2025</text>
+  <text x="36" y="982" fill="rgba(255,255,255,0.55)" font-family="sans-serif" font-size="13">SAMPLE / PLACEHOLDER</text>
+</svg>

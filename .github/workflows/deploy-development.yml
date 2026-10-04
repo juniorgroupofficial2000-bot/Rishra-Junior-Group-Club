@@ -1,0 +1,99 @@
+# After CI succeeds on `develop` → DEVELOPMENT environment.
+# Configure GitHub Environment "development" with non-production secrets only.
+name: Deploy Development
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [develop]
+
+concurrency:
+  group: deploy-development
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to development
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: development
+      url: ${{ vars.APP_URL }}
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Checkout develop tip
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate
+
+      - name: Build (APP_ENV=development)
+        run: npm run build
+        env:
+          APP_ENV: development
+          NEXT_PUBLIC_APP_ENV: development
+          APP_URL: ${{ vars.APP_URL }}
+          NEXT_PUBLIC_APP_URL: ${{ vars.APP_URL }}
+          SITE_URL: ${{ vars.APP_URL }}
+          AUTH_URL: ${{ vars.APP_URL }}
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          REPOSITORY_DRIVER: prisma
+          PAYMENT_PROVIDER: ${{ vars.PAYMENT_PROVIDER }}
+          PAYMENT_MODE: test
+          ALLOW_MOCK_PAYMENTS: ${{ vars.ALLOW_MOCK_PAYMENTS }}
+          MOCK_PAYMENTS_CONFIRM: ${{ secrets.MOCK_PAYMENTS_CONFIRM }}
+          MEDIA_STORAGE_DRIVER: ${{ vars.MEDIA_STORAGE_DRIVER }}
+          NEXT_PHASE: phase-production-build
+
+      - name: Migrate development database (non-destructive)
+        run: |
+          if [ -z "${DATABASE_URL:-}" ]; then
+            echo "DATABASE_URL not set — skipping migrate deploy"
+            exit 0
+          fi
+          npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          APP_ENV: development
+
+      - name: Deploy to Vercel (non-production target)
+        run: |
+          if [ -z "${VERCEL_TOKEN:-}" ] || [ -z "${VERCEL_ORG_ID:-}" ] || [ -z "${VERCEL_PROJECT_ID:-}" ]; then
+            echo "Vercel credentials not configured — skipping remote deploy"
+            exit 0
+          fi
+          npx vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
+          npx vercel build --token="$VERCEL_TOKEN"
+          npx vercel deploy --prebuilt --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Deploy hook (alternative hosts)
+        run: |
+          if [ -z "${DEPLOY_HOOK_URL:-}" ]; then
+            echo "DEPLOY_HOOK_URL not set — skipping"
+            exit 0
+          fi
+          curl -fsS -X POST "$DEPLOY_HOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d '{"ref":"develop","environment":"development","appEnv":"development"}'
+        env:
+          DEPLOY_HOOK_URL: ${{ secrets.DEPLOY_HOOK_URL }}
