@@ -63,15 +63,6 @@ export const committeeMembers: CommitteeMember[] = [
     published: true,
   },
   {
-    id: "cm-vp-2",
-    roleKey: "vice_president",
-    role: "Vice President",
-    name: "Gopal Burman",
-    displayName: "Gopal Burman",
-    sortOrder: 30,
-    published: true,
-  },
-  {
     id: "cm-secretary",
     roleKey: "secretary",
     role: "Secretary",
@@ -107,6 +98,15 @@ export const committeeMembers: CommitteeMember[] = [
     sortOrder: 70,
     published: true,
   },
+  {
+    id: "cm-exec-3",
+    roleKey: "executive_member",
+    role: "Committee Member",
+    name: "Gopal Burman",
+    displayName: "Gopal Burman",
+    sortOrder: 80,
+    published: true,
+  },
 ];
 
 export type CommitteeGroup = {
@@ -125,13 +125,13 @@ const groupOrder: Array<{
   {
     key: "officers",
     title: "Office bearers",
-    description: "President, Vice Presidents, Secretary, and Treasurer.",
+    description: "President, Vice President, Secretary, and Treasurer.",
     roleKeys: ["president", "vice_president", "secretary", "treasurer"],
   },
   {
     key: "executive",
-    title: "Executive members",
-    description: "General / executive members of the committee.",
+    title: "Committee members",
+    description: "General and executive members of the committee.",
     roleKeys: ["executive_member"],
   },
 ];

@@ -138,9 +138,10 @@ export async function seedPublicCmsContent(
   }
 
   for (const member of committeeMembers) {
+    // Match by legal name so role corrections (e.g. VP → committee member)
+    // update the existing published row instead of creating a duplicate.
     const existing = await prisma.publicCommitteeMember.findFirst({
       where: {
-        roleKey: member.roleKey,
         name: member.name,
         deletedAt: null,
       },

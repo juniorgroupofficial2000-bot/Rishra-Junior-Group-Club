@@ -81,7 +81,7 @@ export function CommitteeDirectory({
                   id="committee-officers"
                   className="mt-2 font-display text-3xl font-semibold tracking-tight text-ink-900 sm:text-4xl"
                 >
-                  Secretary, Treasurer &amp; Vice Presidents
+                  Secretary, Treasurer &amp; Vice President
                 </h2>
               </div>
               <p className="max-w-sm text-sm leading-relaxed text-ink-500">
@@ -108,12 +108,12 @@ export function CommitteeDirectory({
       {executives.length > 0 ? (
         <section aria-labelledby="committee-exec">
           <Reveal>
-            <p className="type-caption text-ink-400">Executive body</p>
+            <p className="type-caption text-ink-400">Committee body</p>
             <h2
               id="committee-exec"
               className="mt-2 font-display text-3xl font-semibold tracking-tight text-ink-900 sm:text-4xl"
             >
-              Executive members
+              Committee members
             </h2>
           </Reveal>
           <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-3 lg:grid-cols-4">

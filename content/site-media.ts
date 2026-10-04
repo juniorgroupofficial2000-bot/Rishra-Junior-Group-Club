@@ -148,11 +148,6 @@ export const committeePortraits: Record<
     objectPosition: "center 20%",
     note: "Add a portrait for Suraj Kumar Burman when available.",
   },
-  "cm-vp-2": {
-    src: "/images/committee/Gopal.png",
-    alt: "Portrait of Gopal Burman, Vice President",
-    objectPosition: "center 18%",
-  },
   "cm-secretary": {
     src: "/images/committee/Bishal.png",
     alt: "Portrait of Bishal Pandey, Secretary",
@@ -171,6 +166,11 @@ export const committeePortraits: Record<
   "cm-exec-2": {
     src: "/images/committee/chandan.png",
     alt: "Portrait of Chandan Sharma, Executive Member",
+    objectPosition: "center 18%",
+  },
+  "cm-exec-3": {
+    src: "/images/committee/Gopal.png",
+    alt: "Portrait of Gopal Burman, Committee Member",
     objectPosition: "center 18%",
   },
 };
@@ -215,10 +215,11 @@ export function resolveCommitteePortrait(member: CommitteePortraitMember) {
   const byId = committeePortraits[member.id];
   if (byId) return byId;
 
-  // Match by role + legal name so DB-published rows (cuid ids) keep the right photo.
-  const seed = committeeMembers.find(
-    (row) => row.roleKey === member.roleKey && row.name === member.name,
-  );
+  // Prefer role + legal name; fall back to name alone when a role was corrected.
+  const seed =
+    committeeMembers.find(
+      (row) => row.roleKey === member.roleKey && row.name === member.name,
+    ) ?? committeeMembers.find((row) => row.name === member.name);
   if (seed) {
     const fromSeed = committeePortraits[seed.id];
     if (fromSeed) return fromSeed;

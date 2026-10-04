@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
@@ -15,6 +15,7 @@
     "test:security": "vitest run tests/security tests/auth",
     "test:e2e": "playwright test",
     "test:all": "vitest run && playwright test",
+    "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:validate": "prisma validate",
     "db:migrate": "tsx scripts/assert-safe-db.ts && prisma migrate dev",
@@ -27,6 +28,14 @@
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
+  "allowScripts": {
+    "@prisma/client": true,
+    "@prisma/engines": true,
+    "prisma": true,
+    "esbuild": true,
+    "unrs-resolver": true,
+    "sharp": true
+  },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1146.0",
     "@prisma/client": "^6.19.3",
@@ -37,6 +46,7 @@
     "motion": "^14.0.0",
     "next": "16.3.8",
     "next-auth": "^5.0.0-beta.32",
+    "prisma": "^6.19.2",
     "qrcode": "^1.5.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -56,7 +66,6 @@
     "@types/sharp": "^0.31.1",
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
-    "prisma": "^6.19.2",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5",

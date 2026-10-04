@@ -33,4 +33,15 @@ describe("resolveCommitteePortrait", () => {
     });
     expect(portrait.src).toBe("/images/committee/Aalok.png");
   });
+
+  it("still resolves a portrait after a role correction by name", () => {
+    const portrait = resolveCommitteePortrait({
+      id: "stale_vp_cuid",
+      roleKey: "vice_president",
+      name: "Gopal Burman",
+      displayName: "Gopal Burman",
+    });
+    expect(portrait.src).toBe("/images/committee/Gopal.png");
+    expect(portrait.alt).toContain("Committee Member");
+  });
 });
