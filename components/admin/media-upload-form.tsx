@@ -10,6 +10,8 @@ export function MediaUploadForm() {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
+  const [lastId, setLastId] = useState<string | null>(null);
+  const [lastPurpose, setLastPurpose] = useState<string | null>(null);
 
   return (
     <form
@@ -18,8 +20,11 @@ export function MediaUploadForm() {
         event.preventDefault();
         setError(null);
         setOk(null);
+        setLastId(null);
+        setLastPurpose(null);
         const form = event.currentTarget;
         const data = new FormData(form);
+        const purpose = String(data.get("purpose") ?? "GALLERY");
         startTransition(async () => {
           try {
             const res = await fetch("/api/admin/media/upload", {
@@ -32,6 +37,8 @@ export function MediaUploadForm() {
               return;
             }
             setOk(`Uploaded ${json.id}`);
+            setLastId(json.id ?? null);
+            setLastPurpose(purpose);
             form.reset();
             router.refresh();
           } catch {
@@ -44,6 +51,9 @@ export function MediaUploadForm() {
       <p className="text-sm text-ink-500">
         JPEG, PNG, WebP, or GIF only. Executables, SVG, and scripts are rejected.
         Images are optimized into responsive variants and stored in object storage.
+        After upload, attach the asset ID to gallery media, an event/puja cover,
+        a committee portrait, or set hero slot key <code>home.hero</code> for the
+        homepage.
       </p>
       <label className="block space-y-1.5 text-sm">
         <span className="font-medium text-ink-800">File</span>
@@ -108,9 +118,39 @@ export function MediaUploadForm() {
         </p>
       ) : null}
       {ok ? (
-        <p className="text-sm text-ink-700" role="status">
-          {ok}
-        </p>
+        <div className="space-y-2 text-sm text-ink-700" role="status">
+          <p>{ok}</p>
+          {lastId ? (
+            <p className="rounded-md border border-border-subtle bg-surface-muted px-3 py-2 font-mono text-xs break-all">
+              Public URL: /api/media/{lastId}?v=md
+            </p>
+          ) : null}
+          {lastId && lastPurpose === "HERO" ? (
+            <p>
+              For the homepage hero, upload with purpose HERO and slot key{" "}
+              <code>home.hero</code> (or re-upload / edit the asset slot).
+            </p>
+          ) : null}
+          {lastId && lastPurpose === "GALLERY" ? (
+            <p>
+              Next: Admin → Content → Gallery media → add item, paste this asset
+              ID, status PUBLISHED, into a published album.
+            </p>
+          ) : null}
+          {lastId && lastPurpose === "COMMITTEE_PORTRAIT" ? (
+            <p>
+              Next: Admin → Content → Committee → set portrait asset ID on the
+              published member.
+            </p>
+          ) : null}
+          {lastId &&
+          (lastPurpose === "EVENT" || lastPurpose === "PUJA") ? (
+            <p>
+              Next: set this asset as the cover asset ID on the published
+              event or puja year.
+            </p>
+          ) : null}
+        </div>
       ) : null}
       <Button type="submit" disabled={pending}>
         {pending ? "Uploading…" : "Upload"}

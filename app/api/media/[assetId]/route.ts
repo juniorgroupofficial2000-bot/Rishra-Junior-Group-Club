@@ -41,8 +41,10 @@ export async function GET(request: Request, context: RouteContext) {
       "Content-Type": payload.contentType,
       "Content-Length": String(payload.body.length),
       "Cache-Control": payload.cacheControl,
+      "CDN-Cache-Control": payload.cacheControl,
       "X-Content-Type-Options": "nosniff",
       "Content-Disposition": "inline",
+      Vary: "Accept",
     },
   });
 }

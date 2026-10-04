@@ -8,6 +8,8 @@
  * English alt text only. Do not invent unverified scenes in alt copy.
  */
 
+import { committeeMembers } from "@/content/committee";
+
 export type SiteMediaSlot = {
   id: string;
   src: string;
@@ -125,8 +127,11 @@ export function getSiteMedia(key: SiteMediaKey): SiteMediaSlot {
 }
 
 /**
- * Committee portrait slots keyed by committee member id from content/committee.ts.
+ * Committee portrait slots keyed by seed content ids from content/committee.ts.
  * Files live in /public/images/committee/.
+ *
+ * Public pages load members from Prisma (cuid ids). Always resolve portraits via
+ * `resolveCommitteePortrait()` so role+name still maps to these files.
  */
 export const committeePortraits: Record<
   string,
@@ -170,12 +175,57 @@ export const committeePortraits: Record<
   },
 };
 
+const placeholderPortrait = {
+  src: "/images/committee/portrait-placeholder.svg",
+  alt: "Committee member portrait placeholder",
+  objectPosition: "center 20%",
+} as const;
+
+/** @deprecated Prefer `resolveCommitteePortrait` — DB member ids are not seed ids. */
 export function getCommitteePortrait(memberId: string) {
-  return (
-    committeePortraits[memberId] ?? {
-      src: "/images/committee/portrait-placeholder.svg",
-      alt: "Committee member portrait placeholder",
-      objectPosition: "center 20%",
-    }
+  return committeePortraits[memberId] ?? placeholderPortrait;
+}
+
+type CommitteePortraitMember = {
+  id: string;
+  roleKey: string;
+  name: string;
+  displayName?: string;
+  portraitSrc?: string;
+  portraitAlt?: string;
+};
+
+/**
+ * Resolve a committee portrait for runtime members (Prisma cuid or seed id).
+ * 1) Linked media asset URL when present
+ * 2) Seed content id match
+ * 3) roleKey + name match against seed roster
+ */
+export function resolveCommitteePortrait(member: CommitteePortraitMember) {
+  if (member.portraitSrc) {
+    return {
+      src: member.portraitSrc,
+      alt:
+        member.portraitAlt ??
+        `Portrait of ${member.displayName ?? member.name}`,
+      objectPosition: "center 18%",
+    };
+  }
+
+  const byId = committeePortraits[member.id];
+  if (byId) return byId;
+
+  // Match by role + legal name so DB-published rows (cuid ids) keep the right photo.
+  const seed = committeeMembers.find(
+    (row) => row.roleKey === member.roleKey && row.name === member.name,
   );
+  if (seed) {
+    const fromSeed = committeePortraits[seed.id];
+    if (fromSeed) return fromSeed;
+  }
+
+  return {
+    ...placeholderPortrait,
+    alt: `Portrait placeholder for ${member.displayName ?? member.name}`,
+  };
 }

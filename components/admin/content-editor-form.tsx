@@ -1051,10 +1051,24 @@ function editorForType(
               </SelectInput>
             </Field>
             <div className="sm:col-span-2">
-              <Field label="URL">
+              <Field
+                label="Media asset ID"
+                hint="Paste the ID from Admin → Media after upload (purpose GALLERY). Preferred over URL."
+              >
+                <TextInput
+                  name="mediaAssetId"
+                  defaultValue={String(record.mediaAssetId ?? "")}
+                  placeholder="c…"
+                />
+              </Field>
+            </div>
+            <div className="sm:col-span-2">
+              <Field
+                label="External URL (optional)"
+                hint="Only needed for external images. Leave blank when using a media asset ID."
+              >
                 <TextInput
                   name="url"
-                  required
                   defaultValue={String(record.url ?? "")}
                 />
               </Field>
@@ -1068,18 +1082,9 @@ function editorForType(
                 defaultValue={String(record.caption ?? "")}
               />
             </Field>
-            <Field
-              label="Media asset ID"
-              hint="Upload via Admin → Media (purpose GALLERY)."
-            >
-              <TextInput
-                name="mediaAssetId"
-                defaultValue={String(record.mediaAssetId ?? "")}
-              />
-            </Field>
             <Field label="Content status">
               <StatusSelect
-                defaultValue={String(record.contentStatus ?? "DRAFT")}
+                defaultValue={String(record.contentStatus ?? "PUBLISHED")}
               />
             </Field>
             <Field label="Sort order">

@@ -4,6 +4,7 @@ import { ClipImageReveal } from "@/components/motion";
 import { ProvenanceBadge } from "@/components/heritage/provenance-badge";
 import type { GalleryAlbum } from "@/content/gallery";
 import { cn } from "@/lib/cn";
+import { withMediaVariant } from "@/lib/media/variant";
 import { cardRevealVariants, transitionSlow } from "@/lib/motion";
 import { motion, useReducedMotion } from "motion/react";
 import Image from "next/image";
@@ -25,7 +26,10 @@ export function AlbumCard({
   index = 0,
 }: AlbumCardProps) {
   const cover = album.coverImage;
-  const isSvg = Boolean(cover?.src.endsWith(".svg"));
+  const coverSrc = cover
+    ? withMediaVariant(cover.src, featured ? "md" : "thumb")
+    : null;
+  const isSvg = Boolean(coverSrc?.endsWith(".svg"));
   const reduce = Boolean(useReducedMotion());
 
   return (
@@ -47,9 +51,9 @@ export function AlbumCard({
         )}
       >
         <ClipImageReveal className="absolute inset-0" delay={index * 0.04}>
-          {cover ? (
+          {cover && coverSrc ? (
             <Image
-              src={cover.src}
+              src={coverSrc}
               alt={cover.alt}
               fill
               sizes={
@@ -60,7 +64,7 @@ export function AlbumCard({
               priority={priority}
               loading={priority ? "eager" : "lazy"}
               decoding="async"
-              quality={isSvg ? undefined : 75}
+              quality={isSvg ? undefined : 70}
               unoptimized={isSvg}
               className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-safe:group-hover:scale-[1.04]"
             />

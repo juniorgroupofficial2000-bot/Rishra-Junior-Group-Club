@@ -231,7 +231,7 @@ export const galleryMediaSchema = z
     alt: z.string().trim().max(300).optional().nullable(),
     caption: z.string().trim().max(500).optional().nullable(),
     sortOrder: z.coerce.number().int().min(0).max(99999).default(0),
-    contentStatus: contentStatusSchema.default("DRAFT"),
+    contentStatus: contentStatusSchema.default("PUBLISHED"),
     historicallyImportant: z.boolean().default(false),
     isSample: z.boolean().default(false),
   })
@@ -240,7 +240,7 @@ export const galleryMediaSchema = z
       ctx.addIssue({
         code: "custom",
         message: "Provide a media asset ID or a URL.",
-        path: ["url"],
+        path: ["mediaAssetId"],
       });
     }
   });

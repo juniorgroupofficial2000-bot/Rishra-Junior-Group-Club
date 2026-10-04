@@ -1,5 +1,10 @@
 import type { MediaItem } from "@/content/shared/media";
 import { cn } from "@/lib/cn";
+import {
+  isManagedMediaSrc,
+  withMediaVariant,
+  type PublicMediaVariant,
+} from "@/lib/media/variant";
 import { Play } from "lucide-react";
 import Image from "next/image";
 
@@ -11,12 +16,17 @@ type OptimizedMediaProps = {
   priority?: boolean;
   /** When true, video shows poster + play affordance (no autoplay). */
   showVideoPoster?: boolean;
+  /**
+   * Preferred delivery variant for managed `/api/media` sources.
+   * Lists should use `thumb` / `sm`; detail views `md` / `lg`.
+   */
+  variant?: PublicMediaVariant;
 };
 
 /**
  * Optimized image/video tile for public media.
- * Images use next/image; SVG placeholders are unoptimized.
- * Videos never autoplay — poster + caption only until a hosted player is wired.
+ * Uses next/image with long-lived caching; managed media prefers thumbnails
+ * in list contexts for faster paint.
  */
 export function OptimizedMedia({
   media,
@@ -25,11 +35,15 @@ export function OptimizedMedia({
   sizes,
   priority = false,
   showVideoPoster = true,
+  variant = "sm",
 }: OptimizedMediaProps) {
   const isSvg =
     media.src.endsWith(".svg") || media.poster?.endsWith(".svg") === true;
-  const imageSrc =
+  const rawSrc =
     media.kind === "video" && media.poster ? media.poster : media.src;
+  const imageSrc = isManagedMediaSrc(rawSrc)
+    ? withMediaVariant(rawSrc, variant)
+    : rawSrc;
 
   return (
     <figure className={cn("min-w-0", className)}>
@@ -42,7 +56,7 @@ export function OptimizedMedia({
           priority={priority}
           loading={priority ? "eager" : "lazy"}
           decoding="async"
-          quality={isSvg ? undefined : 75}
+          quality={isSvg ? undefined : 70}
           unoptimized={isSvg}
           className={cn("object-cover", imgClassName)}
         />

@@ -60,9 +60,11 @@ export const imageRevealVariants: Variants = {
 
 /** Clip-path wipe for cinematic image containers. */
 export const clipRevealVariants: Variants = {
+  // Keep most of the image visible even before the wipe completes so a
+  // stuck IntersectionObserver (e.g. broken smooth-scroll) never blanks media.
   hidden: {
-    clipPath: "inset(0 100% 0 0)",
-    opacity: 0.35,
+    clipPath: "inset(0 12% 0 0)",
+    opacity: 0.85,
   },
   visible: {
     clipPath: "inset(0 0% 0 0)",
@@ -71,7 +73,7 @@ export const clipRevealVariants: Variants = {
 };
 
 export const clipImageScaleVariants: Variants = {
-  hidden: { scale: 1.16, opacity: 0.55 },
+  hidden: { scale: 1.06, opacity: 0.92 },
   visible: { scale: 1, opacity: 1 },
 };
 
@@ -86,7 +88,7 @@ export const lineRevealVariants: Variants = {
 };
 
 export const cardRevealVariants: Variants = {
-  hidden: { opacity: 0, y: 56, scale: 0.94 },
+  hidden: { opacity: 0.35, y: 28, scale: 0.98 },
   visible: { opacity: 1, y: 0, scale: 1 },
 };
 
@@ -109,9 +111,9 @@ export const navItemVariants: Variants = {
   visible: { opacity: 1, x: 0 },
 };
 
-/** Shared viewport so section entrances fire when content is clearly on screen. */
+/** Shared viewport — forgiving so entrances fire even with smooth-scroll lag. */
 export const inViewViewport = {
   once: true,
-  amount: 0.28,
-  margin: "0px 0px -12% 0px",
+  amount: 0.12,
+  margin: "0px 0px 15% 0px",
 } as const;

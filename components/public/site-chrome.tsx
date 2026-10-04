@@ -15,7 +15,7 @@ export async function SiteChrome({ children }: { children: ReactNode }) {
   const { appEnv, appName } = getPublicEnv();
 
   return (
-    <div className="flex min-h-dvh min-w-0 flex-col overflow-x-clip overflow-y-visible bg-heritage-grain">
+    <div className="flex min-h-dvh min-w-0 flex-col overflow-x-clip bg-heritage-grain">
       <SkipLink />
       <EnvironmentRibbon
         appEnv={appEnv}

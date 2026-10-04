@@ -948,13 +948,34 @@ export async function upsertGalleryMedia(
   }
 
   const mediaAssetId = data.mediaAssetId ?? null;
+  if (mediaAssetId) {
+    const asset = await prisma.mediaAsset.findFirst({
+      where: { id: mediaAssetId, deletedAt: null, status: "READY" },
+      select: { id: true },
+    });
+    if (!asset) {
+      throw new ContentCmsError(
+        "Media asset not found or not ready. Upload it under Admin → Media first.",
+      );
+    }
+  }
+
   const url =
     mediaAssetId != null
-      ? `/api/media/${mediaAssetId}?v=md`
+      ? `/api/media/${mediaAssetId}?v=sm`
       : (data.url?.trim() ?? "");
   if (!url) {
     throw new ContentCmsError("Provide a media asset ID or a URL.");
   }
+
+  // If the album is already public, default new/updated items to PUBLISHED
+  // unless the editor explicitly chose DRAFT/ARCHIVED.
+  const contentStatus =
+    data.contentStatus === "DRAFT" &&
+    album.contentStatus === "PUBLISHED" &&
+    !id
+      ? "PUBLISHED"
+      : data.contentStatus;
 
   const payload = {
     albumId: data.albumId,
@@ -964,7 +985,7 @@ export async function upsertGalleryMedia(
     alt: data.alt ?? null,
     caption: data.caption ?? null,
     sortOrder: data.sortOrder,
-    contentStatus: data.contentStatus,
+    contentStatus,
     historicallyImportant: data.historicallyImportant,
     isSample: data.isSample,
   };

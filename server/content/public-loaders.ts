@@ -199,7 +199,8 @@ function mapPujaYearRow(
     coverImage: cover
       ? {
           id: cover.id,
-          src: `/api/media/${cover.id}?v=md`,
+          // List/card surfaces prefer thumbnails; detail pages may upgrade.
+          src: `/api/media/${cover.id}?v=thumb`,
           alt: cover.alt,
           width: cover.width ?? 1600,
           height: cover.height ?? 1000,
@@ -226,20 +227,20 @@ function mapPujaYearRow(
  * once an admin publishes them.
  */
 export async function loadPublishedHomeContent() {
-  const blocks = await prisma.siteContentBlock.findMany({
-    where: { deletedAt: null, status: "PUBLISHED" },
-    orderBy: { sortOrder: "asc" },
-  });
-
-  if (blocks.length === 0) {
-    return brandHomeShell;
-  }
+  const [blocks, heroAsset] = await Promise.all([
+    prisma.siteContentBlock.findMany({
+      where: { deletedAt: null, status: "PUBLISHED" },
+      orderBy: { sortOrder: "asc" },
+    }),
+    loadHeroMediaBySlot("home.hero"),
+  ]);
 
   const base = brandHomeShell as unknown as Record<
     string,
     Record<string, unknown>
   >;
   const overlay: Record<string, unknown> = { ...base };
+
   for (const block of blocks) {
     const sectionKey = block.key.replace(/^home\./, "");
     const existing = base[sectionKey];
@@ -255,6 +256,25 @@ export async function loadPublishedHomeContent() {
       };
     }
   }
+
+  // Prefer a READY HERO asset assigned to slot `home.hero` over brand placeholders.
+  if (heroAsset) {
+    const hero = (overlay.hero ?? base.hero ?? {}) as Record<string, unknown>;
+    const image = (hero.image ?? {}) as Record<string, unknown>;
+    overlay.hero = {
+      ...hero,
+      image: {
+        ...image,
+        id: heroAsset.id,
+        src: heroAsset.src,
+        srcMobile: heroAsset.srcMobile ?? heroAsset.src,
+        alt: heroAsset.alt || String(image.alt ?? "Club hero photograph"),
+        width: heroAsset.width,
+        height: heroAsset.height,
+      },
+    };
+  }
+
   return overlay as unknown as typeof brandHomeShell;
 }
 
@@ -392,7 +412,7 @@ export const loadPublishedCommitteeMembers = cache(async (): Promise<
       termYear: row.termYear ?? undefined,
       sortOrder: row.sortOrder,
       published: true,
-      portraitSrc: portrait ? `/api/media/${portrait.id}?v=md` : undefined,
+      portraitSrc: portrait ? `/api/media/${portrait.id}?v=sm` : undefined,
       portraitAlt: portrait?.alt,
     };
   });
@@ -461,7 +481,7 @@ function mapEventRow(row: {
       ? {
           id: cover.id,
           kind: "image" as const,
-          src: `/api/media/${cover.id}?v=lg`,
+          src: `/api/media/${cover.id}?v=md`,
           alt: cover.alt,
           width: cover.width ?? 1600,
           height: cover.height ?? 1000,
@@ -534,7 +554,7 @@ function albumCoverFromRow(row: {
         : null;
     return mediaFromAlbum({
       id: first.id,
-      url: asset ? `/api/media/${asset.id}?v=md` : first.url,
+      url: asset ? `/api/media/${asset.id}?v=thumb` : first.url,
       alt: asset?.alt ?? first.alt,
       caption: asset?.caption ?? first.caption,
       type: first.type,
@@ -623,7 +643,8 @@ export const loadPublishedAlbumBySlug = cache(
           : null;
       return mediaFromAlbum({
         id: m.id,
-        url: asset ? `/api/media/${asset.id}?v=md` : m.url,
+        // Album grids use sm; lightbox/detail can request larger via UI.
+        url: asset ? `/api/media/${asset.id}?v=sm` : m.url,
         alt: asset?.alt ?? m.alt,
         caption: asset?.caption ?? m.caption,
         type: m.type,

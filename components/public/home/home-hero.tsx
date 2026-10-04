@@ -3,7 +3,6 @@
 import { INTRO_DONE_EVENT } from "@/components/motion/intro-overlay";
 import { SiteContainer } from "@/components/public/site-container";
 import { homeContent, type HomeContent } from "@/content/home";
-import { siteMedia } from "@/content/site-media";
 import { cn } from "@/lib/cn";
 import {
   heroStaggerVariants,
@@ -24,8 +23,6 @@ import {
 import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
-const media = siteMedia.hero;
-
 /** English brand lines — no non-English copy. */
 const HEADLINE_LINES = ["RISHRA", "JUNIOR GROUP", "CLUB"] as const;
 const TAGLINE = "Community · Tradition · Togetherness";
@@ -37,6 +34,7 @@ export function HomeHero({
 }: {
   content?: HomeContent["hero"];
 } = {}) {
+  const media = content.image;
   const reduceMotion = useReducedMotion();
   const sectionRef = useRef<HTMLElement>(null);
   const mounted = useSyncExternalStore(
