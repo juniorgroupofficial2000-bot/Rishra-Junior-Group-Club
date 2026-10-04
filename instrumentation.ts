@@ -3,15 +3,15 @@ import type { Instrumentation } from "next";
 /**
  * Server boot + request error hooks for production observability.
  * Structured logs go to stdout as JSON (see docs/observability.md).
+ *
+ * Important: do not throw from `register()` on Vercel. A thrown boot error
+ * becomes an opaque Next.js 500 with no operator guidance. Capture the
+ * config problem and let the root layout render a setup panel instead.
  */
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
-    const {
-      assertEnvironmentConfig,
-      describeAppEnv,
-      getServerEnv,
-      isProductionAppEnv,
-    } = await import("@/config");
+    const { assertEnvironmentConfig, describeAppEnv, getServerEnv } =
+      await import("@/config");
     const { setBootConfigError } = await import("@/config/boot-status");
     const { appLog } = await import("@/server/observability/logger");
 
@@ -25,19 +25,12 @@ export async function register() {
           ? error.message
           : "Invalid environment configuration.";
       const env = getServerEnv();
-
+      hasBootConfigError = true;
+      setBootConfigError(message);
       appLog.error("app", "environment_config_invalid", {
         appEnv: env.appEnv,
         errorMessage: message,
       });
-
-      // Production stays fail-closed. Preview / development can still serve the
-      // public brand shell while DATABASE_URL / secrets are being configured.
-      if (isProductionAppEnv(env.appEnv)) {
-        throw error;
-      }
-      setBootConfigError(message);
-      hasBootConfigError = true;
     }
 
     const env = getServerEnv();

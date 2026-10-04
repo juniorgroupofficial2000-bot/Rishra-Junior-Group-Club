@@ -1,3 +1,6 @@
+import { EnvSetupPanel } from "@/components/errors/env-setup-panel";
+import { getBootConfigError } from "@/config/boot-status";
+import { getDeploymentSetupError } from "@/config/deployment-setup";
 import { seoDefaults, getSiteUrl } from "@/lib/seo/config";
 import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
@@ -84,13 +87,15 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+  const setupError = getDeploymentSetupError() ?? getBootConfigError();
+
   return (
     <html
       lang={seoDefaults.htmlLang}
       className={`${playfair.variable} ${plusJakarta.variable} min-h-dvh antialiased`}
     >
       <body className="flex min-h-dvh min-w-0 flex-col overflow-x-clip font-sans">
-        {children}
+        {setupError ? <EnvSetupPanel message={setupError} /> : children}
       </body>
     </html>
   );

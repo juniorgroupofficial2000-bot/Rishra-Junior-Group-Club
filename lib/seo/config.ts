@@ -8,7 +8,6 @@
  * - Cultural terms (e.g. Saraswati Puja, Rishra) appear in English wording.
  */
 
-import { resolveAppEnv } from "@/config/app-env";
 import { getPublicEnv } from "@/config/public";
 
 export type SeoDefaults = {
@@ -39,43 +38,30 @@ export const seoDefaults: SeoDefaults = {
   defaultOgImagePath: "/brand/og-default.svg",
 };
 
-function isProductionBuildPhase(): boolean {
-  return (
-    process.env.NEXT_PHASE === "phase-production-build" ||
-    process.env.npm_lifecycle_event === "build"
-  );
+function vercelDeploymentOrigin(): string | undefined {
+  const vercelUrl = process.env.VERCEL_URL?.trim();
+  if (!vercelUrl) return undefined;
+  return vercelUrl.startsWith("http://") || vercelUrl.startsWith("https://")
+    ? vercelUrl.replace(/\/$/, "")
+    : `https://${vercelUrl.replace(/\/$/, "")}`;
 }
 
 /**
  * Absolute site origin for canonical URLs, Open Graph, sitemap, and JSON-LD.
  * Prefers APP_URL / SITE_URL from the centralized public config.
+ * Never throws — missing config must not produce an opaque Vercel 500 page.
  */
 export function getSiteUrl(): string {
-  const publicEnv = getPublicEnv();
-  if (publicEnv.appUrl) {
-    return publicEnv.appUrl;
+  try {
+    const publicEnv = getPublicEnv();
+    if (publicEnv.appUrl) {
+      return publicEnv.appUrl;
+    }
+  } catch {
+    // Public env parse failures must not crash metadata / SSR on Vercel.
   }
 
-  // Last-resort Vercel host (also wired in loadPublicEnv; kept here for safety).
-  const vercelUrl = process.env.VERCEL_URL?.trim();
-  if (vercelUrl) {
-    return vercelUrl.startsWith("http://") || vercelUrl.startsWith("https://")
-      ? vercelUrl.replace(/\/$/, "")
-      : `https://${vercelUrl.replace(/\/$/, "")}`;
-  }
-
-  const appEnv = resolveAppEnv();
-  if (
-    (appEnv === "production" || process.env.NODE_ENV === "production") &&
-    !isProductionBuildPhase() &&
-    process.env.ALLOW_INSECURE_SITE_URL_FALLBACK !== "true"
-  ) {
-    throw new Error(
-      "APP_URL (or SITE_URL) must be set to the public HTTPS origin in production (e.g. https://rishrajuniorgroupclub.in).",
-    );
-  }
-
-  return "http://localhost:3000";
+  return vercelDeploymentOrigin() ?? "http://localhost:3000";
 }
 
 export function absoluteUrl(path = "/"): string {
