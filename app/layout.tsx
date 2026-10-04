@@ -87,9 +87,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang={seoDefaults.htmlLang}
-      className={`${playfair.variable} ${plusJakarta.variable} h-full antialiased`}
+      className={`${playfair.variable} ${plusJakarta.variable} min-h-dvh antialiased`}
     >
-      <body className="flex min-h-full min-w-0 flex-col overflow-x-clip font-sans">
+      <body className="flex min-h-dvh min-w-0 flex-col overflow-x-clip font-sans">
         {children}
       </body>
     </html>

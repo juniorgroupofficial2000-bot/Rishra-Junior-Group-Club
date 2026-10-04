@@ -74,6 +74,22 @@ const nextConfig: NextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60 * 60 * 24 * 30,
     qualities: [75, 80],
+    // Next.js 16 requires explicit localPatterns for src values with ?query.
+    // Managed media uses `/api/media/:id?v=thumb|sm|md|lg`.
+    localPatterns: [
+      { pathname: "/api/media/**" },
+      { pathname: "/api/admin/media/**" },
+      { pathname: "/images/**" },
+      { pathname: "/brand/**" },
+      { pathname: "/*.svg" },
+      { pathname: "/*.png" },
+      { pathname: "/*.jpg" },
+      { pathname: "/*.jpeg" },
+      { pathname: "/*.webp" },
+    ],
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    contentDispositionType: "inline",
   },
   // Prefer modern compression for production responses.
   compress: true,

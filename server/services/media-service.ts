@@ -259,58 +259,98 @@ export async function getReadyMediaAsset(id: string) {
   });
 }
 
+/** Purposes that are intended for the public website once READY. */
+const PUBLIC_SITE_PURPOSES = new Set([
+  "COMMITTEE_PORTRAIT",
+  "GALLERY",
+  "EVENT",
+  "PUJA",
+  "HERO",
+  "GENERAL",
+]);
+
 /**
- * Public `/api/media` may only deliver READY assets that are bound to
- * published site content (or an assigned hero/site slot). Draft uploads
- * remain available to staff via `/api/admin/media/[id]`.
+ * Public `/api/media` delivery rules:
+ * - READY + public site purpose (gallery/hero/event/…) → allowed (opaque ids)
+ * - READY + hero/site slotKey → allowed
+ * - READY + linked to published content or a member portrait → allowed
+ * - MEMBER_PORTRAIT without a member link stays staff-only
+ * Staff preview always uses `/api/admin/media/[id]`.
  */
 export async function isMediaPubliclyDeliverable(
   assetId: string,
 ): Promise<boolean> {
   const asset = await prisma.mediaAsset.findFirst({
     where: { id: assetId, deletedAt: null, status: "READY" },
-    select: { id: true, slotKey: true },
+    select: { id: true, slotKey: true, purpose: true },
   });
   if (!asset) return false;
   if (asset.slotKey) return true;
+  if (PUBLIC_SITE_PURPOSES.has(asset.purpose)) return true;
 
-  const [gallery, eventCover, committee, puja] = await Promise.all([
-    prisma.galleryMedia.findFirst({
-      where: {
-        mediaAssetId: assetId,
-        deletedAt: null,
-        contentStatus: "PUBLISHED",
-        album: { deletedAt: null, contentStatus: "PUBLISHED" },
-      },
-      select: { id: true },
-    }),
-    prisma.event.findFirst({
-      where: {
-        coverAssetId: assetId,
-        deletedAt: null,
-        contentStatus: "PUBLISHED",
-      },
-      select: { id: true },
-    }),
-    prisma.publicCommitteeMember.findFirst({
-      where: {
-        portraitAssetId: assetId,
-        deletedAt: null,
-        status: "PUBLISHED",
-      },
-      select: { id: true },
-    }),
-    prisma.pujaYear.findFirst({
-      where: {
-        coverAssetId: assetId,
-        deletedAt: null,
-        status: "PUBLISHED",
-      },
-      select: { id: true },
-    }),
-  ]);
+  const [gallery, eventCover, committee, puja, announcement, memberPortrait] =
+    await Promise.all([
+      prisma.galleryMedia.findFirst({
+        where: {
+          mediaAssetId: assetId,
+          deletedAt: null,
+          contentStatus: "PUBLISHED",
+          album: { deletedAt: null, contentStatus: "PUBLISHED" },
+        },
+        select: { id: true },
+      }),
+      prisma.event.findFirst({
+        where: {
+          coverAssetId: assetId,
+          deletedAt: null,
+          contentStatus: "PUBLISHED",
+        },
+        select: { id: true },
+      }),
+      prisma.publicCommitteeMember.findFirst({
+        where: {
+          portraitAssetId: assetId,
+          deletedAt: null,
+          status: "PUBLISHED",
+        },
+        select: { id: true },
+      }),
+      prisma.pujaYear.findFirst({
+        where: {
+          coverAssetId: assetId,
+          deletedAt: null,
+          status: "PUBLISHED",
+        },
+        select: { id: true },
+      }),
+      prisma.announcement.findFirst({
+        where: {
+          coverAssetId: assetId,
+          deletedAt: null,
+          OR: [
+            { status: "PUBLISHED" },
+            { status: "SCHEDULED", publishedAt: { lte: new Date() } },
+          ],
+        },
+        select: { id: true },
+      }),
+      prisma.member.findFirst({
+        where: {
+          portraitAssetId: assetId,
+          deletedAt: null,
+        },
+        select: { id: true },
+      }),
+    ]);
 
-  return Boolean(gallery || eventCover || committee || puja);
+  return Boolean(
+    gallery ||
+      eventCover ||
+      committee ||
+      puja ||
+      announcement ||
+      memberPortrait,
+  );
 }
 
 export async function listMediaAssets(input?: {
@@ -409,9 +449,10 @@ export async function loadVariantBytes(
   return {
     body: object.body,
     contentType: descriptor.mimeType || object.contentType,
+    // Variant URLs are content-stable for an asset id — cache aggressively.
     cacheControl:
       options?.requirePublic === false
         ? "private, no-store"
-        : "public, max-age=86400, stale-while-revalidate=604800",
+        : "public, max-age=31536000, immutable, stale-while-revalidate=86400",
   };
 }

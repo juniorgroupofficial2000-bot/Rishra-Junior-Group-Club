@@ -30,6 +30,7 @@ export function AlbumMediaGrid({ media }: { media: MediaItem[] }) {
         >
           <OptimizedMedia
             media={item}
+            variant="sm"
             priority={index === 0}
             sizes="(max-width: 768px) 50vw, 33vw"
             className="overflow-hidden rounded-lg [&_div]:aspect-square"

@@ -2,8 +2,9 @@
 
 import { ClipImageReveal } from "@/components/motion";
 import type { CommitteeMember } from "@/content/committee";
-import { getCommitteePortrait } from "@/content/site-media";
+import { resolveCommitteePortrait } from "@/content/site-media";
 import { cn } from "@/lib/cn";
+import { isManagedMediaSrc } from "@/lib/media/variant";
 import { cardRevealVariants, transitionSlow } from "@/lib/motion";
 import { motion, useReducedMotion } from "motion/react";
 import Image from "next/image";
@@ -29,13 +30,10 @@ export function CommitteeMemberCard({
   index = 0,
 }: CommitteeMemberCardProps) {
   const layout = variant ?? (featured ? "featured" : "grid");
-  const fallback = getCommitteePortrait(member.id);
-  const portrait = {
-    src: member.portraitSrc ?? fallback.src,
-    alt: member.portraitAlt ?? fallback.alt,
-    objectPosition: fallback.objectPosition,
-  };
+  const portrait = resolveCommitteePortrait(member);
   const isSvg = portrait.src.endsWith(".svg");
+  // Local static portraits + SVG placeholders: skip optimizer so PNGs always paint.
+  const unoptimized = isSvg || !isManagedMediaSrc(portrait.src);
   const reduce = Boolean(useReducedMotion());
 
   if (layout === "featured") {
@@ -57,7 +55,7 @@ export function CommitteeMemberCard({
             fill
             sizes="(max-width: 1024px) 92vw, 520px"
             priority
-            unoptimized={isSvg}
+            unoptimized={unoptimized}
             className="object-cover"
             style={{ objectPosition: portrait.objectPosition ?? "center 18%" }}
           />
@@ -100,7 +98,7 @@ export function CommitteeMemberCard({
             alt={portrait.alt}
             fill
             sizes="(max-width: 768px) 45vw, 280px"
-            unoptimized={isSvg}
+            unoptimized={unoptimized}
             className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"
             style={{ objectPosition: portrait.objectPosition ?? "center 18%" }}
           />
@@ -138,7 +136,7 @@ export function CommitteeMemberCard({
           alt={portrait.alt}
           fill
           sizes="(max-width: 768px) 40vw, 200px"
-          unoptimized={isSvg}
+          unoptimized={unoptimized}
           className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
           style={{ objectPosition: portrait.objectPosition ?? "center 18%" }}
         />

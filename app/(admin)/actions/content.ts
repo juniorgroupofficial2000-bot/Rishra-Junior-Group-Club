@@ -543,7 +543,7 @@ export async function saveGalleryMediaAction(formData: FormData) {
         alt: optStr(formData, "alt"),
         caption: optStr(formData, "caption"),
         sortOrder: Number(formData.get("sortOrder") ?? 0),
-        contentStatus: str(formData, "status") || "DRAFT",
+        contentStatus: str(formData, "status") || "PUBLISHED",
         historicallyImportant: bool(formData, "historicallyImportant"),
         isSample: bool(formData, "isSample"),
       },

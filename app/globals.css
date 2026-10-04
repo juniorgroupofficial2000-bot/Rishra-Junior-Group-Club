@@ -9,10 +9,13 @@
   }
 
   html {
-    /* Lenis owns smooth scroll on capable desktops; keep native otherwise. */
+    /* Never lock html to viewport height — that traps scroll mid-page. */
     scroll-behavior: auto;
     overflow-x: clip;
+    overflow-y: auto;
     max-width: 100%;
+    height: auto;
+    min-height: 100%;
   }
 
   img,
