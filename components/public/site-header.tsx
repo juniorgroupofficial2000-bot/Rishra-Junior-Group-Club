@@ -1,5 +1,6 @@
 "use client";
 
+import { BrandMark } from "@/components/brand/brand-mark";
 import { primaryNav } from "@/content/navigation";
 import { siteConfig } from "@/content/site";
 import { cn } from "@/lib/cn";
@@ -110,46 +111,54 @@ export function SiteHeader({
       >
         <SiteContainer
           className={cn(
-            "flex items-center justify-between gap-3 transition-[height] duration-450",
+            "flex flex-nowrap items-center justify-between gap-2 transition-[height] duration-450 lg:gap-3",
             scrolled ? "h-12 sm:h-14" : "h-16 sm:h-[4.5rem]",
           )}
         >
           <Link
             href="/"
-            className="min-w-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marigold-400 focus-visible:ring-offset-2"
+            className="flex min-w-0 shrink items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marigold-400 focus-visible:ring-offset-2 sm:gap-3"
           >
-            <motion.span
-              className={cn(
-                "block truncate font-display font-semibold tracking-tight",
-                transparent ? "text-white" : "text-ink-900",
-                scrolled ? "text-sm sm:text-base" : "text-base sm:text-lg",
-              )}
-              layout={chromeMotion}
-            >
-              {siteConfig.name}
-            </motion.span>
-            <span
-              className={cn(
-                "block truncate tracking-wide transition-opacity duration-300",
-                scrolled ? "text-xs opacity-80" : "text-xs sm:text-sm",
-                transparent ? "text-white/70" : "text-ink-500",
-              )}
-            >
-              Since 2000 · {siteConfig.shortName}
+            <BrandMark
+              size={scrolled ? 36 : 42}
+              priority
+              className="shrink-0"
+            />
+            <span className="min-w-0">
+              <motion.span
+                className={cn(
+                  "block truncate font-display font-semibold tracking-tight",
+                  transparent ? "text-white" : "text-ink-900",
+                  scrolled ? "text-sm sm:text-base" : "text-base sm:text-lg",
+                )}
+                layout={chromeMotion}
+              >
+                {siteConfig.name}
+              </motion.span>
+              <span
+                className={cn(
+                  "block truncate tracking-wide transition-opacity duration-300",
+                  scrolled ? "text-xs opacity-80" : "text-xs sm:text-sm",
+                  transparent ? "text-white/70" : "text-ink-500",
+                )}
+              >
+                Since 2000 · {siteConfig.shortName}
+              </span>
             </span>
           </Link>
 
-          <nav aria-label="Primary" className="hidden xl:block">
-            <ul className="flex items-center gap-0.5">
+          <nav aria-label="Primary" className="hidden min-w-0 lg:block">
+            <ul className="flex flex-nowrap items-center gap-0.5">
               {primaryNav.map((item) => {
                 const active = isActivePath(pathname, item.href);
+                const label = item.primaryLabel ?? item.label;
                 return (
-                  <li key={item.href}>
+                  <li key={item.href} className="shrink-0">
                     <Link
                       href={item.href}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "group relative type-navigation inline-flex min-h-11 items-center rounded-md px-3 transition-colors",
+                        "group relative type-navigation inline-flex min-h-11 items-center whitespace-nowrap rounded-md px-2 transition-colors xl:px-2.5",
                         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marigold-400 focus-visible:ring-offset-2",
                         transparent
                           ? active
@@ -160,10 +169,10 @@ export function SiteHeader({
                             : "text-ink-600 hover:text-ink-900",
                       )}
                     >
-                      {item.label}
+                      {label}
                       <span
                         className={cn(
-                          "absolute inset-x-3 bottom-2 h-px origin-left scale-x-0 bg-marigold-400 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-x-100",
+                          "absolute inset-x-2 bottom-2 h-px origin-left scale-x-0 bg-marigold-400 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-x-100 xl:inset-x-2.5",
                           active && "scale-x-100",
                         )}
                         aria-hidden
@@ -175,7 +184,7 @@ export function SiteHeader({
             </ul>
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             {newAnnouncement ? (
               <Link
                 href={`/announcements/${newAnnouncement.slug}`}
@@ -249,24 +258,24 @@ export function SiteHeader({
                 <Link
                   href="/login"
                   className={cn(
-                    "hidden min-h-11 items-center rounded-md px-3 type-navigation sm:inline-flex",
+                    "hidden min-h-11 items-center whitespace-nowrap rounded-md px-2.5 type-navigation sm:inline-flex",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marigold-400 focus-visible:ring-offset-2",
                     transparent
                       ? "text-white/90 hover:bg-white/10"
                       : "text-ink-700 hover:bg-ink-50",
                   )}
                 >
-                  Member login
+                  Login
                 </Link>
                 <Link
                   href="/membership"
                   className={cn(
-                    "group hidden min-h-11 items-center gap-1.5 rounded-md bg-alta-500 px-3.5 type-button text-white shadow-xs sm:inline-flex",
+                    "group hidden min-h-11 items-center gap-1.5 whitespace-nowrap rounded-md bg-alta-500 px-3 type-button text-white shadow-xs sm:inline-flex xl:px-3.5",
                     "transition-[transform,background-color] duration-300 hover:-translate-y-0.5 hover:bg-alta-600",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marigold-400 focus-visible:ring-offset-2",
                   )}
                 >
-                  Membership
+                  Join
                   <span
                     aria-hidden
                     className="inline-block transition-transform duration-300 group-hover:translate-x-0.5"
@@ -281,7 +290,7 @@ export function SiteHeader({
               ref={menuButtonRef}
               type="button"
               className={cn(
-                "inline-flex h-11 w-11 items-center justify-center rounded-md border xl:hidden",
+                "inline-flex h-11 w-11 items-center justify-center rounded-md border lg:hidden",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marigold-400 focus-visible:ring-offset-2",
                 transparent
                   ? "border-white/30 text-white hover:bg-white/10"
@@ -306,7 +315,7 @@ export function SiteHeader({
             animate={{ opacity: 1, height: "auto" }}
             exit={reduceMotion ? undefined : { opacity: 0, height: 0 }}
             transition={{ duration: 0.32, ease: premiumEase }}
-            className="overflow-hidden border-t border-border-subtle bg-surface-raised text-ink-900 xl:hidden"
+            className="overflow-hidden border-t border-border-subtle bg-surface-raised text-ink-900 lg:hidden"
           >
             <SiteContainer className="py-4">
               <div className="mb-3 flex items-center justify-between">
@@ -376,6 +385,36 @@ export function SiteHeader({
                   })}
                   <motion.li variants={reduceMotion ? undefined : navItemVariants}>
                     <Link
+                      href="/history"
+                      className={cn(
+                        "flex min-h-12 items-center rounded-md px-3 py-2 text-base font-medium transition-colors",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        isActivePath(pathname, "/history")
+                          ? "bg-ink-100 text-ink-900"
+                          : "text-ink-700 hover:bg-ink-50",
+                      )}
+                      onClick={() => setOpen(false)}
+                    >
+                      History
+                    </Link>
+                  </motion.li>
+                  <motion.li variants={reduceMotion ? undefined : navItemVariants}>
+                    <Link
+                      href="/contact"
+                      className={cn(
+                        "flex min-h-12 items-center rounded-md px-3 py-2 text-base font-medium transition-colors",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        isActivePath(pathname, "/contact")
+                          ? "bg-ink-100 text-ink-900"
+                          : "text-ink-700 hover:bg-ink-50",
+                      )}
+                      onClick={() => setOpen(false)}
+                    >
+                      Contact
+                    </Link>
+                  </motion.li>
+                  <motion.li variants={reduceMotion ? undefined : navItemVariants}>
+                    <Link
                       href="/search"
                       className="flex min-h-12 items-center rounded-md px-3 py-2 text-base font-medium text-ink-700 hover:bg-ink-50"
                       onClick={() => setOpen(false)}
@@ -401,14 +440,14 @@ export function SiteHeader({
                     className="mb-2 flex min-h-12 items-center rounded-md px-3 text-base font-medium text-ink-700 hover:bg-ink-50"
                     onClick={() => setOpen(false)}
                   >
-                    Member login
+                    Login
                   </Link>
                   <Link
                     href="/membership"
                     className="flex min-h-12 items-center justify-center rounded-md bg-alta-500 px-4 text-base font-medium text-white hover:bg-alta-600"
                     onClick={() => setOpen(false)}
                   >
-                    Membership
+                    Join
                   </Link>
                 </>
               )}

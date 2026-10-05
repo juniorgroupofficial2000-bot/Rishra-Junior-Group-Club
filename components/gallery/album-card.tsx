@@ -64,7 +64,7 @@ export function AlbumCard({
               priority={priority}
               loading={priority ? "eager" : "lazy"}
               decoding="async"
-              quality={isSvg ? undefined : 70}
+              quality={isSvg ? undefined : 75}
               unoptimized={isSvg}
               className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-safe:group-hover:scale-[1.04]"
             />

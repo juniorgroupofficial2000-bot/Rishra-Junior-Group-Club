@@ -1,3 +1,4 @@
+import { BrandMark } from "@/components/brand/brand-mark";
 import { siteConfig } from "@/content/site";
 import { privatePageMetadata } from "@/lib/seo/metadata";
 import Link from "next/link";
@@ -15,9 +16,10 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         <div className="mx-auto flex w-full max-w-lg items-center justify-between px-4 py-4 sm:px-6">
           <Link
             href="/"
-            className="font-display text-base font-semibold text-ink-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="inline-flex items-center gap-2.5 font-display text-base font-semibold text-ink-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            {siteConfig.name}
+            <BrandMark size={32} />
+            <span className="truncate">{siteConfig.name}</span>
           </Link>
           <Link
             href="/contact"

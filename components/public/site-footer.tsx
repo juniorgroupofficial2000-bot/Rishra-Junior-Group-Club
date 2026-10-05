@@ -1,5 +1,6 @@
 "use client";
 
+import { BrandMark } from "@/components/brand/brand-mark";
 import { Reveal } from "@/components/motion";
 import { footerGroups } from "@/content/navigation";
 import { formatAddressLines, siteConfig } from "@/content/site";
@@ -15,9 +16,12 @@ export function SiteFooter() {
         <Reveal>
           <div className="grid gap-10 lg:grid-cols-[1.2fr_2fr]">
             <div className="min-w-0 space-y-3">
-              <p className="font-display text-xl font-semibold tracking-tight text-white">
-                {siteConfig.name}
-              </p>
+              <div className="flex items-center gap-3">
+                <BrandMark size={44} className="shrink-0" />
+                <p className="font-display text-xl font-semibold tracking-tight text-white">
+                  {siteConfig.name}
+                </p>
+              </div>
               <p className="text-sm text-ink-300">{siteConfig.establishedLabel}</p>
               <address className="not-italic text-sm leading-relaxed text-ink-300">
                 {formatAddressLines().map((line) => (

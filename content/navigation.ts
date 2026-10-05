@@ -1,6 +1,8 @@
 export type NavItem = {
   href: string;
   label: string;
+  /** Optional shorter label for the desktop header bar */
+  primaryLabel?: string;
   /** Show in primary header nav */
   primary?: boolean;
   /** Show in footer link columns */
@@ -15,10 +17,12 @@ export type NavItem = {
 export const publicNav: readonly NavItem[] = [
   { href: "/", label: "Home", primary: false, footerGroup: "explore" },
   { href: "/about", label: "About", primary: true, footerGroup: "explore" },
-  { href: "/history", label: "History", primary: true, footerGroup: "explore" },
+  // History stays in footer + About; omitted from primary to keep the bar one line.
+  { href: "/history", label: "History", primary: false, footerGroup: "explore" },
   {
     href: "/saraswati-puja",
     label: "Saraswati Puja",
+    primaryLabel: "Puja",
     primary: true,
     footerGroup: "explore",
   },
@@ -42,10 +46,11 @@ export const publicNav: readonly NavItem[] = [
     primary: false,
     footerGroup: "participate",
   },
+  // Contact stays in footer / mobile menu paths; omitted from primary for width.
   {
     href: "/contact",
     label: "Contact",
-    primary: true,
+    primary: false,
     footerGroup: "participate",
   },
   { href: "/faq", label: "FAQ", primary: false, footerGroup: "participate" },

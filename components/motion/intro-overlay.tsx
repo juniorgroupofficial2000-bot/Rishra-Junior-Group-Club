@@ -1,5 +1,6 @@
 "use client";
 
+import { BrandMark } from "@/components/brand/brand-mark";
 import { siteConfig } from "@/content/site";
 import { useIsMobileViewport } from "@/lib/hooks/use-media-query";
 import { premiumEase } from "@/lib/motion";
@@ -90,17 +91,15 @@ export function IntroOverlay() {
             animate={{ opacity: 1, scale: 1, y: -20 }}
             transition={{ duration: 0.85, ease: premiumEase }}
           >
-            <p className="font-display text-3xl font-semibold tracking-[0.28em] text-marigold-400 sm:text-4xl">
-              RJGC
-            </p>
+            <BrandMark size={88} className="mx-auto" decorative={false} />
             <motion.div
-              className="mx-auto mt-4 h-px w-16 origin-center bg-gradient-to-r from-transparent via-marigold-400 to-transparent"
+              className="mx-auto mt-5 h-px w-16 origin-center bg-gradient-to-r from-transparent via-marigold-400 to-transparent"
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
               transition={{ duration: 0.6, delay: 0.25, ease: premiumEase }}
             />
             <p className="mt-4 font-display text-lg text-white/90 sm:text-xl">
-              {siteConfig.shortName}
+              {siteConfig.name}
             </p>
           </motion.div>
         </motion.div>

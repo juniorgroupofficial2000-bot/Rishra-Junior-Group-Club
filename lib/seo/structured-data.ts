@@ -12,6 +12,8 @@ export function organizationJsonLd() {
     name: seoDefaults.siteName,
     alternateName: seoDefaults.shortName,
     url,
+    logo: absoluteUrl("/brand/logo.png"),
+    image: absoluteUrl("/brand/logo.png"),
     foundingDate: "2000-02-01",
     address: {
       "@type": "PostalAddress",

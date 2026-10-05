@@ -75,6 +75,7 @@ const nextConfig: NextConfig = {
     deviceSizes: [320, 375, 390, 430, 640, 750, 768, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60 * 60 * 24 * 30,
+    // Must include every `quality` value passed to next/image (optimizer 400s otherwise).
     qualities: [75, 80],
     // Next.js 16 requires explicit localPatterns for src values with ?query.
     // Managed media uses `/api/media/:id?v=thumb|sm|md|lg`.

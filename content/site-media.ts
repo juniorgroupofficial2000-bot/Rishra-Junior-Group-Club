@@ -29,6 +29,19 @@ export type SiteMediaSlot = {
  * Prefer these over scattering paths through components.
  */
 export const siteMedia = {
+  /**
+   * Transparent brand mark for chrome (header/footer).
+   * Source upload: `/images/home/logo.png`. Cleaned asset: `/brand/logo.png`.
+   */
+  logo: {
+    id: "logo",
+    src: "/brand/logo.png",
+    alt: "Rishra Junior Group Club logo",
+    width: 441,
+    height: 467,
+    objectPosition: "center",
+    note: "Replace public/images/home/logo.png, then regenerate public/brand/logo.png and app favicons.",
+  },
   hero: {
     id: "hero",
     src: "/images/home/hero.svg",
