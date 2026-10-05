@@ -86,14 +86,14 @@ export const clubEvents: ClubEvent[] = [
     },
     coverImage: sampleImg(
       "evt-up-cover",
-      "/images/events/cover-upcoming.svg",
+      "/images/events/cover-upcoming.jpg",
       "SAMPLE cover for upcoming event",
     ),
     gallery: [
       {
         id: "evt-up-g1",
         kind: "image",
-        src: "/images/events/media-01.svg",
+        src: "/images/events/media-01.jpg",
         alt: "SAMPLE event gallery image",
         width: 1200,
         height: 900,
@@ -126,7 +126,7 @@ export const clubEvents: ClubEvent[] = [
     },
     coverImage: sampleImg(
       "evt-meet-cover",
-      "/images/events/cover-upcoming.svg",
+      "/images/events/cover-upcoming.jpg",
       "SAMPLE cover for members meeting",
     ),
     gallery: [],
@@ -159,14 +159,14 @@ export const clubEvents: ClubEvent[] = [
     },
     coverImage: sampleImg(
       "evt-past-cover",
-      "/images/events/cover-past.svg",
+      "/images/events/cover-past.jpg",
       "SAMPLE cover for past event",
     ),
     gallery: [
       {
         id: "evt-past-g1",
         kind: "image",
-        src: "/images/events/media-01.svg",
+        src: "/images/events/media-01.jpg",
         alt: "SAMPLE past event gallery image",
         width: 1200,
         height: 900,

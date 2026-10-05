@@ -1,13 +1,15 @@
 # Homepage image slots
 
-Replace these placeholder SVG files with real photographs (JPG/WebP recommended).
+These files power the public homepage media slots (see `content/site-media.ts`).
 
 | File | Used on homepage |
 |------|------------------|
-| `hero.svg` | Hero background |
-| `intro.svg` | Club introduction |
-| `puja.svg` | Saraswati Puja feature |
-| `gallery-01.svg` … `gallery-06.svg` | Gallery preview |
-| `location.svg` | Location / contact |
+| `hero.jpg` / `hero-mobile.jpg` | Hero still (LCP) |
+| `intro.jpg` | Club introduction / about / membership |
+| `puja.jpg` | Saraswati Puja feature |
+| `location.jpg` | Location / contact atmosphere |
+| `logo.png` | Source mark for brand favicon pipeline |
 
-After replacing files, update dimensions and `alt` text in [`content/home.ts`](../../../content/home.ts) if needed. Prefer keeping the same filenames so no code changes are required.
+Hero cinematic video: `/public/videos/hero-saraswati-puja.mp4` (built from club Saraswati Puja archive photos).
+
+Prefer JPG/WebP photographs from the club archive. Update `alt` text in `content/site-media.ts` when replacing files.

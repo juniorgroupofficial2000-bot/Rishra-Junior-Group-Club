@@ -3,6 +3,7 @@
 import { loginAction, type LoginActionState } from "@/app/(auth)/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { useActionState, useState } from "react";
 
 const initialState: LoginActionState = { status: "idle" };
@@ -51,10 +52,9 @@ export function LoginForm({
         error={state.fieldErrors?.email?.[0]}
         placeholder="you@example.com"
       />
-      <Input
+      <PasswordInput
         id="password"
         name="password"
-        type="password"
         autoComplete="current-password"
         label="Password"
         required

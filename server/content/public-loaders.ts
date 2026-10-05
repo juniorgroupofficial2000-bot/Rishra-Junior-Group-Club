@@ -76,13 +76,19 @@ function asProvenance(value: string): ContentProvenance {
   return "placeholder";
 }
 
+/** Prefer real JPG photography when CMS/seed rows still point at SVG placeholders. */
+function resolvePublicImageSrc(src: string): string {
+  if (!src.startsWith("/images/") || !src.endsWith(".svg")) return src;
+  return src.replace(/\.svg$/i, ".jpg");
+}
+
 function asMedia(value: unknown): HeritageMedia | undefined {
   if (!value || typeof value !== "object") return undefined;
   const m = value as Record<string, unknown>;
   if (typeof m.src !== "string" || typeof m.alt !== "string") return undefined;
   return {
     id: typeof m.id === "string" ? m.id : "media",
-    src: m.src,
+    src: resolvePublicImageSrc(m.src),
     alt: m.alt,
     width: typeof m.width === "number" ? m.width : 1600,
     height: typeof m.height === "number" ? m.height : 1000,
@@ -248,6 +254,31 @@ function mapPujaYearRow(
 }
 
 /**
+ * Prefer brand photography over CMS bodies that still reference SVG placeholders.
+ * Preserves brand fields such as hero `videoSrc` when the overlay is incomplete.
+ */
+function preferBrandMedia(
+  brandImage: Record<string, unknown> | undefined,
+  overlayImage: unknown,
+): Record<string, unknown> | undefined {
+  if (!brandImage && (overlayImage == null || typeof overlayImage !== "object")) {
+    return undefined;
+  }
+  const overlay =
+    overlayImage && typeof overlayImage === "object" && !Array.isArray(overlayImage)
+      ? (overlayImage as Record<string, unknown>)
+      : {};
+  const brand = brandImage ?? {};
+  const overlaySrc = typeof overlay.src === "string" ? overlay.src : "";
+  const overlayIsPlaceholder = !overlaySrc || overlaySrc.endsWith(".svg");
+
+  if (overlayIsPlaceholder) {
+    return { ...overlay, ...brand };
+  }
+  return { ...brand, ...overlay };
+}
+
+/**
  * Homepage section copy.
  * Brand shell (`content/home.ts`) holds verified club narrative only — not
  * people lists or calendar items. CMS `SiteContentBlock` rows overlay sections
@@ -278,10 +309,18 @@ export async function loadPublishedHomeContent() {
         typeof block.body === "object" &&
         !Array.isArray(block.body)
       ) {
-        overlay[sectionKey] = {
+        const body = block.body as Record<string, unknown>;
+        const merged: Record<string, unknown> = {
           ...existing,
-          ...(block.body as Record<string, unknown>),
+          ...body,
         };
+        // Keep brand photography when CMS still points at SVG placeholders,
+        // and preserve hero videoSrc from the brand shell.
+        merged.image = preferBrandMedia(
+          existing.image as Record<string, unknown> | undefined,
+          body.image,
+        );
+        overlay[sectionKey] = merged;
       }
     }
 
@@ -289,6 +328,7 @@ export async function loadPublishedHomeContent() {
     if (heroAsset) {
       const hero = (overlay.hero ?? base.hero ?? {}) as Record<string, unknown>;
       const image = (hero.image ?? {}) as Record<string, unknown>;
+      const brandHeroImage = (base.hero?.image ?? {}) as Record<string, unknown>;
       overlay.hero = {
         ...hero,
         image: {
@@ -299,6 +339,8 @@ export async function loadPublishedHomeContent() {
           alt: heroAsset.alt || String(image.alt ?? "Club hero photograph"),
           width: heroAsset.width,
           height: heroAsset.height,
+          // Keep cinematic brand video unless the managed asset replaces it.
+          videoSrc: brandHeroImage.videoSrc,
         },
       };
     }

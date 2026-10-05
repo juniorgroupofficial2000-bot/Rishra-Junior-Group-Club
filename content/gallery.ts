@@ -62,7 +62,7 @@ export const galleryAlbums: GalleryAlbum[] = [
     event: "Saraswati Puja",
     coverImage: sampleImage(
       "cov-puja-2026",
-      "/images/gallery/cover-puja-2026.svg",
+      "/images/gallery/cover-puja-2026.jpg",
       "SAMPLE cover for Saraswati Puja 2026",
       1600,
       1000,
@@ -70,7 +70,7 @@ export const galleryAlbums: GalleryAlbum[] = [
     media: [
       sampleImage(
         "m-puja26-1",
-        "/images/gallery/media-01.svg",
+        "/images/gallery/media-01.jpg",
         "SAMPLE media — Saraswati Puja 2026",
         1200,
         900,
@@ -78,7 +78,7 @@ export const galleryAlbums: GalleryAlbum[] = [
       ),
       sampleImage(
         "m-puja26-2",
-        "/images/gallery/media-02.svg",
+        "/images/gallery/media-02.jpg",
         "SAMPLE media — Saraswati Puja 2026",
         1200,
         1200,
@@ -87,17 +87,17 @@ export const galleryAlbums: GalleryAlbum[] = [
       {
         id: "m-puja26-video",
         kind: "video",
-        src: "https://example.com/sample-puja-2026.mp4",
-        alt: "SAMPLE video — Saraswati Puja 2026",
-        width: 1280,
-        height: 720,
-        caption: "[SAMPLE] Optional video item — replace with hosted club footage",
-        poster: "/images/gallery/video-poster.svg",
+        src: "/videos/hero-saraswati-puja.mp4",
+        alt: "Saraswati Puja celebration montage",
+        width: 1920,
+        height: 1080,
+        caption: "Moments from the club Saraswati Puja archive",
+        poster: "/images/gallery/video-poster.jpg",
         provenance: "sample",
       },
       sampleImage(
         "m-puja26-3",
-        "/images/gallery/media-03.svg",
+        "/images/gallery/media-03.jpg",
         "SAMPLE media — Saraswati Puja 2026",
         1200,
         800,
@@ -117,7 +117,7 @@ export const galleryAlbums: GalleryAlbum[] = [
     event: "Saraswati Puja",
     coverImage: sampleImage(
       "cov-puja-2025",
-      "/images/gallery/cover-puja-2025.svg",
+      "/images/gallery/cover-puja-2025.jpg",
       "SAMPLE cover for Saraswati Puja 2025",
       1600,
       1000,
@@ -125,14 +125,14 @@ export const galleryAlbums: GalleryAlbum[] = [
     media: [
       sampleImage(
         "m-puja25-1",
-        "/images/gallery/media-02.svg",
+        "/images/gallery/media-02.jpg",
         "SAMPLE media — Saraswati Puja 2025",
         1200,
         1200,
       ),
       sampleImage(
         "m-puja25-2",
-        "/images/gallery/media-04.svg",
+        "/images/gallery/media-04.jpg",
         "SAMPLE media — Saraswati Puja 2025",
         1200,
         1200,
@@ -152,7 +152,7 @@ export const galleryAlbums: GalleryAlbum[] = [
     event: "Sports Day",
     coverImage: sampleImage(
       "cov-sports",
-      "/images/gallery/cover-sports.svg",
+      "/images/gallery/cover-sports.jpg",
       "SAMPLE cover for Sports Day",
       1600,
       1000,
@@ -160,14 +160,14 @@ export const galleryAlbums: GalleryAlbum[] = [
     media: [
       sampleImage(
         "m-sports-1",
-        "/images/gallery/media-03.svg",
+        "/images/gallery/media-03.jpg",
         "SAMPLE media — Sports Day",
         1200,
         800,
       ),
       sampleImage(
         "m-sports-2",
-        "/images/gallery/media-01.svg",
+        "/images/gallery/media-01.jpg",
         "SAMPLE media — Sports Day",
         1200,
         900,
@@ -186,7 +186,7 @@ export const galleryAlbums: GalleryAlbum[] = [
     event: "Cultural Program",
     coverImage: sampleImage(
       "cov-cultural",
-      "/images/gallery/cover-cultural.svg",
+      "/images/gallery/cover-cultural.jpg",
       "SAMPLE cover for Cultural Program",
       1600,
       1000,
@@ -194,7 +194,7 @@ export const galleryAlbums: GalleryAlbum[] = [
     media: [
       sampleImage(
         "m-cult-1",
-        "/images/gallery/media-04.svg",
+        "/images/gallery/media-04.jpg",
         "SAMPLE media — Cultural Program",
         1200,
         1200,
@@ -212,7 +212,7 @@ export const galleryAlbums: GalleryAlbum[] = [
       "[SAMPLE] Cross-year memories album demonstrating uncategorised club photographs.",
     coverImage: sampleImage(
       "cov-memories",
-      "/images/gallery/cover-memories.svg",
+      "/images/gallery/cover-memories.jpg",
       "SAMPLE cover for Club Memories",
       1600,
       1000,
@@ -220,7 +220,7 @@ export const galleryAlbums: GalleryAlbum[] = [
     media: [
       sampleImage(
         "m-mem-1",
-        "/images/gallery/media-01.svg",
+        "/images/gallery/media-01.jpg",
         "SAMPLE media — Club Memories",
         1200,
         900,
@@ -228,14 +228,14 @@ export const galleryAlbums: GalleryAlbum[] = [
       ),
       sampleImage(
         "m-mem-2",
-        "/images/gallery/media-02.svg",
+        "/images/gallery/media-02.jpg",
         "SAMPLE media — Club Memories",
         1200,
         1200,
       ),
       sampleImage(
         "m-mem-3",
-        "/images/gallery/media-03.svg",
+        "/images/gallery/media-03.jpg",
         "SAMPLE media — Club Memories",
         1200,
         800,

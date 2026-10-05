@@ -32,7 +32,7 @@ export const saraswatiPujaContent = {
       "Celebrated by Rishra Junior Group Club since 1 February 2000 — a gathering of learning, devotion, and neighbourhood togetherness.",
     image: {
       id: "puja-hero",
-      src: "/images/heritage/puja-hero.svg",
+      src: "/images/heritage/puja-hero.jpg",
       alt: "Saraswati Puja at Rishra Junior Group Club",
       width: 2400,
       height: 1400,
@@ -52,7 +52,7 @@ export const saraswatiPujaContent = {
     ],
     image: {
       id: "puja-history",
-      src: "/images/heritage/puja-history.svg",
+      src: "/images/heritage/puja-history.jpg",
       alt: "Saraswati Puja history",
       width: 1600,
       height: 1100,
@@ -69,7 +69,7 @@ export const saraswatiPujaContent = {
     ],
     image: {
       id: "puja-prep",
-      src: "/images/heritage/puja-prep.svg",
+      src: "/images/heritage/puja-prep.jpg",
       alt: "Preparing for Saraswati Puja",
       width: 1400,
       height: 1000,
@@ -86,7 +86,7 @@ export const saraswatiPujaContent = {
     ],
     image: {
       id: "puja-ritual",
-      src: "/images/heritage/puja-ritual.svg",
+      src: "/images/heritage/puja-ritual.jpg",
       alt: "Saraswati Puja day",
       width: 1400,
       height: 1000,
@@ -103,7 +103,7 @@ export const saraswatiPujaContent = {
     ],
     image: {
       id: "puja-culture",
-      src: "/images/heritage/puja-culture.svg",
+      src: "/images/heritage/puja-culture.jpg",
       alt: "Cultural activities during Saraswati Puja",
       width: 1400,
       height: 1000,
@@ -120,7 +120,7 @@ export const saraswatiPujaContent = {
     ],
     image: {
       id: "puja-memories",
-      src: "/images/heritage/puja-memories.svg",
+      src: "/images/heritage/puja-memories.jpg",
       alt: "Community memories from Saraswati Puja",
       width: 1400,
       height: 1000,
@@ -135,32 +135,32 @@ export const saraswatiPujaContent = {
     images: [
       {
         id: "pg1",
-        src: "/images/heritage/gallery-h1.svg",
-        alt: "SAMPLE puja gallery image 1",
+        src: "/images/heritage/gallery-h1.jpg",
+        alt: "Saraswati Puja photograph 1",
         width: 1200,
         height: 1200,
         provenance: "sample" as const,
       },
       {
         id: "pg2",
-        src: "/images/heritage/gallery-h2.svg",
-        alt: "SAMPLE puja gallery image 2",
+        src: "/images/heritage/gallery-h2.jpg",
+        alt: "Saraswati Puja photograph 2",
         width: 1200,
         height: 900,
         provenance: "sample" as const,
       },
       {
         id: "pg3",
-        src: "/images/heritage/gallery-h3.svg",
-        alt: "SAMPLE puja gallery image 3",
+        src: "/images/heritage/gallery-h3.jpg",
+        alt: "Saraswati Puja photograph 3",
         width: 1200,
         height: 1400,
         provenance: "sample" as const,
       },
       {
         id: "pg4",
-        src: "/images/heritage/gallery-h4.svg",
-        alt: "SAMPLE puja gallery image 4",
+        src: "/images/heritage/gallery-h4.jpg",
+        alt: "Saraswati Puja photograph 4",
         width: 1200,
         height: 1200,
         provenance: "sample" as const,
@@ -180,7 +180,7 @@ export const saraswatiPujaContent = {
           "The club’s Saraswati Puja tradition begins on 1 February 2000. Further details for this year will be added from verified records.",
         coverImage: {
           id: "arch-2000",
-          src: "/images/heritage/timeline-2000.svg",
+          src: "/images/heritage/timeline-2000.jpg",
           alt: "Saraswati Puja 2000",
           width: 1600,
           height: 1000,
@@ -199,7 +199,7 @@ export const saraswatiPujaContent = {
           "[SAMPLE] Example archive card for a later year. Not a verified record — replace with real year data in the admin panel.",
         coverImage: sampleCover(
           "arch-sample-a",
-          "/images/heritage/archive-sample-a.svg",
+          "/images/heritage/archive-sample-a.jpg",
           "SAMPLE archive cover 2012",
         ),
         highlights: ["[SAMPLE] Highlight one", "[SAMPLE] Highlight two"],
@@ -214,7 +214,7 @@ export const saraswatiPujaContent = {
           "[SAMPLE] Example archive card showing summary, cover image, and highlights layout.",
         coverImage: sampleCover(
           "arch-sample-b",
-          "/images/heritage/archive-sample-b.svg",
+          "/images/heritage/archive-sample-b.jpg",
           "SAMPLE archive cover 2018",
         ),
         highlights: ["[SAMPLE] Community gathering"],
@@ -229,7 +229,7 @@ export const saraswatiPujaContent = {
           "[SAMPLE] Recent-year card pattern for the archive grid. Remove or replace when real data is available.",
         coverImage: sampleCover(
           "arch-sample-c",
-          "/images/heritage/archive-sample-c.svg",
+          "/images/heritage/archive-sample-c.jpg",
           "SAMPLE archive cover 2024",
         ),
         published: true,

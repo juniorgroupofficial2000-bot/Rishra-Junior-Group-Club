@@ -118,9 +118,7 @@ export function HomeHero({
             : undefined
         }
       >
-        <div className="absolute inset-0">
-          <HeroLcpImage media={media} />
-        </div>
+        <HeroLcpImage media={media} />
         <motion.div
           className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/72 to-ink-950/30"
           style={parallaxOn ? { opacity: overlayOpacity } : undefined}

@@ -4,15 +4,15 @@ import { isManagedMediaSrc, withMediaVariant } from "@/lib/media/variant";
 describe("media variant helpers", () => {
   it("detects managed media paths", () => {
     expect(isManagedMediaSrc("/api/media/abc123?v=md")).toBe(true);
-    expect(isManagedMediaSrc("/images/home/hero.svg")).toBe(false);
+    expect(isManagedMediaSrc("/images/home/hero.jpg")).toBe(false);
   });
 
   it("rewrites variant query for managed media", () => {
     expect(withMediaVariant("/api/media/abc123?v=lg", "thumb")).toBe(
       "/api/media/abc123?v=thumb",
     );
-    expect(withMediaVariant("/images/home/hero.svg", "thumb")).toBe(
-      "/images/home/hero.svg",
+    expect(withMediaVariant("/images/home/hero.jpg", "thumb")).toBe(
+      "/images/home/hero.jpg",
     );
   });
 });

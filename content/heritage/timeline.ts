@@ -23,7 +23,7 @@ export const timelineEntries: TimelineEntry[] = [
       "Rishra Junior Group Club has been organizing Saraswati Puja since 1 February 2000.",
     image: {
       id: "img-tl-2000",
-      src: "/images/heritage/timeline-2000.svg",
+      src: "/images/heritage/timeline-2000.jpg",
       alt: "Placeholder image for the first Saraswati Puja era",
       width: 1600,
       height: 1000,
@@ -33,7 +33,7 @@ export const timelineEntries: TimelineEntry[] = [
     gallery: [
       {
         id: "img-tl-2000-g1",
-        src: "/images/heritage/gallery-h1.svg",
+        src: "/images/heritage/gallery-h1.jpg",
         alt: "Placeholder gallery frame for early celebrations",
         width: 1200,
         height: 1200,
@@ -41,7 +41,7 @@ export const timelineEntries: TimelineEntry[] = [
       },
       {
         id: "img-tl-2000-g2",
-        src: "/images/heritage/gallery-h2.svg",
+        src: "/images/heritage/gallery-h2.jpg",
         alt: "Placeholder gallery frame for early celebrations",
         width: 1200,
         height: 900,
@@ -61,7 +61,7 @@ export const timelineEntries: TimelineEntry[] = [
       "[SAMPLE] Illustrative timeline entry showing how a mid-era milestone would appear. Not a verified historical event — replace or remove from the admin CMS.",
     image: {
       id: "img-tl-sample",
-      src: "/images/heritage/timeline-sample.svg",
+      src: "/images/heritage/timeline-sample.jpg",
       alt: "SAMPLE placeholder photograph for a mid-era milestone",
       width: 1600,
       height: 1000,
@@ -71,7 +71,7 @@ export const timelineEntries: TimelineEntry[] = [
     gallery: [
       {
         id: "img-tl-sample-g1",
-        src: "/images/heritage/gallery-h3.svg",
+        src: "/images/heritage/gallery-h3.jpg",
         alt: "SAMPLE gallery image",
         width: 1200,
         height: 1400,
@@ -91,7 +91,7 @@ export const timelineEntries: TimelineEntry[] = [
       "[PLACEHOLDER: Registration date, registering authority, and registration number — to be added when verified. The club has recently become formally registered.]",
     image: {
       id: "img-tl-reg",
-      src: "/images/heritage/timeline-reg.svg",
+      src: "/images/heritage/timeline-reg.jpg",
       alt: "Placeholder image for formal club registration",
       width: 1600,
       height: 1000,
