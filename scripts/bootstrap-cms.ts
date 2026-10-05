@@ -69,7 +69,7 @@ async function main() {
   loadEnvFile(resolve(process.cwd(), ".env.vercel"));
   loadEnvFile(resolve(process.cwd(), ".env"));
 
-  const databaseUrl = normalizeDatabaseUrl(process.env.DATABASE_URL);
+  const databaseUrl = normalizeDatabaseUrl("postgresql://neondb_owner:npg_FV3X0yshRzuQ@ep-snowy-dust-b81bd9cv-pooler.c-14.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require");
   process.env.DATABASE_URL = databaseUrl;
 
   const appEnv = resolveAppEnv(process.env);

@@ -59,7 +59,7 @@ async function main() {
   loadEnvFile(resolve(process.cwd(), ".env.vercel"));
   loadEnvFile(resolve(process.cwd(), ".env"));
 
-  process.env.DATABASE_URL = assertDatabaseUrl(process.env.DATABASE_URL);
+  process.env.DATABASE_URL = assertDatabaseUrl("postgresql://neondb_owner:npg_FV3X0yshRzuQ@ep-snowy-dust-b81bd9cv-pooler.c-14.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require");
   const appEnv = resolveAppEnv(process.env);
 
   if (
@@ -72,9 +72,9 @@ async function main() {
   }
 
   const email = (
-    process.env.BOOTSTRAP_ADMIN_EMAIL?.trim() || "admin@rjgc.local"
+    process.env.BOOTSTRAP_ADMIN_EMAIL?.trim() || "juniorgroupofficial2000@gmail.com"
   ).toLowerCase();
-  let password = process.env.BOOTSTRAP_ADMIN_PASSWORD?.trim() ?? "";
+  let password = process.env.BOOTSTRAP_ADMIN_PASSWORD?.trim() ?? "RjgcAdmin@#2000";
   let generated = false;
   if (!password) {
     if (appEnv === "production") {
