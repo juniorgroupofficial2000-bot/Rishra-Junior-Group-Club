@@ -1,4 +1,5 @@
 import { EnvSetupPanel } from "@/components/errors/env-setup-panel";
+import { RegisterServiceWorker } from "@/components/pwa/register-service-worker";
 import { getBootConfigError } from "@/config/boot-status";
 import { getDeploymentSetupError } from "@/config/deployment-setup";
 import { seoDefaults, getSiteUrl } from "@/lib/seo/config";
@@ -54,6 +55,18 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
+  appleWebApp: {
+    capable: true,
+    title: seoDefaults.shortName,
+    statusBarStyle: "default",
+  },
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+  },
   openGraph: {
     type: "website",
     locale: seoDefaults.locale,
@@ -96,6 +109,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     >
       <body className="flex min-h-dvh min-w-0 flex-col overflow-x-clip font-sans">
         {setupError ? <EnvSetupPanel message={setupError} /> : children}
+        <RegisterServiceWorker />
       </body>
     </html>
   );

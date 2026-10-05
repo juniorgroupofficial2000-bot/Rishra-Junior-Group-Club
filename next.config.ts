@@ -45,9 +45,11 @@ const securityHeaders = [
       // Next.js requires inline styles; tighten further when a nonce pipeline exists.
       "style-src 'self' 'unsafe-inline'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "worker-src 'self' blob:",
       "connect-src 'self'",
       // Home / contact location embeds.
       "frame-src 'self' https://www.google.com https://maps.google.com",
+      "manifest-src 'self'",
     ].join("; "),
   },
   ...(process.env.SITE_URL?.startsWith("https://")
@@ -84,6 +86,7 @@ const nextConfig: NextConfig = {
       { pathname: "/api/admin/media/**" },
       { pathname: "/images/**" },
       { pathname: "/brand/**" },
+      { pathname: "/icons/**" },
       { pathname: "/*.svg" },
       { pathname: "/*.png" },
       { pathname: "/*.jpg" },
@@ -105,6 +108,22 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         headers: securityHeaders,
+      },
+      {
+        source: "/sw.js",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
+          { key: "Service-Worker-Allowed", value: "/" },
+        ],
+      },
+      {
+        source: "/manifest.webmanifest",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=0, must-revalidate",
+          },
+        ],
       },
     ];
   },
