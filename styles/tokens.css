@@ -133,9 +133,9 @@
   --breakpoint-xl: 80rem;
   --breakpoint-2xl: 96rem;
 
-  /* ——— Typography (Playfair Display + Plus Jakarta Sans via next/font) ——— */
-  --font-display: var(--font-playfair), "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  --font-sans: var(--font-plus-jakarta), "Segoe UI", system-ui, sans-serif;
+  /* ——— Typography (Nunito via next/font) ——— */
+  --font-display: var(--font-nunito), "Segoe UI", system-ui, sans-serif;
+  --font-sans: var(--font-nunito), "Segoe UI", system-ui, sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
 
   /* Deliberate scale: display → heritage H1 → section H2 → UI H3/H4 → body */

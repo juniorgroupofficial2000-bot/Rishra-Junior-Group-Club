@@ -653,6 +653,58 @@ export const loadPublishedCommittees = cache(async (): Promise<
   }, []);
 });
 
+export const loadPublishedSubCommittees = cache(async (): Promise<
+  PublicCommitteeDetail[]
+> => {
+  return withDbFallback("loadPublishedSubCommittees", async () => {
+    const rows = await prisma.committee.findMany({
+      where: { deletedAt: null, status: "PUBLISHED", kind: "SUB" },
+      include: {
+        coverAsset: true,
+        imageAsset: true,
+        memberships: {
+          where: { deletedAt: null, status: "PUBLISHED" },
+          include: {
+            member: { include: { portraitAsset: true } },
+          },
+          orderBy: [{ displayOrder: "asc" }],
+        },
+      },
+      orderBy: [{ displayOrder: "asc" }, { name: "asc" }],
+    });
+
+    return rows.map((row) => {
+      const seats = row.memberships.map((membership) =>
+        mapSeat({ ...membership, committeeTermYear: row.termYear }),
+      );
+      const cover = readyMediaSrc(row.coverAsset, "lg");
+      const image = readyMediaSrc(row.imageAsset, "lg") ?? cover;
+      return {
+        id: row.id,
+        slug: row.slug,
+        name: row.name,
+        summary: row.summary ?? undefined,
+        description: row.description ?? undefined,
+        responsibilities: row.responsibilities ?? undefined,
+        iconKey: row.iconKey ?? undefined,
+        kind: row.kind,
+        termYear: row.termYear ?? undefined,
+        memberCount: seats.length,
+        displayOrder: row.displayOrder,
+        coverSrc: cover?.src,
+        coverAlt: cover?.alt,
+        imageSrc: image?.src,
+        imageAlt: image?.alt,
+        seats,
+        chairperson: seats.find((seat) => seat.designation === "chairperson"),
+        convenor: seats.find((seat) => seat.designation === "convenor"),
+        events: [],
+        announcements: [],
+      };
+    });
+  }, []);
+});
+
 export const loadPublishedCommitteeBySlug = cache(
   async (slug: string): Promise<PublicCommitteeDetail | null> => {
     return withDbFallback(

@@ -5,6 +5,7 @@ export type PublicPageKey =
   | "about"
   | "history"
   | "committee"
+  | "sub-committee"
   | "saraswati-puja"
   | "events"
   | "gallery"
@@ -62,6 +63,14 @@ export const publicPages: Record<PublicPageKey, PublicPageDefinition> = {
     description:
       "Rishra Junior Group Club is driven by members working together across leadership and standing committees. Public listings show names and roles only.",
     eyebrow: "Organization",
+  },
+  "sub-committee": {
+    key: "sub-committee",
+    path: "/sub-committee",
+    title: "Sub-Committee",
+    description:
+      "Standing sub-committees of Rishra Junior Group Club. Public listings show names and roles only.",
+    eyebrow: "About",
   },
   "saraswati-puja": {
     key: "saraswati-puja",

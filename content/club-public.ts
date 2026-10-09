@@ -11,7 +11,7 @@ export const founderMembers = [
   },
   {
     name: "Bishal Pandey",
-    role: "Chairman",
+    role: "Secretary",
     portrait: "/images/committee/Bishal.png",
   },
   {

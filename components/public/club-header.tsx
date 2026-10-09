@@ -11,7 +11,7 @@ import { useState } from "react";
 const aboutLinks = [
   { href: "/about", label: "About Club" },
   { href: "/committee", label: "Committee" },
-  { href: "/committee", label: "Sub-Committee" },
+  { href: "/sub-committee", label: "Sub-Committee" },
   { href: "/founders", label: "Founder Members" },
   { href: "/past-president", label: "Past President" },
 ] as const;
