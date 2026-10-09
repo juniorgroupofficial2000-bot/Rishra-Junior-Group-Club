@@ -64,7 +64,6 @@ export default function AboutPage() {
                 <p key={paragraph.slice(0, 24)}>{paragraph}</p>
               ))}
             </article>
-            </article>
           </Reveal>
 
           <Reveal delay={0.08}>
