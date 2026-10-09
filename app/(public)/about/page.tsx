@@ -1,8 +1,8 @@
 import { Reveal } from "@/components/motion";
 import { EditorialPageHero } from "@/components/public/editorial-page-hero";
 import { SiteContainer } from "@/components/public/site-container";
+import { aboutStory } from "@/content/about-story";
 import { publicPages } from "@/content/pages";
-import { siteConfig } from "@/content/site";
 import { siteMedia } from "@/content/site-media";
 import { JsonLd } from "@/lib/json-ld";
 import { metadataForPublicPage } from "@/lib/seo/metadata";
@@ -59,24 +59,11 @@ export default function AboutPage() {
         <div className="grid gap-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] lg:gap-20">
           <Reveal>
             <article className="space-y-6 text-base leading-relaxed text-ink-700 sm:text-lg">
-              <p>
-                {siteConfig.name} is a community organisation based in
-                Morepukur, Natun Gram, Rishra. Neighbours come together through
-                shared tradition, service, and celebration.
-              </p>
-              <p>
-                The club has organized Saraswati Puja since{" "}
-                <strong className="font-semibold text-ink-900">
-                  1 February 2000
-                </strong>{" "}
-                and has recently become formally registered as a club.{" "}
-                {siteConfig.registrationNote}
-              </p>
-              <p>
-                This website shares committee-approved public information —
-                events, gallery albums, announcements, and heritage notes — and
-                provides a signed-in portal for enrolled members.
-              </p>
+              <p>{aboutStory.lead}</p>
+              {aboutStory.paragraphs.map((paragraph) => (
+                <p key={paragraph.slice(0, 24)}>{paragraph}</p>
+              ))}
+            </article>
             </article>
           </Reveal>
 

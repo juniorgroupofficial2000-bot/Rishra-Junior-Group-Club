@@ -11,6 +11,9 @@ export type PublicPageKey =
   | "announcements"
   | "membership"
   | "contact"
+  | "facilities"
+  | "founders"
+  | "past-president"
   | "faq"
   | "search"
   | "privacy"
@@ -106,6 +109,29 @@ export const publicPages: Record<PublicPageKey, PublicPageDefinition> = {
     title: "Contact",
     description: "Reach Rishra Junior Group Club at the address below.",
     eyebrow: "Get in touch",
+  },
+  facilities: {
+    key: "facilities",
+    path: "/facilities",
+    title: "Facilities",
+    description:
+      "Sample facility listings for Rishra Junior Group Club. Official details will replace these placeholders.",
+    eyebrow: "Club",
+  },
+  founders: {
+    key: "founders",
+    path: "/founders",
+    title: "Founder Members",
+    description:
+      "Founder members of Rishra Junior Group Club and the roles provided by the club.",
+    eyebrow: "About",
+  },
+  "past-president": {
+    key: "past-president",
+    path: "/past-president",
+    title: "Past President",
+    description: "President named by Rishra Junior Group Club.",
+    eyebrow: "About",
   },
   faq: {
     key: "faq",

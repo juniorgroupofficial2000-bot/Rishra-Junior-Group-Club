@@ -1,8 +1,9 @@
 import { EnvironmentRibbon } from "@/components/env/environment-badge";
-import { SiteFooter, SkipLink } from "@/components/public";
+import { SkipLink } from "@/components/public";
+import { ClubFooter } from "@/components/public/club-footer";
+import { ClubHeader } from "@/components/public/club-header";
 import { PageTransition } from "@/components/public/page-transition";
 import { PublicMotionChrome } from "@/components/public/public-motion-chrome";
-import { SiteHeader } from "@/components/public/site-header";
 import { EventCountdown } from "@/components/public/event-countdown";
 import { SiteContainer } from "@/components/public/site-container";
 import { getPublicEnv } from "@/config/public";
@@ -22,7 +23,7 @@ export async function SiteChrome({ children }: { children: ReactNode }) {
         brandName={(appName || siteConfig.name).toUpperCase()}
       />
       <PublicMotionChrome>
-        <SiteHeader chrome={chrome} />
+        <ClubHeader />
         {chrome.nextEvent ? (
           <div className="border-b border-border-subtle bg-surface-raised/80">
             <SiteContainer className="py-2.5">
@@ -46,7 +47,7 @@ export async function SiteChrome({ children }: { children: ReactNode }) {
             {children}
           </main>
         </PageTransition>
-        <SiteFooter />
+        <ClubFooter />
       </PublicMotionChrome>
     </div>
   );

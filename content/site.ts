@@ -26,13 +26,14 @@ export const siteConfig = {
     line3: "West Bengal 712250, India",
   },
   contact: {
-    /** Empty until CONTACT_PUBLIC_EMAIL is set — never invent an address. */
     get email() {
-      return process.env.CONTACT_PUBLIC_EMAIL?.trim() || "";
+      return (
+        process.env.CONTACT_PUBLIC_EMAIL?.trim() ||
+        "juniorgroupofficial2000@gmail.com"
+      );
     },
-    /** Empty until CONTACT_PUBLIC_PHONE is set — never invent a number. */
     get phone() {
-      return process.env.CONTACT_PUBLIC_PHONE?.trim() || "";
+      return process.env.CONTACT_PUBLIC_PHONE?.trim() || "8820015024";
     },
     get hours() {
       return (
