@@ -62,7 +62,7 @@ export function PujaSpotlight({ year }: { year: PujaArchiveYear | null }) {
         className="pointer-events-none absolute inset-0 opacity-[0.07]"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 20% 20%, #C23A22 0.8px, transparent 1px), radial-gradient(circle at 80% 60%, #C49A1A 0.8px, transparent 1px)",
+            "radial-gradient(circle at 20% 20%, #F02000 0.8px, transparent 1px), radial-gradient(circle at 80% 60%, #F87018 0.8px, transparent 1px)",
           backgroundSize: "28px 28px",
         }}
         aria-hidden

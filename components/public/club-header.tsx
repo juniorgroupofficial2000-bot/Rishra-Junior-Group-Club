@@ -38,12 +38,10 @@ export function ClubHeader() {
   const email = siteConfig.contact.email;
 
   return (
-    <header className="sticky top-0 z-[var(--z-sticky)] bg-[#372F84] text-white">
+    <header className="sticky top-0 z-[var(--z-sticky)] bg-logo-black text-white">
       <div className="mx-auto flex max-w-[1200px] items-center gap-4 px-4 py-3 lg:px-6">
         <Link href="/" className="flex min-w-0 items-center gap-3">
-          <span className="rounded-full bg-white p-1">
-            <BrandMark size={52} priority />
-          </span>
+          <BrandMark size={52} priority />
           <span className="min-w-0">
             <span className="block truncate font-display text-lg font-semibold tracking-wide sm:text-xl">
               {siteConfig.name.toUpperCase()}
@@ -57,19 +55,19 @@ export function ClubHeader() {
         <div className="ml-auto hidden items-center gap-4 text-xs lg:flex">
           {phone ? (
             <a href={`tel:${phone.replace(/\s/g, "")}`} className="inline-flex items-center gap-2">
-              <Phone className="h-4 w-4 shrink-0 text-[#E6D3A3]" aria-hidden />
+              <Phone className="h-4 w-4 shrink-0 text-logo-orange" aria-hidden />
               {phone}
             </a>
           ) : null}
           {email ? (
             <a href={`mailto:${email}`} className="inline-flex max-w-[280px] items-center gap-2">
-              <Mail className="h-4 w-4 shrink-0 text-[#E6D3A3]" aria-hidden />
+              <Mail className="h-4 w-4 shrink-0 text-logo-green" aria-hidden />
               <span className="truncate">{email}</span>
             </a>
           ) : null}
           <Link
             href="/login"
-            className="inline-flex items-center gap-2 bg-[#E6D3A3] px-3 py-2 text-xs font-semibold tracking-wide text-[#372F84]"
+            className="inline-flex items-center gap-2 bg-logo-red px-3 py-2 text-xs font-semibold tracking-wide text-white"
           >
             <Lock className="h-3.5 w-3.5" aria-hidden />
             MEMBER LOGIN
@@ -92,7 +90,7 @@ export function ClubHeader() {
           <li>
             <Link
               href="/"
-              className={cn("inline-flex px-3 py-3", active(pathname, "/") && "text-[#E6D3A3]")}
+              className={cn("inline-flex px-3 py-3", active(pathname, "/") && "text-logo-green")}
             >
               HOME
             </Link>
@@ -110,10 +108,10 @@ export function ClubHeader() {
               ABOUT <ChevronDown className="h-3 w-3" aria-hidden />
             </button>
             {aboutOpen ? (
-              <ul className="absolute left-0 top-full z-20 min-w-52 bg-white py-2 text-[#372F84] shadow-lg">
+              <ul className="absolute left-0 top-full z-20 min-w-52 bg-white py-2 text-logo-blue shadow-lg">
                 {aboutLinks.map((item) => (
                   <li key={item.label}>
-                    <Link href={item.href} className="block px-4 py-2 text-sm tracking-normal hover:bg-[#F4F1EA]">
+                    <Link href={item.href} className="block px-4 py-2 text-sm tracking-normal hover:bg-logo-orange/10">
                       {item.label}
                     </Link>
                   </li>
@@ -127,7 +125,7 @@ export function ClubHeader() {
                 href={item.href}
                 className={cn(
                   "inline-flex px-3 py-3",
-                  active(pathname, item.href) && "text-[#E6D3A3]",
+                  active(pathname, item.href) && "text-logo-green",
                 )}
               >
                 {item.label.toUpperCase()}
@@ -139,7 +137,7 @@ export function ClubHeader() {
 
       {open ? (
         <div className="border-t border-white/10 px-4 py-3 lg:hidden">
-          <Link href="/login" className="mb-3 inline-flex bg-[#E6D3A3] px-3 py-2 text-xs font-semibold text-[#372F84]">
+          <Link href="/login" className="mb-3 inline-flex bg-logo-red px-3 py-2 text-xs font-semibold text-white">
             MEMBER LOGIN
           </Link>
           {phone ? (
@@ -167,6 +165,13 @@ export function ClubHeader() {
           </ul>
         </div>
       ) : null}
+      <div className="flex h-1" aria-hidden>
+        <span className="flex-1 bg-logo-red" />
+        <span className="flex-1 bg-logo-purple" />
+        <span className="flex-1 bg-logo-orange" />
+        <span className="flex-1 bg-logo-green" />
+        <span className="flex-1 bg-logo-blue" />
+      </div>
     </header>
   );
 }

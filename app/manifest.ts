@@ -13,7 +13,7 @@ export default function manifest(): MetadataRoute.Manifest {
     display_override: ["standalone", "browser"],
     orientation: "portrait-primary",
     background_color: "#F2F0EC",
-    theme_color: "#F2F0EC",
+    theme_color: "#000000",
     lang: seoDefaults.htmlLang,
     dir: "ltr",
     categories: ["community", "lifestyle", "social"],

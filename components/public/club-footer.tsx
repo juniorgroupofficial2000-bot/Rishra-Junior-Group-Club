@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export function ClubFooter() {
   return (
-    <footer className="mt-auto bg-[#241c63] text-white">
+    <footer className="mt-auto bg-logo-black text-white">
       <div className="mx-auto grid max-w-[1100px] gap-8 px-4 py-12 md:grid-cols-[auto_1fr_1fr_1fr]">
         <BrandMark size={56} />
         <div>

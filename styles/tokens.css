@@ -1,7 +1,7 @@
 /*
-  RJGC Design System — "Heritage Ember"
-  Ivory paper · deep charcoal · vermillion · soft gold.
-  English-only UI. Premium cultural institution, not SaaS chrome.
+  RJGC Design System — logo palette
+  Black field with red, purple, orange, green, and blue from the club mark.
+  English-only UI.
 */
 
 :root {
@@ -18,24 +18,31 @@
   --color-ink-100: #EAEDEF;
   --color-ink-50: #F4F6F7;
 
-  --color-alta-700: #8F2414;
-  --color-alta-600: #A82C18;
-  --color-alta-500: #C23A22;
-  --color-alta-400: #D9654C;
-  --color-alta-100: #F8E4DE;
-  --color-alta-50: #FDF3F0;
+  --color-logo-black: #000000;
+  --color-logo-red: #F02000;
+  --color-logo-purple: #9008A8;
+  --color-logo-orange: #F87018;
+  --color-logo-green: #30F810;
+  --color-logo-blue: #2030C8;
 
-  --color-marigold-700: #8A6810;
-  --color-marigold-600: #A67D12;
-  --color-marigold-500: #C49A1A;
-  --color-marigold-400: #D9B44A;
-  --color-marigold-100: #F5EBC8;
-  --color-marigold-50: #FAF6E8;
+  --color-alta-700: #9A1000;
+  --color-alta-600: #C41800;
+  --color-alta-500: #F02000;
+  --color-alta-400: #FF5A40;
+  --color-alta-100: #FFD9D2;
+  --color-alta-50: #FFF1EE;
 
-  --color-lotus-700: #3A544C;
-  --color-lotus-500: #5A7A6E;
-  --color-lotus-100: #E3EDE8;
-  --color-lotus-50: #F2F7F4;
+  --color-marigold-700: #9A3E08;
+  --color-marigold-600: #C8520C;
+  --color-marigold-500: #F87018;
+  --color-marigold-400: #FF9448;
+  --color-marigold-100: #FFE4CC;
+  --color-marigold-50: #FFF4EA;
+
+  --color-lotus-700: #0E7A08;
+  --color-lotus-500: #18B010;
+  --color-lotus-100: #D9FFD4;
+  --color-lotus-50: #F0FFEE;
 
   /* Cool stone paper — heritage institution, not warm cream SaaS */
   --color-ivory-50: #F2F0EC;
@@ -189,6 +196,13 @@
   --color-secondary: var(--color-secondary);
   --color-secondary-foreground: var(--color-secondary-foreground);
   --color-ring: var(--color-ring);
+
+  --color-logo-black: var(--color-logo-black);
+  --color-logo-red: var(--color-logo-red);
+  --color-logo-purple: var(--color-logo-purple);
+  --color-logo-orange: var(--color-logo-orange);
+  --color-logo-green: var(--color-logo-green);
+  --color-logo-blue: var(--color-logo-blue);
 
   --color-ink-950: var(--color-ink-950);
   --color-ink-900: var(--color-ink-900);

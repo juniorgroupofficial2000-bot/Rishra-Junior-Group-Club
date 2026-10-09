@@ -9,7 +9,7 @@ export default function PastPresidentPage() {
   return (
     <div className="bg-white text-[#2b2b2b]">
       <section className="mx-auto max-w-[720px] px-4 py-14 text-center">
-        <h1 className="font-display text-4xl text-[#372F84]">Past President</h1>
+        <h1 className="font-display text-4xl text-logo-blue">Past President</h1>
         {president ? (
           <article className="mt-10">
             <img
@@ -17,7 +17,7 @@ export default function PastPresidentPage() {
               alt={`${president.name}, ${president.role}`}
               className="mx-auto h-64 w-48 object-cover object-top"
             />
-            <h2 className="mt-4 font-display text-2xl text-[#372F84]">{president.name}</h2>
+            <h2 className="mt-4 font-display text-2xl text-logo-blue">{president.name}</h2>
             <p className="mt-1 text-sm tracking-wide text-[#666]">{president.role}</p>
           </article>
         ) : null}

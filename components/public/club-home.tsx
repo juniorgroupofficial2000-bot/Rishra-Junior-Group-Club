@@ -34,13 +34,13 @@ export function ClubHome() {
           className="mx-auto w-full max-w-md object-cover shadow-sm"
         />
         <div className="text-center md:text-left">
-          <h1 className="font-display text-3xl font-semibold tracking-[0.12em] text-[#cfc8dc] sm:text-4xl">
+          <h1 className="font-display text-3xl font-semibold tracking-[0.12em] text-logo-purple/35 sm:text-4xl">
             ABOUT {siteConfig.shortName}
           </h1>
           <p className="mt-6 text-sm leading-7 text-[#666]">{aboutStory.lead}</p>
           <Link
             href="/about"
-            className="mt-6 inline-block text-xs font-semibold tracking-[0.2em] text-[#372F84]"
+            className="mt-6 inline-block text-xs font-semibold tracking-[0.2em] text-logo-blue"
           >
             READ MORE
           </Link>
@@ -49,12 +49,12 @@ export function ClubHome() {
 
       <section className="bg-[#f7f5f2] py-14">
         <div className="mx-auto max-w-[900px] px-4 text-center">
-          <h2 className="font-display text-3xl text-[#372F84]">Club History</h2>
+          <h2 className="font-display text-3xl text-logo-blue">Club History</h2>
           <p className="mt-4 text-sm leading-7 text-[#555]">{aboutStory.paragraphs[1]}</p>
         </div>
       </section>
 
-      <section className="bg-[#372F84] px-4 py-12 text-center text-white">
+      <section className="bg-logo-black px-4 py-12 text-center text-white">
         <p className="mx-auto max-w-3xl font-display text-2xl leading-snug sm:text-3xl">
           The warmth of neighbourhood. The joy of Saraswati Puja. The feel of Junior Group.
         </p>
@@ -77,9 +77,9 @@ export function ClubHome() {
         ].map((card) => (
           <article key={card.title}>
             <img src={card.image} alt="" className="aspect-[16/9] w-full object-cover" />
-            <h3 className="mt-4 font-display text-xl text-[#372F84]">{card.title}</h3>
+            <h3 className="mt-4 font-display text-xl text-logo-blue">{card.title}</h3>
             <p className="mt-2 text-sm leading-6 text-[#666]">{card.body}</p>
-            <Link href={card.href} className="mt-3 inline-block text-xs font-semibold tracking-[0.16em] text-[#372F84]">
+            <Link href={card.href} className="mt-3 inline-block text-xs font-semibold tracking-[0.16em] text-logo-blue">
               READ MORE
             </Link>
           </article>
@@ -87,13 +87,13 @@ export function ClubHome() {
       </section>
 
       <section className="bg-[#f7f5f2] py-14">
-        <h2 className="text-center font-display text-3xl tracking-wide text-[#372F84]">FACILITIES</h2>
+        <h2 className="text-center font-display text-3xl tracking-wide text-logo-blue">FACILITIES</h2>
         <ul className="mx-auto mt-8 flex max-w-[1100px] gap-4 overflow-x-auto px-4 pb-2">
           {placeholderFacilities.map((item) => (
             <li key={item.title} className="w-64 shrink-0">
               <Link href="/facilities" className="block bg-white shadow-sm">
                 <img src={item.image} alt="" className="h-40 w-full object-cover" />
-                <span className="block px-3 py-3 text-center text-sm font-semibold text-[#372F84]">
+                <span className="block px-3 py-3 text-center text-sm font-semibold text-logo-blue">
                   {item.title}
                 </span>
               </Link>
@@ -104,15 +104,15 @@ export function ClubHome() {
 
       <section className="mx-auto max-w-[1100px] px-4 py-14">
         <div className="flex items-end justify-between gap-4">
-          <h2 className="font-display text-3xl text-[#372F84]">NEWS & EVENTS</h2>
-          <Link href="/announcements" className="text-xs font-semibold tracking-[0.16em] text-[#372F84]">
+          <h2 className="font-display text-3xl text-logo-blue">NEWS & EVENTS</h2>
+          <Link href="/announcements" className="text-xs font-semibold tracking-[0.16em] text-logo-blue">
             VIEW ALL
           </Link>
         </div>
         <ul className="mt-8 grid gap-6 md:grid-cols-3">
           {placeholderNews.map((item) => (
             <li key={item.title} className="border border-[#eee] p-4">
-              <Link href={item.href} className="font-display text-lg text-[#372F84]">
+              <Link href={item.href} className="font-display text-lg text-logo-blue">
                 {item.title}
               </Link>
               <p className="mt-2 text-xs text-[#888]">{item.date}</p>
