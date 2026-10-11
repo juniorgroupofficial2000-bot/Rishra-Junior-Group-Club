@@ -15,7 +15,7 @@ export default async function SubCommitteePage() {
   const committees = await loadPublishedSubCommittees();
 
   return (
-    <div className="bg-white text-[#2b2b2b]">
+    <div className="bg-white text-[#333333]">
       <JsonLd
         data={webPageJsonLd({
           path: "/sub-committee",

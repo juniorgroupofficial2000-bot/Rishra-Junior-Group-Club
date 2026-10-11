@@ -1,53 +1,52 @@
 /*
-  RJGC Design System — logo palette
-  Black field with red, purple, orange, green, and blue from the club mark.
+  RJGC public theme — 60 / 30 / 10
+  White canvas, royal blue brand, orange actions.
   English-only UI.
 */
 
 :root {
   /* ——— Brand palette ——— */
-  --color-ink-950: #0E1318;
-  --color-ink-900: #141A22;
-  --color-ink-800: #1E2733;
-  --color-ink-700: #2A3544;
-  --color-ink-600: #3D4B5C;
-  --color-ink-500: #5A6B7D;
-  --color-ink-400: #8493A3;
-  --color-ink-300: #B0B9C4;
-  --color-ink-200: #D4D9E0;
-  --color-ink-100: #EAEDEF;
-  --color-ink-50: #F4F6F7;
+  --color-ink-950: #1A1A1A;
+  --color-ink-900: #333333;
+  --color-ink-800: #333333;
+  --color-ink-700: #333333;
+  --color-ink-600: #4A4A4A;
+  --color-ink-500: #5C5C5C;
+  --color-ink-400: #757575;
+  --color-ink-300: #B0B0B0;
+  --color-ink-200: #E0E0E0;
+  --color-ink-100: #F8F9FA;
+  --color-ink-50: #FFFFFF;
 
-  --color-logo-black: #000000;
-  --color-logo-red: #F02000;
-  --color-logo-purple: #9008A8;
-  --color-logo-orange: #F87018;
-  --color-logo-green: #30F810;
-  --color-logo-blue: #2030C8;
+  --color-logo-black: #1A237E;
+  --color-logo-red: #FF6D00;
+  --color-logo-purple: #1A237E;
+  --color-logo-orange: #FF6D00;
+  --color-logo-green: #1A237E;
+  --color-logo-blue: #1A237E;
 
-  --color-alta-700: #9A1000;
-  --color-alta-600: #C41800;
-  --color-alta-500: #F02000;
-  --color-alta-400: #FF5A40;
-  --color-alta-100: #FFD9D2;
-  --color-alta-50: #FFF1EE;
+  --color-alta-700: #C43E00;
+  --color-alta-600: #E65100;
+  --color-alta-500: #FF6D00;
+  --color-alta-400: #FF8A3D;
+  --color-alta-100: #FFE0CC;
+  --color-alta-50: #FFF4EC;
 
-  --color-marigold-700: #9A3E08;
-  --color-marigold-600: #C8520C;
-  --color-marigold-500: #F87018;
-  --color-marigold-400: #FF9448;
-  --color-marigold-100: #FFE4CC;
-  --color-marigold-50: #FFF4EA;
+  --color-marigold-700: #C43E00;
+  --color-marigold-600: #E65100;
+  --color-marigold-500: #FF6D00;
+  --color-marigold-400: #FF8A3D;
+  --color-marigold-100: #FFE0CC;
+  --color-marigold-50: #FFF4EC;
 
-  --color-lotus-700: #0E7A08;
-  --color-lotus-500: #18B010;
-  --color-lotus-100: #D9FFD4;
-  --color-lotus-50: #F0FFEE;
+  --color-lotus-700: #1A237E;
+  --color-lotus-500: #3949AB;
+  --color-lotus-100: #E8EAF6;
+  --color-lotus-50: #F8F9FA;
 
-  /* Cool stone paper — heritage institution, not warm cream SaaS */
-  --color-ivory-50: #F2F0EC;
-  --color-ivory-100: #E8E4DC;
-  --color-ivory-200: #D4CFC4;
+  --color-ivory-50: #FFFFFF;
+  --color-ivory-100: #F8F9FA;
+  --color-ivory-200: #E6E8EB;
 
   --color-success-600: #2F6F4E;
   --color-success-100: #E4F2EA;
@@ -59,8 +58,8 @@
   --color-info-100: #EAEDEF;
 
   /* ——— Semantic tokens ——— */
-  --color-background: var(--color-ivory-50);
-  --color-foreground: var(--color-ink-900);
+  --color-background: #FFFFFF;
+  --color-foreground: #333333;
   --color-foreground-muted: var(--color-ink-500);
   --color-muted: var(--color-ink-500);
   --color-muted-foreground: var(--color-ink-500);
@@ -77,11 +76,11 @@
   --color-warning: var(--color-warning-600);
   --color-error: var(--color-danger-600);
 
-  --surface-canvas: var(--color-ivory-50);
-  --surface-raised: #FAF9F7;
-  --surface-sunken: var(--color-ivory-100);
-  --surface-muted: var(--color-ivory-100);
-  --surface-inverse: var(--color-ink-900);
+  --surface-canvas: #FFFFFF;
+  --surface-raised: #FFFFFF;
+  --surface-sunken: #F8F9FA;
+  --surface-muted: #F8F9FA;
+  --surface-inverse: #1A237E;
   --surface-accent-soft: var(--color-alta-50);
   --surface-heritage-soft: var(--color-marigold-50);
   --surface-overlay: rgb(14 19 24 / 0.55);
@@ -96,7 +95,7 @@
   --shadow-sm: 0 2px 8px rgb(14 19 24 / 0.06);
   --shadow-md: 0 8px 24px rgb(14 19 24 / 0.08);
   --shadow-lg: 0 18px 40px rgb(14 19 24 / 0.12);
-  --shadow-focus: 0 0 0 3px rgb(196 154 26 / 0.4);
+  --shadow-focus: 0 0 0 3px rgb(255 109 0 / 0.35);
 
   --radius-none: 0;
   --radius-sm: 0.25rem;
@@ -133,9 +132,9 @@
   --breakpoint-xl: 80rem;
   --breakpoint-2xl: 96rem;
 
-  /* ——— Typography (Nunito via next/font) ——— */
-  --font-display: var(--font-nunito), "Segoe UI", system-ui, sans-serif;
-  --font-sans: var(--font-nunito), "Segoe UI", system-ui, sans-serif;
+  /* ——— Typography (Inter via next/font) ——— */
+  --font-display: var(--font-inter), "Segoe UI", system-ui, sans-serif;
+  --font-sans: var(--font-inter), "Segoe UI", system-ui, sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
 
   /* Deliberate scale: display → heritage H1 → section H2 → UI H3/H4 → body */

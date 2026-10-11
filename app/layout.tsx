@@ -4,20 +4,20 @@ import { getBootConfigError } from "@/config/boot-status";
 import { getDeploymentSetupError } from "@/config/deployment-setup";
 import { seoDefaults, getSiteUrl } from "@/lib/seo/config";
 import type { Metadata, Viewport } from "next";
-import { Nunito } from "next/font/google";
+import { Inter } from "next/font/google";
 import type { ReactNode } from "react";
 import "./globals.css";
 
 /**
  * Typography (English-only product):
- * Nunito for headings and body. Rounded forms match the club mark.
+ * Inter for headings and body.
  * Scale utilities: `.type-display` … `.type-caption` in globals.css
  */
-const nunito = Nunito({
-  variable: "--font-nunito",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
-  weight: ["400", "600", "700", "800"],
+  weight: ["400", "500", "600", "700"],
   adjustFontFallback: true,
   preload: true,
 });
@@ -84,8 +84,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F2F0EC" },
-    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+    { media: "(prefers-color-scheme: light)", color: "#1A237E" },
+    { media: "(prefers-color-scheme: dark)", color: "#1A237E" },
   ],
 };
 
@@ -95,7 +95,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang={seoDefaults.htmlLang}
-      className={`${nunito.variable} min-h-dvh antialiased`}
+      className={`${inter.variable} min-h-dvh antialiased`}
     >
       <body className="flex min-h-dvh min-w-0 flex-col overflow-x-clip font-sans">
         {setupError ? <EnvSetupPanel message={setupError} /> : children}

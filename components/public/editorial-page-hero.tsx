@@ -87,13 +87,10 @@ export function EditorialPageHero({
 
   if (layout === "band") {
     return (
-      <header ref={ref} className={cn("bg-ink-900 text-white", className)}>
+      <header ref={ref} className={cn("bg-white text-[#333333]", className)}>
         <SiteContainer className="pb-14 pt-10 sm:pb-20 sm:pt-14">
           <Reveal>
-            <Breadcrumbs
-              items={crumbs}
-              className="mb-8 text-white/60 [&_a]:text-white/75"
-            />
+            <Breadcrumbs items={crumbs} className="mb-8" />
           </Reveal>
           <motion.div
             initial={reduce ? false : "hidden"}
@@ -109,7 +106,7 @@ export function EditorialPageHero({
               <motion.p
                 variants={reduce ? undefined : lineRevealVariants}
                 transition={transitionSlow}
-                className="type-caption text-marigold-400"
+                className="type-caption text-logo-blue"
               >
                 {eyebrow}
               </motion.p>
@@ -117,7 +114,7 @@ export function EditorialPageHero({
             <motion.h1
               variants={reduce ? undefined : lineRevealVariants}
               transition={transitionSlow}
-              className="mt-3 max-w-4xl font-display text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl"
+              className="mt-3 max-w-4xl font-display text-4xl font-semibold tracking-tight text-logo-blue sm:text-5xl lg:text-6xl"
             >
               {title}
             </motion.h1>
@@ -125,7 +122,7 @@ export function EditorialPageHero({
               <motion.p
                 variants={reduce ? undefined : lineRevealVariants}
                 transition={transitionSlow}
-                className="mt-5 max-w-2xl text-base leading-relaxed text-white/75 sm:text-lg"
+                className="mt-5 max-w-2xl text-base leading-relaxed text-[#333333] sm:text-lg"
               >
                 {description}
               </motion.p>
@@ -155,14 +152,14 @@ export function EditorialPageHero({
               <Breadcrumbs items={crumbs} className="mb-6" />
             </Reveal>
             {eyebrow ? (
-              <p className="type-caption text-alta-600">{eyebrow}</p>
+              <p className="type-caption text-logo-blue">{eyebrow}</p>
             ) : null}
-            <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight text-ink-900 sm:text-5xl">
+            <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight text-logo-blue sm:text-5xl">
               {title}
             </h1>
             <OrnamentLine className="mt-5 w-16" />
             {description ? (
-              <p className="mt-5 max-w-xl type-body-large text-ink-500">
+          <p className="mt-5 max-w-xl type-body-large text-[#333333]">
                 {description}
               </p>
             ) : null}
@@ -192,14 +189,14 @@ export function EditorialPageHero({
           <Breadcrumbs items={crumbs} className="mb-6" />
         </Reveal>
         {eyebrow ? (
-          <p className="type-caption text-alta-600">{eyebrow}</p>
+          <p className="type-caption text-logo-blue">{eyebrow}</p>
         ) : null}
-        <h1 className="mt-3 max-w-3xl font-display text-4xl font-semibold tracking-tight text-ink-900 sm:text-5xl">
+        <h1 className="mt-3 max-w-3xl font-display text-4xl font-semibold tracking-tight text-logo-blue sm:text-5xl">
           {title}
         </h1>
         <div className="editorial-rule mt-5" aria-hidden />
         {description ? (
-          <p className="mt-5 max-w-2xl type-body-large text-ink-500">
+          <p className="mt-5 max-w-2xl type-body-large text-[#333333]">
             {description}
           </p>
         ) : null}

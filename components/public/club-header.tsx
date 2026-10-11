@@ -38,10 +38,12 @@ export function ClubHeader() {
   const email = siteConfig.contact.email;
 
   return (
-    <header className="sticky top-0 z-[var(--z-sticky)] bg-logo-black text-white">
+    <header className="sticky top-0 z-[var(--z-sticky)] bg-logo-blue text-white">
       <div className="mx-auto flex max-w-[1200px] items-center gap-4 px-4 py-3 lg:px-6">
         <Link href="/" className="flex min-w-0 items-center gap-3">
-          <BrandMark size={52} priority />
+          <span className="rounded-full bg-white p-1">
+            <BrandMark size={52} priority />
+          </span>
           <span className="min-w-0">
             <span className="block truncate font-display text-lg font-semibold tracking-wide sm:text-xl">
               {siteConfig.name.toUpperCase()}
@@ -55,19 +57,25 @@ export function ClubHeader() {
         <div className="ml-auto hidden items-center gap-4 text-xs lg:flex">
           {phone ? (
             <a href={`tel:${phone.replace(/\s/g, "")}`} className="inline-flex items-center gap-2">
-              <Phone className="h-4 w-4 shrink-0 text-logo-orange" aria-hidden />
+              <Phone className="h-4 w-4 shrink-0 text-white" aria-hidden />
               {phone}
             </a>
           ) : null}
           {email ? (
             <a href={`mailto:${email}`} className="inline-flex max-w-[280px] items-center gap-2">
-              <Mail className="h-4 w-4 shrink-0 text-logo-green" aria-hidden />
+              <Mail className="h-4 w-4 shrink-0 text-white" aria-hidden />
               <span className="truncate">{email}</span>
             </a>
           ) : null}
           <Link
+            href="/membership"
+            className="inline-flex items-center bg-logo-orange px-3 py-2 text-xs font-semibold tracking-wide text-white"
+          >
+            JOIN US
+          </Link>
+          <Link
             href="/login"
-            className="inline-flex items-center gap-2 bg-logo-red px-3 py-2 text-xs font-semibold tracking-wide text-white"
+            className="inline-flex items-center gap-2 bg-logo-orange px-3 py-2 text-xs font-semibold tracking-wide text-white"
           >
             <Lock className="h-3.5 w-3.5" aria-hidden />
             MEMBER LOGIN
@@ -90,7 +98,7 @@ export function ClubHeader() {
           <li>
             <Link
               href="/"
-              className={cn("inline-flex px-3 py-3", active(pathname, "/") && "text-logo-green")}
+              className={cn("inline-flex px-3 py-3", active(pathname, "/") && "text-logo-orange")}
             >
               HOME
             </Link>
@@ -125,7 +133,7 @@ export function ClubHeader() {
                 href={item.href}
                 className={cn(
                   "inline-flex px-3 py-3",
-                  active(pathname, item.href) && "text-logo-green",
+                  active(pathname, item.href) && "text-logo-orange",
                 )}
               >
                 {item.label.toUpperCase()}
@@ -137,9 +145,14 @@ export function ClubHeader() {
 
       {open ? (
         <div className="border-t border-white/10 px-4 py-3 lg:hidden">
-          <Link href="/login" className="mb-3 inline-flex bg-logo-red px-3 py-2 text-xs font-semibold text-white">
-            MEMBER LOGIN
-          </Link>
+          <div className="mb-3 flex gap-2">
+            <Link href="/membership" className="inline-flex bg-logo-orange px-3 py-2 text-xs font-semibold text-white">
+              JOIN US
+            </Link>
+            <Link href="/login" className="inline-flex bg-logo-orange px-3 py-2 text-xs font-semibold text-white">
+              MEMBER LOGIN
+            </Link>
+          </div>
           {phone ? (
             <a href={`tel:${phone.replace(/\s/g, "")}`} className="block py-1 text-sm">{phone}</a>
           ) : null}
@@ -165,13 +178,6 @@ export function ClubHeader() {
           </ul>
         </div>
       ) : null}
-      <div className="flex h-1" aria-hidden>
-        <span className="flex-1 bg-logo-red" />
-        <span className="flex-1 bg-logo-purple" />
-        <span className="flex-1 bg-logo-orange" />
-        <span className="flex-1 bg-logo-green" />
-        <span className="flex-1 bg-logo-blue" />
-      </div>
     </header>
   );
 }

@@ -11,7 +11,7 @@ export function ClubHome() {
   ];
 
   return (
-    <div className="bg-white text-[#2b2b2b]">
+    <div className="bg-white text-[#333333]">
       <section className="grid min-h-[280px] md:grid-cols-2 md:min-h-[420px]">
         <div
           className="min-h-[220px] bg-cover bg-center"
@@ -34,10 +34,10 @@ export function ClubHome() {
           className="mx-auto w-full max-w-md object-cover shadow-sm"
         />
         <div className="text-center md:text-left">
-          <h1 className="font-display text-3xl font-semibold tracking-[0.12em] text-logo-purple/35 sm:text-4xl">
+          <h1 className="font-display text-3xl font-semibold tracking-[0.08em] text-logo-blue sm:text-4xl">
             ABOUT {siteConfig.shortName}
           </h1>
-          <p className="mt-6 text-sm leading-7 text-[#666]">{aboutStory.lead}</p>
+          <p className="mt-6 text-sm leading-7 text-[#333333]">{aboutStory.lead}</p>
           <Link
             href="/about"
             className="mt-6 inline-block text-xs font-semibold tracking-[0.2em] text-logo-blue"
@@ -47,14 +47,14 @@ export function ClubHome() {
         </div>
       </section>
 
-      <section className="bg-[#f7f5f2] py-14">
+      <section className="bg-[#F8F9FA] py-14">
         <div className="mx-auto max-w-[900px] px-4 text-center">
           <h2 className="font-display text-3xl text-logo-blue">Club History</h2>
-          <p className="mt-4 text-sm leading-7 text-[#555]">{aboutStory.paragraphs[1]}</p>
+          <p className="mt-4 text-sm leading-7 text-[#333333]">{aboutStory.paragraphs[1]}</p>
         </div>
       </section>
 
-      <section className="bg-logo-black px-4 py-12 text-center text-white">
+      <section className="bg-[#F8F9FA] px-4 py-12 text-center text-[#333333]">
         <p className="mx-auto max-w-3xl font-display text-2xl leading-snug sm:text-3xl">
           The warmth of neighbourhood. The joy of Saraswati Puja. The feel of Junior Group.
         </p>
@@ -78,7 +78,7 @@ export function ClubHome() {
           <article key={card.title}>
             <img src={card.image} alt="" className="aspect-[16/9] w-full object-cover" />
             <h3 className="mt-4 font-display text-xl text-logo-blue">{card.title}</h3>
-            <p className="mt-2 text-sm leading-6 text-[#666]">{card.body}</p>
+            <p className="mt-2 text-sm leading-6 text-[#333333]">{card.body}</p>
             <Link href={card.href} className="mt-3 inline-block text-xs font-semibold tracking-[0.16em] text-logo-blue">
               READ MORE
             </Link>
@@ -86,7 +86,7 @@ export function ClubHome() {
         ))}
       </section>
 
-      <section className="bg-[#f7f5f2] py-14">
+      <section className="bg-[#F8F9FA] py-14">
         <h2 className="text-center font-display text-3xl tracking-wide text-logo-blue">FACILITIES</h2>
         <ul className="mx-auto mt-8 flex max-w-[1100px] gap-4 overflow-x-auto px-4 pb-2">
           {placeholderFacilities.map((item) => (
@@ -116,7 +116,7 @@ export function ClubHome() {
                 {item.title}
               </Link>
               <p className="mt-2 text-xs text-[#888]">{item.date}</p>
-              <p className="mt-3 text-sm leading-6 text-[#666]">{item.summary}</p>
+              <p className="mt-3 text-sm leading-6 text-[#333333]">{item.summary}</p>
             </li>
           ))}
         </ul>
