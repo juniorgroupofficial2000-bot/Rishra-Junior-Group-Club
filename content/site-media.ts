@@ -178,12 +178,12 @@ export const committeePortraits: Record<
   },
   "cm-exec-1": {
     src: "/images/committee/sashikant.png",
-    alt: "Portrait of Sashikant Tiwari, Executive Member",
+    alt: "Portrait of Sashikant Tiwari, Committee Member",
     objectPosition: "center 18%",
   },
   "cm-exec-2": {
     src: "/images/committee/chandan.png",
-    alt: "Portrait of Chandan Sharma, Executive Member",
+    alt: "Portrait of Chandan Sharma, Committee Member",
     objectPosition: "center 18%",
   },
   "cm-exec-3": {
@@ -234,12 +234,12 @@ export const committeePortraitsByName: Record<
   },
   "sashikant tiwari": {
     src: "/images/committee/sashikant.png",
-    alt: "Portrait of Sashikant Tiwari, Executive Member",
+    alt: "Portrait of Sashikant Tiwari, Committee Member",
     objectPosition: "center 18%",
   },
   "chandan sharma": {
     src: "/images/committee/chandan.png",
-    alt: "Portrait of Chandan Sharma, Executive Member",
+    alt: "Portrait of Chandan Sharma, Committee Member",
     objectPosition: "center 18%",
   },
   "gopal burman": {

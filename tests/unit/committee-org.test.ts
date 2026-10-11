@@ -22,9 +22,15 @@ describe("committee organization helpers", () => {
 
   it("ranks executive hierarchy", () => {
     expect(executiveHierarchyRank("president")).toBeLessThan(
+      executiveHierarchyRank("vice_president"),
+    );
+    expect(executiveHierarchyRank("vice_president")).toBeLessThan(
       executiveHierarchyRank("secretary"),
     );
     expect(executiveHierarchyRank("secretary")).toBeLessThan(
+      executiveHierarchyRank("treasurer"),
+    );
+    expect(executiveHierarchyRank("treasurer")).toBeLessThan(
       executiveHierarchyRank("executive_member"),
     );
   });

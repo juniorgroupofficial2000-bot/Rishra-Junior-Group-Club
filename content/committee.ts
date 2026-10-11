@@ -68,7 +68,7 @@ export const committeeMembers: CommitteeMember[] = [
     role: "Secretary",
     name: "Bishal Pandey",
     displayName: "Bishal Pandey",
-    sortOrder: 40,
+    sortOrder: 30,
     published: true,
   },
   {
@@ -77,13 +77,13 @@ export const committeeMembers: CommitteeMember[] = [
     role: "Treasurer",
     name: "Aalok Barma",
     displayName: "Aalok Barma",
-    sortOrder: 50,
+    sortOrder: 40,
     published: true,
   },
   {
     id: "cm-exec-1",
     roleKey: "executive_member",
-    role: "Executive Member",
+    role: "Committee Member",
     name: "Sashikant Tiwari",
     displayName: "Sashikant Tiwari",
     sortOrder: 60,
@@ -92,7 +92,7 @@ export const committeeMembers: CommitteeMember[] = [
   {
     id: "cm-exec-2",
     roleKey: "executive_member",
-    role: "Executive Member",
+    role: "Committee Member",
     name: "Chandan Sharma",
     displayName: "Chandan Sharma",
     sortOrder: 70,
@@ -104,7 +104,7 @@ export const committeeMembers: CommitteeMember[] = [
     role: "Committee Member",
     name: "Gopal Burman",
     displayName: "Gopal Burman",
-    sortOrder: 80,
+    sortOrder: 50,
     published: true,
   },
 ];

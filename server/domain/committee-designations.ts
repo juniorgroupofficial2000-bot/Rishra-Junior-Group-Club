@@ -52,11 +52,11 @@ export function executiveHierarchyRank(designation: string): number {
   switch (designation) {
     case "president":
       return 0;
-    case "secretary":
-      return 1;
-    case "treasurer":
-      return 2;
     case "vice_president":
+      return 1;
+    case "secretary":
+      return 2;
+    case "treasurer":
       return 3;
     case "executive_member":
       return 4;

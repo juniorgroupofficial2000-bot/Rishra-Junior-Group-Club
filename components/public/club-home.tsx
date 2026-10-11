@@ -2,30 +2,28 @@ import { aboutStory } from "@/content/about-story";
 import { placeholderFacilities, placeholderNews } from "@/content/club-public";
 import { siteConfig } from "@/content/site";
 import { siteMedia } from "@/content/site-media";
+import { HeroCarousel } from "@/components/public/hero-carousel";
 import Link from "next/link";
 
-export function ClubHome() {
-  const slides = [
-    "/images/home/hero-placeholder-a.svg",
-    "/images/home/hero-placeholder-b.svg",
-  ];
+const heroSlides = [
+  "/images/hero/slides/01.jpg",
+  "/images/hero/slides/02.jpg",
+  "/images/hero/slides/03.jpg",
+  "/images/hero/slides/04.jpg",
+  "/images/hero/slides/05.jpg",
+  "/images/hero/slides/06.jpg",
+  "/images/hero/slides/07.jpg",
+  "/images/hero/slides/08.jpg",
+  "/images/hero/slides/09.jpg",
+].map((src, index) => ({
+  src,
+  alt: `Club photograph ${index + 1}`,
+}));
 
+export function ClubHome() {
   return (
     <div className="bg-white text-[#333333]">
-      <section className="grid min-h-[280px] md:grid-cols-2 md:min-h-[420px]">
-        <div
-          className="min-h-[220px] bg-cover bg-center"
-          style={{ backgroundImage: `url(${slides[0]})` }}
-          role="img"
-          aria-label="Placeholder club photograph"
-        />
-        <div
-          className="min-h-[220px] bg-cover bg-center"
-          style={{ backgroundImage: `url(${slides[1]})` }}
-          role="img"
-          aria-label="Placeholder club photograph"
-        />
-      </section>
+      <HeroCarousel images={heroSlides} />
 
       <section className="mx-auto grid max-w-[1100px] items-center gap-10 px-4 py-16 md:grid-cols-2">
         <img
@@ -104,7 +102,7 @@ export function ClubHome() {
 
       <section className="mx-auto max-w-[1100px] px-4 py-14">
         <div className="flex items-end justify-between gap-4">
-          <h2 className="font-display text-3xl text-logo-blue">NEWS & EVENTS</h2>
+          <h2 className="font-display text-3xl text-logo-blue">NOTICE & EVENTS</h2>
           <Link href="/announcements" className="text-xs font-semibold tracking-[0.16em] text-logo-blue">
             VIEW ALL
           </Link>

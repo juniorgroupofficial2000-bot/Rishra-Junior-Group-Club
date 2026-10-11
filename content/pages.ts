@@ -14,7 +14,7 @@ export type PublicPageKey =
   | "contact"
   | "facilities"
   | "founders"
-  | "past-president"
+  | "members"
   | "faq"
   | "search"
   | "privacy"
@@ -135,11 +135,12 @@ export const publicPages: Record<PublicPageKey, PublicPageDefinition> = {
       "Founder members of Rishra Junior Group Club and the roles provided by the club.",
     eyebrow: "About",
   },
-  "past-president": {
-    key: "past-president",
-    path: "/past-president",
-    title: "Past President",
-    description: "President named by Rishra Junior Group Club.",
+  members: {
+    key: "members",
+    path: "/members",
+    title: "Members",
+    description:
+      "Members of Rishra Junior Group Club, listed in leadership order.",
     eyebrow: "About",
   },
   faq: {

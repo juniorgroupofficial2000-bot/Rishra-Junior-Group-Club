@@ -42,7 +42,7 @@ export function CommitteeDirectory({
   const treasurer = byRole(members, "treasurer")[0];
   const vicePresidents = byRole(members, "vice_president");
   const executives = byRole(members, "executive_member");
-  const officers = [secretary, treasurer, ...vicePresidents].filter(
+  const officers = [...vicePresidents, secretary, treasurer].filter(
     Boolean,
   ) as CommitteeMember[];
 
@@ -83,7 +83,7 @@ export function CommitteeDirectory({
                   id="committee-officers"
                   className="mt-2 font-display text-3xl font-semibold tracking-tight text-ink-900 sm:text-4xl"
                 >
-                  Secretary, Treasurer &amp; Vice President
+                  Vice President, Secretary &amp; Treasurer
                 </h2>
               </div>
               <p className="max-w-sm text-sm leading-relaxed text-ink-500">

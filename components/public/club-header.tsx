@@ -13,13 +13,13 @@ const aboutLinks = [
   { href: "/committee", label: "Committee" },
   { href: "/sub-committee", label: "Sub-Committee" },
   { href: "/founders", label: "Founder Members" },
-  { href: "/past-president", label: "Past President" },
+  { href: "/members", label: "Members" },
 ] as const;
 
 const links = [
   { href: "/", label: "Home" },
   { href: "/facilities", label: "Facilities" },
-  { href: "/announcements", label: "News" },
+  { href: "/announcements", label: "Notice" },
   { href: "/events", label: "Events" },
   { href: "/gallery", label: "Gallery" },
   { href: "/contact", label: "Contact" },

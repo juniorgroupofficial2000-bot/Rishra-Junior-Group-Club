@@ -12,7 +12,7 @@ export function ClubFooter() {
           <ul className="mt-4 space-y-2 text-sm text-[#333333]">
             <li><Link href="/about">About</Link></li>
             <li><Link href="/committee">Committee</Link></li>
-            <li><Link href="/announcements">News</Link></li>
+            <li><Link href="/announcements">Notice</Link></li>
             <li><Link href="/events">Events</Link></li>
             <li><Link href="/gallery">Gallery</Link></li>
             <li><Link href="/privacy">Privacy Policy</Link></li>

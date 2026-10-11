@@ -10,6 +10,11 @@ export const founderMembers = [
     portrait: "/images/committee/monu.png",
   },
   {
+    name: "Suraj Kumar Burman",
+    role: "Vice President",
+    portrait: "/images/committee/suraj-kumar-burman.png",
+  },
+  {
     name: "Bishal Pandey",
     role: "Secretary",
     portrait: "/images/committee/Bishal.png",
@@ -20,9 +25,19 @@ export const founderMembers = [
     portrait: "/images/committee/Aalok.png",
   },
   {
-    name: "Suraj Kumar Burman",
-    role: "Vice President",
-    portrait: "/images/committee/suraj-kumar-burman.png",
+    name: "Gopal Burman",
+    role: "Committee Member",
+    portrait: "/images/committee/Gopal.png",
+  },
+  {
+    name: "Sashikant Tiwari",
+    role: "Committee Member",
+    portrait: "/images/committee/sashikant.png",
+  },
+  {
+    name: "Chandan Sharma",
+    role: "Committee Member",
+    portrait: "/images/committee/chandan.png",
   },
 ] as const;
 
