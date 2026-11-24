@@ -48,22 +48,6 @@ export function HeroCarousel({
       ))}
       {count > 1 ? (
         <>
-          <button
-            type="button"
-            className="absolute left-3 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center bg-white/90 text-logo-blue"
-            aria-label="Previous photograph"
-            onClick={() => go(index - 1)}
-          >
-            <ChevronLeft className="h-5 w-5" aria-hidden />
-          </button>
-          <button
-            type="button"
-            className="absolute right-3 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center bg-white/90 text-logo-blue"
-            aria-label="Next photograph"
-            onClick={() => go(index + 1)}
-          >
-            <ChevronRight className="h-5 w-5" aria-hidden />
-          </button>
           <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
             {images.map((image, imageIndex) => (
               <button
