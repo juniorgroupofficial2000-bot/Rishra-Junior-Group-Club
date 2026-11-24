@@ -1,5 +1,5 @@
 import { aboutStory } from "@/content/about-story";
-import { placeholderFacilities, placeholderNews } from "@/content/club-public";
+import { noticeChannels, upcomingEventCalendar, virtualFacilities } from "@/content/club-roster";
 import { siteConfig } from "@/content/site";
 import { siteMedia } from "@/content/site-media";
 import { HeroCarousel } from "@/components/public/hero-carousel";
@@ -87,12 +87,14 @@ export function ClubHome() {
       <section className="bg-[#F8F9FA] py-14">
         <h2 className="text-center font-display text-3xl tracking-wide text-logo-blue">FACILITIES</h2>
         <ul className="mx-auto mt-8 flex max-w-[1100px] gap-4 overflow-x-auto px-4 pb-2">
-          {placeholderFacilities.map((item) => (
+          {virtualFacilities.map((item) => (
             <li key={item.title} className="w-64 shrink-0">
-              <Link href="/facilities" className="block bg-white shadow-sm">
-                <img src={item.image} alt="" className="h-40 w-full object-cover" />
-                <span className="block px-3 py-3 text-center text-sm font-semibold text-logo-blue">
+              <Link href="/facilities" className="block bg-white p-4 shadow-sm">
+                <span className="block text-center text-sm font-semibold text-logo-blue">
                   {item.title}
+                </span>
+                <span className="mt-2 block text-center text-xs leading-5 text-[#555]">
+                  {item.perk}
                 </span>
               </Link>
             </li>
@@ -108,16 +110,25 @@ export function ClubHome() {
           </Link>
         </div>
         <ul className="mt-8 grid gap-6 md:grid-cols-3">
-          {placeholderNews.map((item) => (
+          {noticeChannels.slice(0, 3).map((item) => (
             <li key={item.title} className="border border-[#eee] p-4">
               <Link href={item.href} className="font-display text-lg text-logo-blue">
                 {item.title}
               </Link>
-              <p className="mt-2 text-xs text-[#888]">{item.date}</p>
               <p className="mt-3 text-sm leading-6 text-[#333333]">{item.summary}</p>
             </li>
           ))}
         </ul>
+        <div className="mt-10">
+          <h3 className="font-display text-xl text-logo-blue">This year’s calendar</h3>
+          <ul className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+            {upcomingEventCalendar.map((entry) => (
+              <li key={entry.month}>
+                <span className="font-semibold">{entry.month}:</span> {entry.items.join(", ")}
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
     </div>
   );

@@ -13,6 +13,7 @@ export type PublicPageKey =
   | "membership"
   | "contact"
   | "facilities"
+  | "sponsorship"
   | "founders"
   | "members"
   | "faq"
@@ -59,9 +60,9 @@ export const publicPages: Record<PublicPageKey, PublicPageDefinition> = {
   committee: {
     key: "committee",
     path: "/committee",
-    title: "Leadership & Committees",
+    title: "Committee",
     description:
-      "Rishra Junior Group Club is driven by members working together across leadership and standing committees. Public listings show names and roles only.",
+      "Governing body of Rishra Junior Group Club in official order. Public listings show names and roles only.",
     eyebrow: "Organization",
   },
   "sub-committee": {
@@ -69,7 +70,7 @@ export const publicPages: Record<PublicPageKey, PublicPageDefinition> = {
     path: "/sub-committee",
     title: "Sub-Committee",
     description:
-      "Standing sub-committees of Rishra Junior Group Club. Public listings show names and roles only.",
+      "Standing sub-committees of Rishra Junior Group Club with chairman, convenor, members, and ex-officio officers.",
     eyebrow: "About",
   },
   "saraswati-puja": {
@@ -85,7 +86,7 @@ export const publicPages: Record<PublicPageKey, PublicPageDefinition> = {
     path: "/events",
     title: "Events",
     description:
-      "Upcoming and past events at Rishra Junior Group Club.",
+      "Upcoming club calendar — festivals, sports, and community programmes.",
     eyebrow: "Calendar",
   },
   gallery: {
@@ -99,9 +100,9 @@ export const publicPages: Record<PublicPageKey, PublicPageDefinition> = {
   announcements: {
     key: "announcements",
     path: "/announcements",
-    title: "Announcements",
+    title: "Notice",
     description:
-      "Official club announcements with categories and pinned notices.",
+      "Official notices and broadcast channels for Rishra Junior Group Club.",
     eyebrow: "Updates",
   },
   membership: {
@@ -124,8 +125,16 @@ export const publicPages: Record<PublicPageKey, PublicPageDefinition> = {
     path: "/facilities",
     title: "Facilities",
     description:
-      "Sample facility listings for Rishra Junior Group Club. Official details will replace these placeholders.",
+      "Member perks and venue-partner facilities proposed for Rishra Junior Group Club.",
     eyebrow: "Club",
+  },
+  sponsorship: {
+    key: "sponsorship",
+    path: "/sponsorship",
+    title: "Sponsorship",
+    description:
+      "Sponsorship inventory for club events, including gates, hoardings, stalls, and kit partners.",
+    eyebrow: "Support",
   },
   founders: {
     key: "founders",

@@ -12,6 +12,8 @@ export function ClubFooter() {
           <ul className="mt-4 space-y-2 text-sm text-[#333333]">
             <li><Link href="/about">About</Link></li>
             <li><Link href="/committee">Committee</Link></li>
+            <li><Link href="/members">Members</Link></li>
+            <li><Link href="/sponsorship">Sponsorship</Link></li>
             <li><Link href="/announcements">Notice</Link></li>
             <li><Link href="/events">Events</Link></li>
             <li><Link href="/gallery">Gallery</Link></li>
@@ -21,7 +23,7 @@ export function ClubFooter() {
         <div>
           <h2 className="text-sm font-semibold tracking-[0.16em] text-logo-blue">FACILITIES</h2>
           <ul className="mt-4 space-y-2 text-sm text-[#333333]">
-            {["Community Hall", "Puja Ground", "Meeting Room", "Youth Corner"].map((name) => (
+            {["Turf & Badminton", "Gym", "Restaurant & Cafe", "Library"].map((name) => (
               <li key={name}><Link href="/facilities">{name}</Link></li>
             ))}
           </ul>

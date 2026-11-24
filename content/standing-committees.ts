@@ -25,12 +25,12 @@ export type StandingCommitteeSeed = {
 
 export const standingCommitteePageCopy = {
   eyebrow: "Organization",
-  title: "Leadership & Committees",
+  title: "Committee",
   description:
-    "Rishra Junior Group Club is driven by members working together across leadership and standing committees — each focused on a different part of club life.",
-  subCommitteesTitle: "Committees That Keep the Club Moving",
+    "The governing body of Rishra Junior Group Club, listed in official hierarchy. Public listings show names and roles only.",
+  subCommitteesTitle: "Standing Sub-Committees",
   subCommitteesDescription:
-    "Standing committees carry programmes, welfare, youth, and outreach. Explore who leads each area.",
+    "Cultural, sports, welfare, education, media, and community groups, each with a chairman, convenor, members, and ex-officio officers.",
   emptyCommittees:
     "Active committees will appear here once the club publishes them.",
   emptyMembers: "Committee members will be announced soon.",

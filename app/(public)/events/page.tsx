@@ -1,7 +1,9 @@
 import { EventList } from "@/components/events";
 import { CatalogFilterBar } from "@/components/public/catalog-filter-bar";
+import { ClubDataTable } from "@/components/public/club-data-table";
 import { EditorialPageHero } from "@/components/public/editorial-page-hero";
 import { SiteContainer } from "@/components/public/site-container";
+import { upcomingEventCalendar } from "@/content/club-roster";
 import { publicPages } from "@/content/pages";
 import { JsonLd } from "@/lib/json-ld";
 import { metadataForPublicPage } from "@/lib/seo/metadata";
@@ -65,6 +67,24 @@ export default async function EventsPage({
       />
 
       <SiteContainer className="space-y-16 pb-20 sm:pb-28">
+        <section aria-labelledby="club-calendar-heading">
+          <h2
+            id="club-calendar-heading"
+            className="font-display text-3xl font-semibold tracking-tight text-logo-blue"
+          >
+            Upcoming event calendar
+          </h2>
+          <p className="mt-2 text-sm text-[#555]">
+            Scheduled festivals, sports, and community programmes for the year.
+          </p>
+          <ClubDataTable
+            columns={["Month", "Scheduled events & initiatives"]}
+            rows={upcomingEventCalendar.map((entry) => [
+              entry.month,
+              entry.items.join(" • "),
+            ])}
+          />
+        </section>
         <CatalogFilterBar action="/events" query={q} />
 
         <section aria-labelledby="upcoming-events-heading">

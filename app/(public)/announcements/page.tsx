@@ -3,6 +3,7 @@ import { Reveal } from "@/components/motion";
 import { CatalogFilterBar } from "@/components/public/catalog-filter-bar";
 import { EditorialPageHero } from "@/components/public/editorial-page-hero";
 import { SiteContainer } from "@/components/public/site-container";
+import { noticeChannels } from "@/content/club-roster";
 import {
   announcementCategoryLabel,
   type AnnouncementCategory,
@@ -57,6 +58,20 @@ export default async function AnnouncementsPage({
         description={page.description}
       />
       <SiteContainer className="space-y-10 pb-20 pt-10 sm:pb-28 sm:pt-14">
+        <section>
+          <h2 className="font-display text-2xl text-logo-blue">Official communication</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-7 text-[#555]">
+            Channel tags for broadcasting updates to members.
+          </p>
+          <ul className="mt-6 grid gap-4 md:grid-cols-2">
+            {noticeChannels.map((channel) => (
+              <li key={channel.title} className="border border-[#eee] p-4">
+                <h3 className="font-display text-lg text-logo-blue">{channel.title}</h3>
+                <p className="mt-2 text-sm leading-6">{channel.summary}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
         <CatalogFilterBar
           action="/announcements"
           query={q}

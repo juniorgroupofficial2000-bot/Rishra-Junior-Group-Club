@@ -239,17 +239,32 @@ export const committeePortraitsByName: Record<
   },
   "chandan sharma": {
     src: "/images/committee/chandan.png",
-    alt: "Portrait of Chandan Sharma, Committee Member",
+    alt: "Portrait of Chandan Kumar Sharma, Committee Member",
+    objectPosition: "center 18%",
+  },
+  "chandan kumar sharma": {
+    src: "/images/committee/chandan.png",
+    alt: "Portrait of Chandan Kumar Sharma, Committee Member",
     objectPosition: "center 18%",
   },
   "gopal burman": {
     src: "/images/committee/Gopal.png",
-    alt: "Portrait of Gopal Burman, Committee Member",
+    alt: "Portrait of Gopal Kumar Burman, Committee Member",
+    objectPosition: "center 18%",
+  },
+  "gopal kumar burman": {
+    src: "/images/committee/Gopal.png",
+    alt: "Portrait of Gopal Kumar Burman, Committee Member",
     objectPosition: "center 18%",
   },
   "rohit barma": {
     src: "/images/committee/rohit-barma.png",
-    alt: "Portrait of Rohit Barma",
+    alt: "Portrait of Rohit Barman",
+    objectPosition: "center 18%",
+  },
+  "rohit barman": {
+    src: "/images/committee/rohit-barma.png",
+    alt: "Portrait of Rohit Barman",
     objectPosition: "center 18%",
   },
   "nayan halder": {
@@ -259,12 +274,22 @@ export const committeePortraitsByName: Record<
   },
   "dipak burman": {
     src: "/images/committee/dipak-burman.png",
-    alt: "Portrait of Dipak Burman",
+    alt: "Portrait of Dipak Kumar Burman",
+    objectPosition: "center 18%",
+  },
+  "dipak kumar burman": {
+    src: "/images/committee/dipak-burman.png",
+    alt: "Portrait of Dipak Kumar Burman",
     objectPosition: "center 18%",
   },
   "vikash dwivedi": {
     src: "/images/committee/vikash-dwivedi.png",
-    alt: "Portrait of Vikash Dwivedi",
+    alt: "Portrait of Vikesh Dwivedi",
+    objectPosition: "center 18%",
+  },
+  "vikesh dwivedi": {
+    src: "/images/committee/vikash-dwivedi.png",
+    alt: "Portrait of Vikesh Dwivedi",
     objectPosition: "center 18%",
   },
   "bittu burman": {
