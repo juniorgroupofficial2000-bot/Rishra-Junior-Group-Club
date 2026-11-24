@@ -6,15 +6,15 @@ import { HeroCarousel } from "@/components/public/hero-carousel";
 import Link from "next/link";
 
 const heroSlides = [
-  "/images/hero/slides/01.jpg",
-  "/images/hero/slides/02.jpg",
-  "/images/hero/slides/03.jpg",
-  "/images/hero/slides/04.jpg",
-  "/images/hero/slides/05.jpg",
-  "/images/hero/slides/06.jpg",
-  "/images/hero/slides/07.jpg",
-  "/images/hero/slides/08.jpg",
-  "/images/hero/slides/09.jpg",
+  "/images/hero/slides/1.jpg",
+  "/images/hero/slides/2.jpg",
+  "/images/hero/slides/3.jpg",
+  "/images/hero/slides/4.jpg",
+  "/images/hero/slides/5.jpg",
+  "/images/hero/slides/6.jpg",
+  "/images/hero/slides/7.jpg",
+  "/images/hero/slides/8.jpg",
+  "/images/hero/slides/9.jpg",
 ].map((src, index) => ({
   src,
   alt: `Club photograph ${index + 1}`,
