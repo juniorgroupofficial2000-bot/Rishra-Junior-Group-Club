@@ -24,16 +24,16 @@ export function EventList({
 }) {
   const reduce = Boolean(useReducedMotion());
 
-  if (events.length === 0) {
-    return (
-      <EmptyState
-        title={emptyLabel}
-        description="Published dates from the club calendar appear here. Nothing is invented when the calendar is empty."
-        action={{ label: "View announcements", href: "/announcements" }}
-        secondaryAction={{ label: "Contact the club", href: "/contact" }}
-      />
-    );
-  }
+  // if (events.length === 0) {
+  //   return (
+  //     <EmptyState
+  //       title={emptyLabel}
+  //       description="Published dates from the club calendar appear here. Nothing is invented when the calendar is empty."
+  //       action={{ label: "View announcements", href: "/announcements" }}
+  //       secondaryAction={{ label: "Contact the club", href: "/contact" }}
+  //     />
+  //   );
+  // }
 
   const [lead, ...rest] = featured ? events : [null, ...events];
   const rows = featured ? rest : events;
